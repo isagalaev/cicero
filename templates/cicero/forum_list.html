@@ -13,7 +13,7 @@
 {% if group.grouper %}<h2>{{ group.grouper|escape }}</h2>{% endif %}
 <ul>
 {% for forum in group.list %}
-  <li><a href="{{ orum.slug }}/">{{ forum|escape }}</a>
+  <li><a href="{{ forum.slug }}/">{{ forum|escape }}</a>
 {% endfor %}
 </ul>
 
