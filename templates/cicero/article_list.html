@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<head>
+  <title>{{ topic|escape }}</title>
+
+<body>
+
+<h1><a href="../">{{ forum|escape }}</a></h1>
+
+<h2>{{ topic.subject|escape }}</h2>
+
+<ol>
+{% for article in object_list %}
+  <li>
+    <div class="usertext">
+      {{ article.html }}
+    </div>
+    <div class="meta">
+      <address>{{ article.author }}</address>
+      <p class="time">{{ article.created|date:"d.m.Y H:i" }}
+    </div>
+{% endfor %}
+</ol>

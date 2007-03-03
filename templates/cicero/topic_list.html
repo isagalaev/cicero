@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<head>
+  <title>Форум {{ forum|escape }}</title>
+
+<body>
+
+<h1>{{ forum|escape }}</h1>
+
+<ol>
+{% for topic in object_list %}
+  <li><a href="{{ topic.id }}/">{{ topic|escape }}</a>
+{% endfor %}
+</ol>
