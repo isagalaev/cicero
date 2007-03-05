@@ -30,12 +30,19 @@ class Topic(models.Model):
   def __str__(self):
     return self.subject
     
+class ArticleManager(models.Manager):
+  def get_query_set(self):
+    return super(ArticleManager, self).get_query_set().select_related()
+    
 class Article(models.Model):
   topic = models.ForeignKey(Topic)
   text = models.TextField()
   filter = models.CharField(maxlength=50)
   created = models.DateTimeField(auto_now_add=True)
   author = models.ForeignKey(User)
+  guest_name = models.CharField(maxlength=255, blank=True)
+  
+  objects = ArticleManager()
   
   class Meta:
     ordering = ['id']
@@ -53,3 +60,10 @@ class Article(models.Model):
     '''
     # implement filtering
     return self.text
+    
+  def author_display(self):
+    '''
+    Имя автора статьи для отображения. Берется из имени автора, если он
+    не гость, либо из отдельного поля имени гостя.
+    '''
+    return self.author.username != 'cicero_guest' and self.author or self.guest_name
