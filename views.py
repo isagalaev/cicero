@@ -44,5 +44,5 @@ def topic(request, slug, id, **kwargs):
   else:
     form = ArticleForm()
   kwargs['queryset'] = obj.article_set.all()
-  kwargs['extra_context'] = {'topic': obj, 'forum': obj.forum, 'form': form}
+  kwargs['extra_context'] = {'topic': obj, 'form': form}
   return object_list(request, **kwargs)  
