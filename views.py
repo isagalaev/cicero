@@ -8,18 +8,6 @@ from django.template import RequestContext
 from cicero.models import Forum, Topic
 from cicero.forms import ArticleForm, TopicForm
 
-def forum(request, slug, **kwargs):
-  forum = get_object_or_404(Forum, slug=slug)
-  kwargs['queryset'] = forum.topic_set.all()
-  kwargs['extra_context'] = {'forum': forum, 'form': TopicForm()}
-  return object_list(request, **kwargs)
-
-def topic(request, slug, id, **kwargs):
-  obj = get_object_or_404(Topic, forum__slug=slug, pk=id)
-  kwargs['queryset'] = obj.article_set.all()
-  kwargs['extra_context'] = {'topic': obj, 'forum': obj.forum, 'form': ArticleForm()}
-  return object_list(request, **kwargs)
-
 def _create_article(topic, form, user):
   if not user.is_authenticated():
     from django.contrib.auth.models import User
@@ -31,28 +19,30 @@ def _create_article(topic, form, user):
     filter=user.cicero_profile.filter,
   )
 
-@require_http_methods('POST')
-def post_topic(request, slug):
+def forum(request, slug, **kwargs):
   forum = get_object_or_404(Forum, slug=slug)
-  form = TopicForm(request.POST)
-  if not form.is_valid():
-    return render_to_response('cicero/topic_add.html', {
-      'form': form,
-      'forum': forum,
-    }, context_instance=RequestContext(request))
-  topic = Topic(forum=forum, subject=form.clean_data['subject'])
-  topic.save()
-  _create_article(topic, form, request.user)
-  return HttpResponseRedirect('../')
+  if request.method == 'POST':
+    form = TopicForm(request.POST)
+    if form.is_valid():
+      topic = Topic(forum=forum, subject=form.clean_data['subject'])
+      topic.save()
+      _create_article(topic, form, request.user)
+      return HttpResponseRedirect('./')
+  else:
+    form = TopicForm()
+  kwargs['queryset'] = forum.topic_set.all()
+  kwargs['extra_context'] = {'forum': forum, 'form': form}
+  return object_list(request, **kwargs)
 
-@require_http_methods('POST')
-def post_article(request, slug, id):
-  topic = get_object_or_404(Topic, forum__slug=slug, pk=id)
-  form = ArticleForm(request.POST)
-  if not form.is_valid():
-    return render_to_response('cicero/article_add.html', {
-      'form': form,
-      'topic': topic,
-    }, context_instance=RequestContext(request))
-  _create_article(topic, form, request.user)
-  return HttpResponseRedirect('../')
+def topic(request, slug, id, **kwargs):
+  obj = get_object_or_404(Topic, forum__slug=slug, pk=id)
+  if request.method == 'POST':
+    form = ArticleForm(request.POST)
+    if form.is_valid():
+      _create_article(obj, form, request.user)
+      return HttpResponseRedirect('./')
+  else:
+    form = ArticleForm()
+  kwargs['queryset'] = obj.article_set.all()
+  kwargs['extra_context'] = {'topic': obj, 'forum': obj.forum, 'form': form}
+  return object_list(request, **kwargs)  
