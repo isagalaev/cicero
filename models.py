@@ -6,12 +6,13 @@ class Forum(models.Model):
   slug = models.SlugField()
   name = models.CharField(maxlength=255)
   group = models.CharField(maxlength=255, blank=True)
+  ordering = models.IntegerField(default=0)
   
   class Meta:
-    ordering = ['group']
+    ordering = ['ordering', 'group']
   
   class Admin:
-    pass
+    list_display = ['name', 'ordering', 'group']
   
   def __str__(self):
     return self.name
