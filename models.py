@@ -22,7 +22,7 @@ class Topic(models.Model):
   created = models.DateTimeField(auto_now_add=True)
   
   class Meta:
-    ordering = ['id']
+    ordering = ['-id']
     
   class Admin:
     pass
@@ -67,3 +67,17 @@ class Article(models.Model):
     не гость, либо из отдельного поля имени гостя.
     '''
     return self.author.username != 'cicero_guest' and self.author or self.guest_name
+    
+class Profile(models.Model):
+  user = models.OneToOneField(User, related_name='cicero_profile')
+  filter = models.CharField(maxlength=50)
+  
+  class Admin:
+    pass
+  
+  def __init__(self, *args, **kwargs):
+    super(Profile, self).__init__(*args, **kwargs)
+    self.filter = 'bbcode' # implement reading default from available filters
+    
+  def __str__(self):
+    return str(self.user)

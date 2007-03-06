@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<head>
+  <title>Топик в форум "{{ forum|escape }}"</title>
+
+<body>
+
+<h1>Топик в форум "{{ forum|escape }}"</h1>
+
+<form action="./" method="post">
+  {{ form.as_p }}
+  
+  <div class="buttons"><button type="submit">Добавить</button></div>
+</form>

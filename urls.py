@@ -15,4 +15,6 @@ urlpatterns = patterns('',
   (r'^$', object_list, {'queryset': Forum.objects.all()}),
   (r'^([a-z0-9-]+)/$', views.forum, info),
   (r'^([a-z0-9-]+)/(\d+)/$', views.topic, info),
+  (r'^([a-z0-9-]+)/add/$', views.post_topic),
+  (r'^([a-z0-9-]+)/(\d+)/add/$', views.post_article),
 )
