@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.db import models
 from django.contrib.auth.models import User
+from cicero.fields import AutoOneToOneField
 
 class Forum(models.Model):
   slug = models.SlugField()
@@ -68,9 +69,9 @@ class Article(models.Model):
     не гость, либо из отдельного поля имени гостя.
     '''
     return self.author.username != 'cicero_guest' and self.author or self.guest_name
-    
+
 class Profile(models.Model):
-  user = models.OneToOneField(User, related_name='cicero_profile')
+  user = AutoOneToOneField(User, related_name='cicero_profile')
   filter = models.CharField(maxlength=50)
   
   class Admin:
