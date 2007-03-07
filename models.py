@@ -61,7 +61,8 @@ class Article(models.Model):
     через указанный фильтр.
     '''
     # implement filtering
-    return self.text
+    from django.utils.html import escape
+    return escape(self.text)
     
   def author_display(self):
     '''
