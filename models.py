@@ -60,9 +60,15 @@ class Article(models.Model):
     Возвращает HTML-текст статьи, полученный фильтрацией содержимого
     через указанный фильтр.
     '''
-    # implement filtering
-    from django.utils.html import escape
-    return escape(self.text)
+    from cicero.filters import filters
+    if self.filter in filters:
+      result = filters[self.filter](self.text)
+    else:
+      from django.utils.html import linebreaks, escape
+      result = linebreaks(escape(self.text))
+    import re
+    result = re.sub(r'\B--\B', '—', result)
+    return result
     
   def author_display(self):
     '''
@@ -78,9 +84,10 @@ class Profile(models.Model):
   class Admin:
     pass
   
-  def __init__(self, *args, **kwargs):
-    super(Profile, self).__init__(*args, **kwargs)
-    self.filter = 'bbcode' # implement reading default from available filters
-    
   def __str__(self):
     return str(self.user)
+    
+  def save(self):
+    if self.filter is None:
+      self.filter = 'bbcode'
+    super(Profile, self).save()
