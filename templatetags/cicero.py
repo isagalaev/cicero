@@ -6,12 +6,12 @@ register=template.Library()
 class PaginatorNode(template.Node):
   def render(self,context):
     if context['has_next']:
-      next = '<a href="?page=%s" class="next">→</a> ' % context['page'] + 1
+      next = '<a href="?page=%s" class="next">→</a> ' % (context['page'] + 1)
     else:
       next = '<span class="next">→</span>'
     
     if context['has_previous']:
-      previous = '<a href="?page=%s" class="previous">←</a> ' % context['page'] - 1
+      previous = '<a href="?page=%s" class="previous">←</a> ' % (context['page'] - 1)
     else:
       previous = '<span class="previous">←</span>'
     
