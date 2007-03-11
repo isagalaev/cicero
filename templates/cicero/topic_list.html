@@ -1,8 +1,8 @@
-<!DOCTYPE html>
-<head>
-  <title>Форум {{ forum|escape }}</title>
+{% extends template_base %}
 
-<body>
+{% block title %}Форум {{ forum|escape }}{% endblock %}
+
+{% block content %}
 
 <h1>{{ forum|escape }}</h1>
 
@@ -17,3 +17,5 @@
   
   <div class="buttons"><button type="submit">Добавить</button></div>
 </form>
+
+{% endblock %}
