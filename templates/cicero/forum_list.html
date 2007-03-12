@@ -4,18 +4,22 @@
 
 {% block content %}
 
-<h1>Форумы Cicero</h1>
-
 {% regroup object_list by group as groups %}
 
 {% for group in groups %}
 
-{% if group.grouper %}<h2>{{ group.grouper|escape }}</h2>{% endif %}
+{% if group.grouper %}
+<div class="group">
+<h2>{{ group.grouper|escape }}</h2>
+{% endif %}
 <ul>
 {% for forum in group.list %}
   <li><a href="{{ forum.slug }}/">{{ forum|escape }}</a>
 {% endfor %}
 </ul>
+{% if group.grouper %}
+</div>
+{% endif %}
 
 {% endfor %}
 

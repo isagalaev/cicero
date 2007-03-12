@@ -1,7 +1,178 @@
 <!DOCTYPE html>
 <head>
   <title>{% block title %}{% endblock %}</title>
+  <style>
+  /* Layout */
+  body {
+    margin: 0;
+  }
+  
+  h1 {
+    margin: 0; padding: 0.5em;
+  }
+  
+  #content {
+    position: relative;
+    padding: 0 1em;
+  }
+  
+  h2 {
+    margin: 0; padding: 1em 0;
+  }
+  
+  #breadcrumbs {
+    position: absolute; top: 0; right: 0;
+    margin: 0; padding: 1em 0;
+    list-style: none;
+  }
+  
+  #breadcrumbs li {
+    float: right;
+    padding-right: 0.5em;
+  }
+  
+  .paginator {
+    float: right;
+    overflow: hidden; zoom: 1;
+    width: 10em; text-align: center;
+    padding: 0.5em;
+  }
+  
+  .paginator .next {
+    float: right;
+  }
+  
+  .paginator .previous {
+    float: left;
+  }
+  
+  .paginator input {
+    width: 2.5em; text-align: right;
+  }
+  
+  .usertext p {
+    margin-top: 0;
+  }
+  
+  .group {
+    margin: 1em 0;
+  }
+  
+  .group h2 {
+    padding: 0.5em;
+  }
+  
+  .group ul {
+    margin: 1em; padding: 0;
+    list-style: none;
+  }
+  
+  .group li {
+    margin: 0.5em 0; padding: 0;
+  }
+  
+  #forum ol,
+  #topic ol {
+    clear: both;
+    list-style: none;
+    padding: 0;
+    width: 50em;
+  }
+  
+  #topic ol li {
+    margin: 0;
+    padding: 0.5em 0;
+  }
+  
+  #topic .meta {
+    margin-top: 0.5em;
+    text-align: right;
+  }
+  
+  #topic .meta address,
+  #topic .meta .time {
+    display: inline;
+  }
+  
+  #add {
+    clear: both; width: 50em;
+  }
+  
+  #add label {
+    display: block;
+  }
+  
+  #add input,
+  #add textarea {
+    width: 100%;
+  }
+  
+  /* Colors */
+  
+  h1,
+  h1 a {
+    color: white;
+  }
+  
+  a {
+    color: #444;
+  }
+  
+  h1 {
+    background: black;
+  }
+  
+  h2,
+  .meta  {
+    color: #888;
+  }
+  
+  .group,
+  #topic ol li {
+    border-color: #CCC;
+  }
+  
+  /* Fonts */
+  
+  body {
+    font: small Tahoma, sans-serif;
+  }
+  
+  h1 {
+    font-size: 130%; 
+  }
+  
+  h2 {
+    font-size: 110%;
+  }
+  
+  .meta {
+    font-size: 90%;
+  }
+  
+  .paginator {
+    font-size: 80%;
+  }
+  
+  .paginator input {
+    font-size: 100%;
+  }
+  
+  /* Misc */
+  
+  .group {
+    border-style: solid; border-width: 1px;
+  }
+  
+  #topic ol li {
+    border-style: dotted; border-width: 1px 0 0 0;
+  }
+  </style>
 
-<body>
+<body id="{{ page_id }}">
 
+<h1>Форумы Cicero</h1>
+
+<div id="content">
 {% block content %}{% endblock %}
+</div>

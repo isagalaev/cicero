@@ -16,7 +16,8 @@ info = {
 urlpatterns = patterns('',
   (r'^$', object_list, {
     'queryset': Forum.objects.all(), 
-    'context_processors': [default]
+    'context_processors': [default],
+    'extra_context': {'page_id': 'index'},
   }),
   (r'^([a-z0-9-]+)/$', views.forum, info),
   (r'^([a-z0-9-]+)/(\d+)/$', views.topic, info),

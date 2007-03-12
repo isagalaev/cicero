@@ -5,8 +5,6 @@
 
 {% block content %}
 
-<h1><a href="../">{{ topic.forum|escape }}</a></h1>
-
 <h2>{{ topic.subject|escape }}</h2>
 
 {% paginator %}
@@ -26,10 +24,15 @@
 
 {% paginator %}
 
-<form action="./" method="post">
+<form action="./" method="post" id="add">
   {{ form.as_p }}
   
   <div class="buttons"><button type="submit">Добавить</button></div>
 </form>
+
+<ul id="breadcrumbs">
+  <li id="index_link"><a href="../../">Начало</a>
+  <li id="forum_link"><a href="../">{{ topic.forum|escape }}</a>
+</ul>
 
 {% endblock %}

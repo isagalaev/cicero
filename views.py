@@ -18,7 +18,7 @@ def forum(request, slug, **kwargs):
   else:
     form = TopicForm(forum, request.user)
   kwargs['queryset'] = forum.topic_set.all()
-  kwargs['extra_context'] = {'forum': forum, 'form': form}
+  kwargs['extra_context'] = {'forum': forum, 'form': form, 'page_id': 'forum'}
   return object_list(request, **kwargs)
 
 def topic(request, slug, id, **kwargs):
@@ -31,5 +31,5 @@ def topic(request, slug, id, **kwargs):
   else:
     form = ArticleForm(topic, request.user)
   kwargs['queryset'] = topic.article_set.all()
-  kwargs['extra_context'] = {'topic': topic, 'form': form}
+  kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic'}
   return object_list(request, **kwargs)
