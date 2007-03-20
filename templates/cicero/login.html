@@ -1,0 +1,14 @@
+{% extends template_base %}
+{% load cicero %}
+
+{% block title %}Форумы Cicero: вход{% endblock %}
+
+{% block content %}
+
+<form action="./" method="post" id="login">
+  {{ form.as_p }}
+  
+  <div class="buttons"><button type="submit">Войти</button></div>
+</form>
+
+{% endblock %}
