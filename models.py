@@ -80,6 +80,7 @@ class Article(models.Model):
 class Profile(models.Model):
   user = AutoOneToOneField(User, related_name='cicero_profile')
   filter = models.CharField(maxlength=50)
+  openid = models.URLField(null=True, verify_exists=False)
   
   class Admin:
     pass
@@ -88,6 +89,6 @@ class Profile(models.Model):
     return str(self.user)
     
   def save(self):
-    if self.filter is None:
+    if not self.filter:
       self.filter = 'bbcode'
     super(Profile, self).save()
