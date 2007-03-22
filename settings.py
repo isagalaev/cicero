@@ -5,7 +5,7 @@ PAGINATE_BY = 20
 
 # Базовый шаблон форумов. Вместо тестового нужно нарисовать свой
 # и прописать его сюда
-TEMPLATE_BASE = 'cicero_test/base.html'
+CICERO_TEMPLATE_BASE = 'cicero_test/base.html'
 
 # Директория, в которой лежат сессии OpenID.
 # Без нее авторизация по OpenID работать не будет.
