@@ -111,7 +111,7 @@ class Profile(models.Model):
       file = urlopen(self.openid)
       content = file.read(512 * 1024)
     except (URLError, IOError):
-      pass
+      return
     import re
     from BeautifulSoup import BeautifulSoup
     soup = BeautifulSoup(content)
