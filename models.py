@@ -135,6 +135,6 @@ class Profile(models.Model):
   def save(self):
     if not self.filter:
       self.filter = 'bbcode'
-    if self.openid and self.name is None:
+    if self.openid and not self.name:
       self.update_name()
     super(Profile, self).save()
