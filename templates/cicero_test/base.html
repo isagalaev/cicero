@@ -11,6 +11,10 @@
     margin: 0; padding: 0.5em;
   }
   
+  em.error {
+    display: block; margin-top: 0; margin-bottom: 0.5em;
+  }
+  
   #content {
     position: relative;
     padding: 0 1em;
@@ -107,10 +111,28 @@
     width: 100%;
   }
   
+  #auth {
+    position: absolute;
+    top: 0; right: 0;
+    padding: 0.5em;
+  }
+  
+  #auth p,
+  #auth div {
+    display: inline;
+    padding-left: 1em;
+  }
+  
+  #auth input {
+    width: 20em;
+  }
+  
   /* Colors */
   
   h1,
-  h1 a {
+  h1 a,
+  #auth p,
+  #auth a {
     color: white;
   }
   
@@ -118,7 +140,8 @@
     color: #444;
   }
   
-  h1 {
+  h1,
+  #auth {
     background: black;
   }
   
@@ -130,6 +153,10 @@
   .group,
   #topic ol li {
     border-color: #CCC;
+  }
+  
+  .error {
+    color: red;
   }
   
   /* Fonts */
@@ -146,15 +173,14 @@
     font-size: 110%;
   }
   
-  .meta {
-    font-size: 90%;
+  .meta,
+  .paginator,
+  #auth {
+    font-size: 85%;
   }
   
-  .paginator {
-    font-size: 80%;
-  }
-  
-  .paginator input {
+  .paginator input,
+  #auth input {
     font-size: 100%;
   }
   
@@ -173,9 +199,7 @@
 
 <h1>Форумы Cicero</h1>
 
-<div id="content">
-{% block content %}{% endblock %}
-</div>
+{% block cicero_content %}{% endblock %}
 
 {% if debug %}
 <div id="debug">

@@ -16,6 +16,7 @@ info = {
 urlpatterns = patterns('',
   (r'^login/$', views.login),
   (r'^auth/$', views.auth),
+  (r'^logout/$', views.logout),
   (r'^$', object_list, {
     'queryset': Forum.objects.all(), 
     'context_processors': [default],

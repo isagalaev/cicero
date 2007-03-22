@@ -3,12 +3,18 @@
 
 {% block title %}Форумы Cicero: вход{% endblock %}
 
-{% block content %}
+{% block cicero_content %}
+<div id="content">
 
 <form action="./" method="post" id="login">
-  {{ form.as_p }}
+  {% if redirect %}<input type="hidden" name="redirect" value="{{ redirect|escape }}">{% endif %}
+  <p>
+    <label for="id_openid">{{ form.openid.label }}</label>
+    {{ form.openid }}
+    {% if form.openid.errors %}<em class="error">{{ form.openid.errors|join:", " }}</em>{% endif %}
   
   <div class="buttons"><button type="submit">Войти</button></div>
 </form>
 
+</div>
 {% endblock %}

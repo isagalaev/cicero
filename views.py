@@ -1,13 +1,22 @@
 # -*- coding:utf-8 -*-
 from django.views.generic.list_detail import object_list
 from django.views.decorators.http import require_http_methods
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponseForbidden
-from django.template import RequestContext
 from django.conf import settings
 
 from cicero.models import Forum, Topic
 from cicero.forms import ArticleForm, TopicForm
+
+def render_to_response(request, template_name, context_dict):
+  from cicero.context import default
+  from django.template import RequestContext
+  from django.shortcuts import render_to_response as _render_to_response
+  context = RequestContext(request, context_dict, [default])
+  return _render_to_response(template_name, context_instance=context)
+  
+def post_redirect(request):
+  return request.POST.get('redirect', request.META.get('HTTP_REFERER', '/'))
 
 def forum(request, slug, **kwargs):
   forum = get_object_or_404(Forum, slug=slug)
@@ -40,13 +49,11 @@ def login(request):
   if request.method == 'POST':
     form = AuthForm(request.session, request.POST)
     if form.is_valid():
-      auth_redirect = form.auth_redirect(request.POST.get('redirect', request.META.get('HTTP_REFERER', '/')))
-      return HttpResponseRedirect(auth_redirect)
+      after_auth_redirect = form.auth_redirect(post_redirect(request))
+      return HttpResponseRedirect(after_auth_redirect)
   else:
     form = AuthForm(request.session)
-  from cicero.context import default
-  context = RequestContext(request, {'form': form}, [default])
-  return render_to_response('cicero/login.html', context_instance=context)
+  return render_to_response(request, 'cicero/login.html', {'form': form, 'redirect': post_redirect(request)})
     
 def auth(request):
   from django.contrib.auth import authenticate, login
@@ -55,3 +62,9 @@ def auth(request):
     return HttpResponseForbidden('Ошибка авторизации')
   login(request, user)
   return HttpResponseRedirect(request.GET.get('redirect', '/'))
+  
+@require_http_methods('POST')
+def logout(request):
+  from django.contrib.auth import logout
+  logout(request)
+  return HttpResponseRedirect(post_redirect(request))

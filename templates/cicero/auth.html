@@ -1,0 +1,26 @@
+{% extends template_base %}
+
+{% block cicero_content %}
+
+<div id="content">
+{% block content %}{% endblock %}
+</div>
+
+{% if user.is_authenticated %}
+<form action="{% url cicero.views.logout %}" method="post" id="auth">
+  <p>
+    {% if profile.openid %}
+    <a href="{% url cicero.views.profile %}">{{ profile|escape }}</a>
+    {% else %}
+    {{ profile|escape }}
+    {% endif %}
+  <div class="buttons"><button type="submit">Выход</button></div>
+</form>
+{% else %}
+<form action="{% url cicero.views.login %}" method="post" id="auth">
+  <p><label>OpenID: <input type="text" name="openid"></label>
+  <div class="buttons"><button type="submit">Вход</button></div>
+</form>
+{% endif %}
+
+{% endblock %}

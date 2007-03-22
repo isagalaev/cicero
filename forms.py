@@ -13,26 +13,40 @@ def _create_article(topic, user, data):
     guest_name=data['name'],
     filter=user.cicero_profile.filter,
   )
+  
+def _validate_name(user, data):
+  if user.is_authenticated():
+    return u''
+  else:
+    if not data['name']:
+      raise ValidationError('Обязательное поле')
+    return data['name']
 
 class ArticleForm(Form):
-  text = CharField(label='Текст', required=True, widget=Textarea(attrs={'cols': '80', 'rows': '20'}))
-  name = CharField(label='Имя', required=True)
+  text = CharField(label='Текст', widget=Textarea(attrs={'cols': '80', 'rows': '20'}))
+  name = CharField(label='Имя', required=False)
   
   def __init__(self, topic, user, *args, **kwargs):
     super(ArticleForm, self).__init__(*args, **kwargs)
     self.topic, self.user = topic, user
-  
+    
+  def clean_name(self):
+    return _validate_name(self.user, self.clean_data)
+    
   def save(self):
     _create_article(self.topic, self.user, self.clean_data)
   
 class TopicForm(Form):
-  subject = CharField(label='Тема', required=True)
-  text = CharField(label='Текст', required=True, widget=Textarea(attrs={'cols': '80', 'rows': '20'}))
-  name = CharField(label='Имя', required=True)
+  subject = CharField(label='Тема')
+  text = CharField(label='Текст', widget=Textarea(attrs={'cols': '80', 'rows': '20'}))
+  name = CharField(label='Имя', required=False)
   
   def __init__(self, forum, user, *args, **kwargs):
     super(TopicForm, self).__init__(*args, **kwargs)
     self.forum, self.user = forum, user
+    
+  def clean_name(self):
+    return _validate_name(self.user, self.clean_data)
   
   def save(self):
     from cicero.models import Topic
