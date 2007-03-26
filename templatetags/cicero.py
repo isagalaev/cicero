@@ -15,7 +15,7 @@ class PaginatorNode(template.Node):
     else:
       previous = '<span class="previous">←</span>'
     
-    pages = '<form action="./" method="get"><input type="text" name="page" value="%s"> (%s)</form>' % (context['page'], context['pages'])
+    pages = '<form action="./" method="get"><p><input type="text" name="page" value="%s"> (%s)</p></form>' % (context['page'], context['pages'])
     
     return '''    <div class="paginator">
       <div class="links">%s%s</div>
