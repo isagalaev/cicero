@@ -55,7 +55,7 @@ class TopicForm(Form):
     _create_article(topic, self.user, self.clean_data)
 
 class AuthForm(Form):
-  openid = URLField(label='OpenID', required=True)
+  openid_url = CharField(label='OpenID', max_length=200, required=True)
   
   def __init__(self, session, *args, **kwargs):
     Form.__init__(self, *args, **kwargs)
@@ -66,14 +66,14 @@ class AuthForm(Form):
     site = Site.objects.get_current()
     return 'http://' + site.domain
   
-  def clean_openid(self):
+  def clean_openid_url(self):
     from cicero.auth import get_consumer
     from yadis.discover import DiscoveryFailure
     from urljr.fetchers import HTTPFetchingError
     consumer = get_consumer(self.session)
     errors = []
     try:
-      self.request = consumer.begin(self.clean_data['openid'])
+      self.request = consumer.begin(self.clean_data['openid_url'])
     except HTTPFetchingError, e:
       errors.append(str(e.why))
     except DiscoveryFailure, e:

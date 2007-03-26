@@ -81,7 +81,7 @@ class Article(models.Model):
 class Profile(models.Model):
   user = AutoOneToOneField(User, related_name='cicero_profile')
   filter = models.CharField(maxlength=50)
-  openid = models.URLField(null=True, verify_exists=False, unique=True)
+  openid = models.CharField(maxlength=200, null=True, unique=True)
   name = models.CharField(maxlength=200, null=True)
   
   class Admin:

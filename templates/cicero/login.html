@@ -9,9 +9,9 @@
 <form action="./" method="post" id="login">
   {% if redirect %}<input type="hidden" name="redirect" value="{{ redirect|escape }}">{% endif %}
   <p>
-    <label for="id_openid">{{ form.openid.label }}</label>
-    {{ form.openid }}
-    {% if form.openid.errors %}<em class="error">{{ form.openid.errors|join:", " }}</em>{% endif %}
+    <label for="id_openid_url">{{ form.openid_url.label }}</label>
+    {{ form.openid_url }}
+    {% if form.openid_url.errors %}<em class="error">{{ form.openid_url.errors|join:", " }}</em>{% endif %}
   
   <div class="buttons"><button type="submit">Войти</button></div>
 </form>
