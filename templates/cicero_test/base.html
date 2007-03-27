@@ -15,6 +15,16 @@
     display: block; margin-top: 0; margin-bottom: 0.5em;
   }
   
+  table {
+    border-collapse: collapse;
+  }
+  
+  td,
+  th {
+    text-align: left;
+    padding: 0.2em;
+  }
+  
   #content {
     position: relative;
     padding: 0 1em;
@@ -126,12 +136,30 @@
     width: 20em;
   }
   
+  #profile #content {
+    width: 50em;
+  }
+  
+  #profile table {
+    width: 100%;
+  }
+  
+  #profile #mutant {
+    float: left; 
+    margin: 0 1em 1em 0;
+  }
+  
+  #profile #elf p {
+    overflow: hidden;
+  }
+    
   /* Colors */
   
   h1,
   h1 a,
   #auth p,
-  #auth a {
+  #auth a,
+  th {
     color: white;
   }
   
@@ -140,18 +168,26 @@
   }
   
   h1,
-  #auth {
+  #auth,
+  th {
     background: black;
   }
   
   h2,
-  .meta  {
+  h3,
+  .meta,
+  .meta a {
     color: #888;
   }
   
   .group,
   #topic ol li {
     border-color: #CCC;
+  }
+  
+  td,
+  th {
+    border-color: black;
   }
   
   .error {
@@ -184,6 +220,15 @@
   }
   
   /* Misc */
+  
+  a img {
+    border: none;
+  }
+  
+  td,
+  th {
+    border-style: solid; border-width: 1px;
+  }
   
   .group {
     border-style: solid; border-width: 1px;

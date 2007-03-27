@@ -1,0 +1,32 @@
+{% extends "cicero/auth.html" %}
+
+{% block cicero_title %}Пользователь {{ object }}{% endblock %}
+
+{% block content %}
+<h2>Пользователь <span class="name">{{ object }}</span></h2>
+
+<table id="data">
+  <tr>
+    <th>Зарегистрирован<td>{{ object.user.date_joined|date:"d.m.Y" }}
+  <tr>
+    <th>OpenID<td>{% if object.openid %}<a href="{{ object.openid }}">{{ object.openid }}</a>{% else %}(нет){% endif %}
+  <tr>
+    <th>Сообщений<td>{{ object.user.article_set.count }}
+</table>
+
+{% if object.mutant %}
+<div id="elf">
+  <h3>Форумный эльф</h3>
+  <p id="mutant"><img src="{{ object.get_mutant_url }}" alt="">
+  <p>Изначально эльф — это порождение OpenID, его внутренняя сущность. 
+  Конкретная инкарнация этой сущности, безусловно, зависит от места ее
+  проявления. И на форумах Cicero этот OpenID выглядит именно так.
+  <p>Предполагается также, что поскольку OpenID человек выбирает себе 
+  сам, то призванный ему эльф отражает в какой-то степени и его — человека —
+  собственную сущность. И хотя природа этой связи остается по большей части
+  неизвестной, рекомендуется относиться к своему эльфу корректно. Как бы 
+  он или она ни выглядели.
+</div>
+{% endif %}
+
+{% endblock %}

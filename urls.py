@@ -2,9 +2,9 @@
 from django.conf.urls.defaults import *
 from django.conf import settings
 
-from django.views.generic.list_detail import object_list
+from django.views.generic.list_detail import object_list, object_detail
 from cicero import views
-from cicero.models import Forum, Topic, Article
+from cicero.models import Forum, Topic, Article, Profile
 from cicero.context import default
 
 info = {
@@ -14,9 +14,14 @@ info = {
 }
 
 urlpatterns = patterns('',
-  (r'^login/$', views.login),
-  (r'^auth/$', views.auth),
-  (r'^logout/$', views.logout),
+  (r'^users/login/$', views.login),
+  (r'^users/auth/$', views.auth),
+  (r'^users/logout/$', views.logout),
+  (r'^users/(?P<object_id>\d+)/$', object_detail, {
+    'queryset': Profile.objects.all(),
+    'context_processors': [default],
+    'extra_context': {'page_id': 'profile'},
+  }),
   (r'^$', object_list, {
     'queryset': Forum.objects.all(), 
     'context_processors': [default],

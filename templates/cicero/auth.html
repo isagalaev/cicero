@@ -1,4 +1,5 @@
 {% extends template_base %}
+{% load cicero %}
 
 {% block cicero_content %}
 
@@ -9,11 +10,7 @@
 {% if user.is_authenticated %}
 <form action="{% url cicero.views.logout %}" method="post" id="auth">
   <p>
-    {% if profile.openid %}
-    <a href="{% url cicero.views.profile %}">{{ profile|escape }}</a>
-    {% else %}
-    {{ profile|escape }}
-    {% endif %}
+    <a href="{% obj_url profile %}">{{ profile|escape }}</a>
   <div class="buttons"><button type="submit">Выход</button></div>
 </form>
 {% else %}

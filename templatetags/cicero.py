@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from django import template
+from django.conf import settings
 
 register=template.Library()
 
@@ -30,3 +31,25 @@ def paginator(parser, token):
   виде, как их туда передает generic view "object_list".
   '''
   return PaginatorNode()
+  
+@register.simple_tag
+def obj_url(obj):
+  from django.core.urlresolvers import RegexURLResolver, NoReverseMatch, reverse_helper
+  
+  def find_object_url(resolver, obj):
+    for pattern in resolver.urlconf_module.urlpatterns:
+      if isinstance(pattern, RegexURLResolver):
+        try:
+          return reverse_helper(pattern.regex) + find_object_url(pattern, obj)
+        except NoReverseMatch:
+          continue
+      elif 'queryset' in pattern.default_args:
+        queryset = pattern.default_args['queryset']
+        if isinstance(obj, queryset.model):
+          return pattern.reverse_helper(obj._get_pk_val())
+        else:
+          continue
+    raise NoReverseMatch
+  
+  resolver = RegexURLResolver(r'^/', settings.ROOT_URLCONF)
+  return '/' + find_object_url(resolver, obj)

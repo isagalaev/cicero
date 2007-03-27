@@ -71,12 +71,12 @@ class Article(models.Model):
     result = re.sub(r'\B--\B', '—', result)
     return result
     
-  def author_display(self):
+  def from_guest(self):
     '''
-    Имя автора статьи для отображения. Берется из имени автора, если он
-    не гость, либо из отдельного поля имени гостя.
+    Была ли написана статья от имени гостя. Используется, в основном,
+    в шаблонах.
     '''
-    return self.author.username != 'cicero_guest' and self.author.cicero_profile or self.guest_name
+    return self.author.username == 'cicero_guest'
 
 class Profile(models.Model):
   user = AutoOneToOneField(User, related_name='cicero_profile')
