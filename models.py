@@ -145,13 +145,13 @@ class Profile(models.Model):
     '''
     Создает, если возможно, картинку мутанта из OpenID.
     '''
+    import os
     if os.path.exists(self.get_mutant_filename()):
       os.remove(self.get_mutant_filename())
     if not settings.OPENID_MUTANT_PARTS or not self.openid or not self.openid_server:
       return
     from cicero.mutants import mutant
     from StringIO import StringIO
-    import os
     content = StringIO()
     mutant(self.openid, self.openid_server).save(content, 'PNG')
     self.save_mutant_file('%s.png' % self._get_pk_val(), content.getvalue())
