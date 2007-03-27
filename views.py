@@ -2,7 +2,7 @@
 from django.views.generic.list_detail import object_list
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.conf import settings
 
 from cicero.models import Forum, Topic

@@ -16,6 +16,7 @@
       {{ article.html }}
     </div>
     <div class="meta">
+      <p class="mutant">{% if article.author.cicero_profile.mutant %}<img src="{{ article.author.cicero_profile.get_mutant_url }}" alt="">{% endif %}
       <address>{{ article.author_display }}</address>
       <p class="time">{{ article.created|date:"d.m.Y H:i" }}
     </div>

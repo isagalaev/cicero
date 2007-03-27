@@ -22,6 +22,8 @@ class OpenIdBackend(object):
       user = User.objects.create_user('cicero_%s' % unique, 'user@cicero', User.objects.make_random_password())
       profile = user.cicero_profile
       profile.openid = info.identity_url
+      profile.openid_server = info.endpoint.server_url
+      profile.generate_mutant()
       profile.save()
     return user
     
