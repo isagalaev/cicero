@@ -43,7 +43,7 @@ def obj_url(obj):
           return reverse_helper(pattern.regex) + find_object_url(pattern, obj)
         except NoReverseMatch:
           continue
-      elif 'queryset' in pattern.default_args:
+      elif pattern.callback.__name__ == 'object_detail':
         queryset = pattern.default_args['queryset']
         if isinstance(obj, queryset.model):
           return pattern.reverse_helper(obj._get_pk_val())
@@ -52,4 +52,7 @@ def obj_url(obj):
     raise NoReverseMatch
   
   resolver = RegexURLResolver(r'^/', settings.ROOT_URLCONF)
-  return '/' + find_object_url(resolver, obj)
+  try:
+    return '/' + find_object_url(resolver, obj)
+  except NoReverseMatch:
+    return ''
