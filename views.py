@@ -37,9 +37,15 @@ def topic(request, slug, id, **kwargs):
     form = ArticleForm(topic, request.user, request.POST)
     if form.is_valid():
       form.save()
-      return HttpResponseRedirect('./')
+      return HttpResponseRedirect('./?page=last')
   else:
     form = ArticleForm(topic, request.user)
+  if request.GET.get('page', '') == 'last':
+    count = topic.article_set.count()
+    page = count / settings.PAGINATE_BY
+    if count % settings.PAGINATE_BY:
+      page += 1
+    return HttpResponseRedirect(page > 1 and './?page=%s' % page or './')
   kwargs['queryset'] = topic.article_set.all()
   kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic'}
   return object_list(request, **kwargs)
