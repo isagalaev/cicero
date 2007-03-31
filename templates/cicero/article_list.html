@@ -16,10 +16,10 @@
       {{ article.html }}
     </div>
     <div class="meta">
-      <p class="mutant">{% if article.author.cicero_profile.mutant %}<a href="{% obj_url article.author.cicero_profile %}"><img src="{{ article.author.cicero_profile.get_mutant_url }}" alt=""></a>{% endif %}
+      <p class="mutant">{% if article.cicero_profile.mutant %}<a href="{% obj_url article.cicero_profile %}"><img src="{{ article.cicero_profile.get_mutant_url }}" alt=""></a>{% endif %}
       <address>
       {% if not article.from_guest %}
-        <a href="{% obj_url article.author.cicero_profile %}">{{ article.author.cicero_profile }}</a>
+        <a href="{% obj_url article.cicero_profile %}">{{ article.cicero_profile }}</a>
       {% else %}
         {{ article.guest_name }}
       {% endif %}

@@ -33,9 +33,25 @@ class Topic(models.Model):
   def __str__(self):
     return self.subject
     
+from django.db.models.query import QuerySet
+class ArticleQuerySet(QuerySet):
+  def _get_data(self):
+    update_profiles = self._result_cache is None and self._select_related
+    if update_profiles:
+      profile_select = dict((f.attname, Profile._meta.db_table + '.' + f.attname) for f in Profile._meta.fields)
+      self._select.update(profile_select)
+      self._tables.extend([Profile._meta.db_table])
+      self._where.extend(['%s.%s = %s.%s' % (Profile._meta.db_table, Profile._meta.pk.attname, User._meta.db_table, User._meta.pk.attname)])
+    result = super(ArticleQuerySet, self)._get_data()
+    if update_profiles:
+      for article in result:
+        data = dict((f.attname, getattr(article, f.attname)) for f in Profile._meta.fields)
+        article.cicero_profile = Profile(**data)
+    return result
+
 class ArticleManager(models.Manager):
   def get_query_set(self):
-    return super(ArticleManager, self).get_query_set().select_related()
+    return ArticleQuerySet(self.model).select_related()
     
 class Article(models.Model):
   topic = models.ForeignKey(Topic)
