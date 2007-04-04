@@ -83,10 +83,28 @@ class AuthForm(Form):
     if errors:
       raise ValidationError(errors)
     
-  def auth_redirect(self, target):
+  def auth_redirect(self, target, view_name, *args, **kwargs):
     from django.core.urlresolvers import reverse
     site_url = self._site_url()
     trust_url = settings.OPENID_TRUST_URL or (site_url + '/')
-    return_to = site_url + reverse('cicero.views.auth')
+    return_to = site_url + reverse(view_name, args=args, kwargs=kwargs)
     self.request.return_to_args['redirect'] = target
     return self.request.redirectURL(trust_url, return_to)
+    
+class ProfileForm(Form):
+  def __init__(self, profile, *args, **kwargs):
+    super(ProfileForm, self).__init__(*args, **kwargs)
+    self.profile = profile
+
+class PersonalForm(ProfileForm):
+  name = CharField(label='Имя', max_length=200)
+  
+  def process(self):
+    return save_instance(self, self.profile)
+
+from cicero.filters import filters
+class SettingsForm(ProfileForm):
+  filter = ChoiceField(label='Фильтр', choices=[(k, k) for k in filters.keys()])
+  
+  def process(self):
+    return save_instance(self, self.profile)

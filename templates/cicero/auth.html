@@ -7,6 +7,10 @@
 {% block content %}{% endblock %}
 </div>
 
+<div id="aside">
+{% block aside %}{% endblock %}
+</div>
+
 {% if user.is_authenticated %}
 <form action="{% url cicero.views.logout %}" method="post" id="auth">
   <p>

@@ -119,7 +119,7 @@ class Profile(models.Model):
     else:
       return str(self.user)
       
-  def update_name(self):
+  def read_hcard(self):
     '''
     Ищет на странице, на которую указывает openid, микроформамт hCard,
     и берет оттуда имя, если есть.
@@ -142,10 +142,10 @@ class Profile(models.Model):
       if el is None:
         return
       if el.name == u'abbr' and el['title']:
-        return el['title'].strip().encode(settings.DEFAULT_CHARSET)
+        result = el['title']
       else:
         result = ''.join([s for s in el.recursiveChildGenerator() if isinstance(s, unicode)])
-        return result.strip().encode(settings.DEFAULT_CHARSET)
+      return result.replace('\n',' ').strip().encode(settings.DEFAULT_CHARSET)
         
     info = dict((n, _parse_property(n)) for n in ['nickname', 'fn'])
     self.name = info['nickname'] or info['fn']
@@ -154,7 +154,7 @@ class Profile(models.Model):
     if not self.filter:
       self.filter = 'bbcode'
     if self.openid and not self.name:
-      self.update_name()
+      self.read_hcard()
     super(Profile, self).save()
     
   def generate_mutant(self):

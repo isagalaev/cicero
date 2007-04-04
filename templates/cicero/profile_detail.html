@@ -36,3 +36,9 @@
 </div>
 
 {% endblock %}
+
+{% block aside %}
+{% ifequal object profile %}
+<p id="edit"><a href="{% url cicero.views.edit_profile profile.user_id %}">Редактировать</a>
+{% endifequal %}
+{% endblock %}
