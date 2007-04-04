@@ -19,14 +19,11 @@ def post_redirect(request):
   return request.POST.get('redirect', request.META.get('HTTP_REFERER', '/'))
   
 def own_profile(func):
-  def wrapper(request, user_id, *args, **kwargs):
+  def wrapper(request, *args, **kwargs):
     if not request.user.is_authenticated():
       from django.core.urlresolvers import reverse
       return HttpResponseRedirect(reverse(login) + '?redirect=' + request.path)
-    if request.user.id != int(user_id):
-      return HttpResponseForbidden('Вы не можете редактировать чужой профиль')  
-    profile = request.user.cicero_profile
-    return func(request, profile, *args, **kwargs)
+    return func(request, *args, **kwargs)
   return wrapper
 
 def forum(request, slug, **kwargs):
@@ -88,8 +85,9 @@ def logout(request):
   return HttpResponseRedirect(post_redirect(request))
   
 @own_profile
-def edit_profile(request, profile):
+def edit_profile(request):
   from cicero.forms import AuthForm, PersonalForm, SettingsForm
+  profile = request.user.cicero_profile
   forms = {
     'openid_form': AuthForm(request.session, initial={'openid_url': profile.openid}),
     'personal_form': PersonalForm(profile, initial=profile.__dict__),
@@ -117,12 +115,13 @@ def edit_profile(request, profile):
   return render_to_response(request, 'cicero/profile_form.html', forms)
 
 @own_profile
-def change_openid_complete(request, profile):
+def change_openid_complete(request):
   from django.contrib.auth import authenticate
   user = authenticate(session=request.session, query=request.GET)
   if not user:
     return HttpResponseForbidden('Ошибка авторизации')
   new_profile = user.cicero_profile
+  profile = request.user.cicero_profile
   if profile != new_profile:
     profile.openid, profile.openid_server = new_profile.openid, new_profile.openid_server
     new_profile.delete()
@@ -136,7 +135,8 @@ def change_openid_complete(request, profile):
   
 @own_profile
 @require_http_methods('POST')
-def read_hcard(request, profile):
+def read_hcard(request):
+  profile = request.user.cicero_profile
   profile.read_hcard()
   profile.save()
   return HttpResponseRedirect('../')
