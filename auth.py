@@ -18,7 +18,8 @@ class OpenIdBackend(object):
       user = profile.user
     except Profile.DoesNotExist:
       import md5
-      unique = md5.new(info.identity_url).hexdigest()[:23] # 30 - len('cicero_')
+      from datetime import datetime
+      unique = md5.new(info.identity_url + str(datetime.now())).hexdigest()[:23] # 30 - len('cicero_')
       user = User.objects.create_user('cicero_%s' % unique, 'user@cicero', User.objects.make_random_password())
       profile = user.cicero_profile
       profile.openid = info.identity_url
