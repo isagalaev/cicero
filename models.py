@@ -51,7 +51,7 @@ class ArticleQuerySet(QuerySet):
 
 class ArticleManager(models.Manager):
   def get_query_set(self):
-    return ArticleQuerySet(self.model).select_related()
+    return ArticleQuerySet(self.model)
     
 class Article(models.Model):
   topic = models.ForeignKey(Topic)

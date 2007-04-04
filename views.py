@@ -54,7 +54,7 @@ def topic(request, slug, id, **kwargs):
     if count % settings.PAGINATE_BY:
       page += 1
     return HttpResponseRedirect(page > 1 and './?page=%s' % page or './')
-  kwargs['queryset'] = topic.article_set.all()
+  kwargs['queryset'] = topic.article_set.all().select_related()
   kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic'}
   return object_list(request, **kwargs)
   
