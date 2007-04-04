@@ -34,6 +34,8 @@ def shadow(image):
   return shadow
 
 def mutant(openid, openid_server):
+  from urlparse import urlsplit
+  openid = '%s://%s%s' % urlsplit(openid)[0:3]
   import md5
   hash = md5.new(openid).digest()
   extremities = Image.new('RGBA', (48, 48))
@@ -54,7 +56,6 @@ def mutant(openid, openid_server):
   body = Image.open(partfile('body', hash[8])).convert('RGBA')
   body = transpose(body, hash[9])
 
-  from urlparse import urlsplit
   host = urlsplit(openid_server)[1]
   host = '.'.join(host.split('.')[-2:])
   hash = md5.new(host).digest()
