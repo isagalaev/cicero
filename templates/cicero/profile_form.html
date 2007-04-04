@@ -1,4 +1,5 @@
 {% extends "cicero/auth.html" %}
+{% load cicero %}
 
 {% block cicero_title %}Редактирование профиля {{ profile }}{% endblock %}
 
@@ -50,4 +51,11 @@
   <div class="buttons"><button type="submit">Изменить</button></div>
 </form>
 
+{% endblock %}
+
+{% block aside %}
+<ul id="nav" class="block">
+  <li><a href="../../">Начало</a>
+  <li><a href="{% obj_url profile %}">Страница пользователя</a>
+</ul>
 {% endblock %}

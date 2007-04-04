@@ -73,12 +73,12 @@
   }
   
   .group,
-  #edit_profile .block {
+  #edit_profile #content .block {
     margin: 1em 0;
   }
   
   .group h2,
-  #edit_profile .block h3 {
+  #edit_profile #content .block h3 {
     padding: 0.5em;
   }
   
@@ -170,19 +170,23 @@
   
   #aside {
     position: absolute;
-    left: 53em; top: 6em; width: 16em;
+    left: 53em; top: 6.5em; width: 16em;
   }
   
-  #aside #edit {
-    margin: 0; padding: 0.5em;
+  #aside .block {
+    margin: 0 0 1em 0; padding: 0.5em;
   }
   
-  #edit_profile .block {
+  #aside ul {
+    list-style: none;
+  }
+  
+  #edit_profile #content .block {
     overflow: hidden;
   }
   
-  #edit_profile .block p,
-  #edit_profile .block .buttons {
+  #edit_profile #content .block p,
+  #edit_profile #content .block .buttons {
     padding: 0.5em 1em;
   }
   
@@ -190,8 +194,8 @@
     float: left; width: 5em;
   }
   
-  #edit_profile .block input,
-  #edit_profile .block select {
+  #edit_profile #content .block input,
+  #edit_profile #content .block select {
     width: 20em;
   }
   
@@ -240,8 +244,8 @@
   
   .group,
   #topic ol li,
-  #edit_profile .block,
-  #aside #edit {
+  #edit_profile #content .block,
+  #aside .block {
     border-color: #CCC;
   }
   
@@ -254,7 +258,7 @@
     color: red;
   }
   
-  #aside #edit {
+  #aside .block {
     background: #F0F0F0;
   }
   
@@ -296,8 +300,8 @@
   }
   
   .group,
-  #edit_profile .block,
-  #aside #edit {
+  #edit_profile #content .block,
+  #aside .block {
     border-style: solid; border-width: 1px;
   }
   
