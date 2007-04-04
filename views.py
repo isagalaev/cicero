@@ -112,7 +112,9 @@ def edit_profile(request):
       else:
         form.process()
         return HttpResponseRedirect('./')
-  return render_to_response(request, 'cicero/profile_form.html', forms)
+  data = {'page_id': 'edit_profile'}
+  data.update(forms)
+  return render_to_response(request, 'cicero/profile_form.html', data)
 
 @own_profile
 def change_openid_complete(request):

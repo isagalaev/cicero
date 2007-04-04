@@ -3,9 +3,9 @@
 {% block cicero_title %}Редактирование профиля {{ profile }}{% endblock %}
 
 {% block content %}
-<h2>Редактирование профиля <span class="name">{{ object }}</span></h2>
+<h2>Редактирование профиля <span class="name">{{ profile }}</span></h2>
 
-<form action="./" id="openid" method="post">
+<form action="./" id="openid" method="post" class="block">
   <h3>OpenID</h3>
   <input type="hidden" name="form" value="openid">
   {% if profile.mutant %}
@@ -20,7 +20,7 @@
   <div class="buttons"><button type="submit">Изменить</button></div>
 </form>
 
-<div id="personal">
+<div id="personal" class="block">
   <form action="./" method="post">
     <h3>Личные данные</h3>
     <input type="hidden" name="form" value="personal">
@@ -32,12 +32,14 @@
     <div class="buttons"><button type="submit">Изменить</button></div>
   </form>
   
-  <form action="hcard/" method="post">
-    <div class="buttons"><button type="submit">Считать hCard</button></div>
+  {% if profile.openid %}
+  <form action="hcard/" method="post" id="hcard">
+    <div class="buttons"><button type="submit">Считать из hCard</button></div>
   </form>
+  {% endif %}
 </div>
 
-<form action="./" id="settings" method="post">
+<form action="./" id="settings" method="post" class="block">
   <h3>Настройки</h3>
   <input type="hidden" name="form" value="settings">
   <p>

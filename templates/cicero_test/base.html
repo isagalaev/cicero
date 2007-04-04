@@ -68,11 +68,17 @@
     margin-top: 0;
   }
   
-  .group {
+  .buttons {
+    text-align: right;
+  }
+  
+  .group,
+  #edit_profile .block {
     margin: 1em 0;
   }
   
-  .group h2 {
+  .group h2,
+  #edit_profile .block h3 {
     padding: 0.5em;
   }
   
@@ -136,7 +142,8 @@
     width: 20em;
   }
   
-  #profile #content {
+  #profile #content,
+  #edit_profile #content {
     width: 50em;
   }
   
@@ -159,6 +166,49 @@
   
   #profile #openid #description p {
     margin-top: 0;
+  }
+  
+  #aside {
+    position: absolute;
+    left: 53em; top: 6em; width: 16em;
+  }
+  
+  #aside #edit {
+    margin: 0; padding: 0.5em;
+  }
+  
+  #edit_profile .block {
+    overflow: hidden;
+  }
+  
+  #edit_profile .block p,
+  #edit_profile .block .buttons {
+    padding: 0.5em 1em;
+  }
+  
+  #edit_profile label {
+    float: left; width: 5em;
+  }
+  
+  #edit_profile .block input,
+  #edit_profile .block select {
+    width: 20em;
+  }
+  
+  #edit_profile #mutant {
+    float: right; margin: 0 1em 0 0;
+  }
+  
+  #edit_profile #openid .buttons {
+    clear: both;
+  }
+  
+  #edit_profile #personal .buttons {
+    float: right; width: 7em;
+  }
+  
+  #edit_profile #hcard {
+    float: right; width: 12em;
   }
     
   /* Colors */
@@ -189,7 +239,9 @@
   }
   
   .group,
-  #topic ol li {
+  #topic ol li,
+  #edit_profile .block,
+  #aside #edit {
     border-color: #CCC;
   }
   
@@ -200,6 +252,10 @@
   
   .error {
     color: red;
+  }
+  
+  #aside #edit {
+    background: #F0F0F0;
   }
   
   /* Fonts */
@@ -239,7 +295,9 @@
     border-style: solid; border-width: 1px;
   }
   
-  .group {
+  .group,
+  #edit_profile .block,
+  #aside #edit {
     border-style: solid; border-width: 1px;
   }
   
