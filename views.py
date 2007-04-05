@@ -18,7 +18,7 @@ def render_to_response(request, template_name, context_dict):
 def post_redirect(request):
   return request.POST.get('redirect', request.META.get('HTTP_REFERER', '/'))
   
-def own_profile(func):
+def login_required(func):
   def wrapper(request, *args, **kwargs):
     if not request.user.is_authenticated():
       from django.core.urlresolvers import reverse
@@ -98,11 +98,11 @@ def _profile_page(request, forms):
   data.update(forms)
   return render_to_response(request, 'cicero/profile_form.html', data)
 
-@own_profile
+@login_required
 def edit_profile(request):
   return _profile_page(request, _profile_forms(request))
 
-@own_profile
+@login_required
 @require_http_methods('POST')
 def change_openid(request):
   forms = _profile_forms(request)
@@ -113,7 +113,7 @@ def change_openid(request):
     return HttpResponseRedirect(after_auth_redirect)
   return _profile_page(request, forms)
 
-@own_profile
+@login_required
 def change_openid_complete(request):
   from django.contrib.auth import authenticate
   user = authenticate(session=request.session, query=request.GET)
@@ -132,7 +132,7 @@ def change_openid_complete(request):
     profile.generate_mutant()
   return HttpResponseRedirect(request.GET.get('redirect', '/'))
   
-@own_profile
+@login_required
 @require_http_methods('POST')
 def post_profile(request, form_name):
   forms = _profile_forms(request)
@@ -143,7 +143,7 @@ def post_profile(request, form_name):
     return HttpResponseRedirect('../')
   return _profile_page(request, forms)
   
-@own_profile
+@login_required
 @require_http_methods('POST')
 def read_hcard(request):
   profile = request.user.cicero_profile
