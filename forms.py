@@ -99,12 +99,12 @@ class ProfileForm(Form):
 class PersonalForm(ProfileForm):
   name = CharField(label='Имя', max_length=200)
   
-  def process(self):
+  def save(self):
     return save_instance(self, self.profile)
 
 from cicero.filters import filters
 class SettingsForm(ProfileForm):
   filter = ChoiceField(label='Фильтр', choices=[(k, k) for k in filters.keys()])
   
-  def process(self):
+  def save(self):
     return save_instance(self, self.profile)

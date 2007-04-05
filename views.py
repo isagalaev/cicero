@@ -83,38 +83,35 @@ def logout(request):
   from django.contrib.auth import logout
   logout(request)
   return HttpResponseRedirect(post_redirect(request))
-  
-@own_profile
-def edit_profile(request):
+
+def _profile_forms(request):
   from cicero.forms import AuthForm, PersonalForm, SettingsForm
   profile = request.user.cicero_profile
-  forms = {
-    'openid_form': AuthForm(request.session, initial={'openid_url': profile.openid}),
-    'personal_form': PersonalForm(profile, initial=profile.__dict__),
-    'settings_form': SettingsForm(profile, initial=profile.__dict__),
+  return {
+    'openid': AuthForm(request.session, initial={'openid_url': profile.openid}),
+    'personal': PersonalForm(profile, initial=profile.__dict__),
+    'settings': SettingsForm(profile, initial=profile.__dict__),
   }
-  if request.method == 'POST':
-    try:
-      form_name = request.POST['form'] + '_form'
-      if form_name == 'openid_form':
-        form = forms[form_name].__class__(request.session, request.POST)
-      else:
-        form = forms[form_name].__class__(profile, request.POST)
-      forms[form_name] = form
-    except KeyError:
-      response = HttpResponse('Unknown action')
-      response.status_code = 501
-      return response
-    if form.is_valid():
-      if form_name == 'openid_form':
-        after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.change_openid_complete', request.user.id)
-        return HttpResponseRedirect(after_auth_redirect)
-      else:
-        form.process()
-        return HttpResponseRedirect('./')
+  
+def _profile_page(request, forms):
   data = {'page_id': 'edit_profile'}
   data.update(forms)
   return render_to_response(request, 'cicero/profile_form.html', data)
+
+@own_profile
+def edit_profile(request):
+  return _profile_page(request, _profile_forms(request))
+
+@own_profile
+@require_http_methods('POST')
+def change_openid(request):
+  forms = _profile_forms(request)
+  form = forms['openid'].__class__(request.session, request.POST)
+  forms['openid'] = form
+  if form.is_valid():
+    after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.change_openid_complete', request.user.id)
+    return HttpResponseRedirect(after_auth_redirect)
+  return _profile_page(request, forms)
 
 @own_profile
 def change_openid_complete(request):
@@ -134,6 +131,17 @@ def change_openid_complete(request):
     user.delete()
     profile.generate_mutant()
   return HttpResponseRedirect(request.GET.get('redirect', '/'))
+  
+@own_profile
+@require_http_methods('POST')
+def post_profile(request, form_name):
+  forms = _profile_forms(request)
+  form = forms[form_name].__class__(forms[form_name].profile, request.POST)
+  forms[form_name] = form
+  if form.is_valid():
+    form.save()
+    return HttpResponseRedirect('../')
+  return _profile_page(request, forms)
   
 @own_profile
 @require_http_methods('POST')
