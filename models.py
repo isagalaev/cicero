@@ -93,14 +93,16 @@ class Article(models.Model):
     в шаблонах.
     '''
     return self.author.username == 'cicero_guest'
+    
+from cicero.filters import filters
 
 class Profile(models.Model):
   user = AutoOneToOneField(User, related_name='cicero_profile')
-  filter = models.CharField(maxlength=50)
+  filter = models.CharField('Фильтр', maxlength=50, choices=[(k, k) for k in filters.keys()])
   openid = models.CharField(maxlength=200, null=True, unique=True)
   openid_server = models.CharField(maxlength=200, null=True)
   mutant = models.ImageField(upload_to='mutants', null=True)
-  name = models.CharField(maxlength=200, null=True)
+  name = models.CharField('Имя', maxlength=200, null=True)
   
   class Admin:
     pass

@@ -91,20 +91,16 @@ class AuthForm(Form):
     self.request.return_to_args['redirect'] = target
     return self.request.redirectURL(trust_url, return_to)
     
-class ProfileForm(Form):
-  def __init__(self, profile, *args, **kwargs):
-    super(ProfileForm, self).__init__(*args, **kwargs)
-    self.profile = profile
+def PersonalForm(profile, *args, **kwargs):
+  def callback(field, **kwargs):
+    if field.name in ['name']:
+      return field.formfield(**kwargs)
 
-class PersonalForm(ProfileForm):
-  name = CharField(label='Имя', max_length=200)
+  return form_for_instance(profile, formfield_callback=callback)(*args, **kwargs)
   
-  def save(self):
-    return save_instance(self, self.profile)
-
-from cicero.filters import filters
-class SettingsForm(ProfileForm):
-  filter = ChoiceField(label='Фильтр', choices=[(k, k) for k in filters.keys()])
-  
-  def save(self):
-    return save_instance(self, self.profile)
+def SettingsForm(profile, *args, **kwargs):
+  def callback(field, **kwargs):
+    if field.name == 'filter':
+      return ChoiceField(label=field.verbose_name, choices=field.get_choices(False), **kwargs)
+      
+  return form_for_instance(profile, formfield_callback=callback)(*args, **kwargs)

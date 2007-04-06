@@ -136,7 +136,7 @@ def change_openid_complete(request):
 @require_http_methods('POST')
 def post_profile(request, form_name):
   forms = _profile_forms(request)
-  form = forms[form_name].__class__(forms[form_name].profile, request.POST)
+  form = forms[form_name].__class__(request.POST)
   forms[form_name] = form
   if form.is_valid():
     form.save()
