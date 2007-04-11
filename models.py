@@ -103,7 +103,7 @@ class Profile(models.Model):
   openid_server = models.CharField(maxlength=200, null=True)
   mutant = models.ImageField(upload_to='mutants', null=True)
   name = models.CharField('Имя', maxlength=200, null=True)
-  read_articles = models.CharField(maxlength=100)
+  read_articles = models.TextField()
   
   class Admin:
     pass
