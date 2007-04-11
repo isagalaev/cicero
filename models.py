@@ -103,6 +103,7 @@ class Profile(models.Model):
   openid_server = models.CharField(maxlength=200, null=True)
   mutant = models.ImageField(upload_to='mutants', null=True)
   name = models.CharField('Имя', maxlength=200, null=True)
+  read_articles = models.CharField(maxlength=100)
   
   class Admin:
     pass
@@ -173,3 +174,41 @@ class Profile(models.Model):
     content = StringIO()
     mutant(self.openid, self.openid_server).save(content, 'PNG')
     self.save_mutant_file('%s.png' % self._get_pk_val(), content.getvalue())
+    
+  def _get_read_ranges(self):
+    from cPickle import loads
+    if not self.read_articles:
+      return [(0, 0)]
+    return loads(self.read_articles)
+    
+  def _set_read_ranges(self, ranges):
+    from cPickle import dumps
+    self.read_articles = dumps(ranges)
+    
+  read_ranges = property(_get_read_ranges, _set_read_ranges)
+    
+  def new_articles(self, articles):
+    '''
+    Есть ли среди статей, переданных в articles, новые, которые 
+    пользователь еще не видел.
+    
+    Статьи передаются в виде queryset.
+    '''
+    from django.db.models import Q
+    query = Q()
+    for range in self.read_ranges:
+      query = query | Q(id__range=range)
+    return articles.exclude(query).count()
+    
+  def add_read_articles(self, articles):
+    '''
+    Добавляет новые статьи к списку прочитанных.
+    
+    Статьи передаются в виде queryset.
+    '''
+    from cicero.utils.ranges import compile_ranges, merge_range
+    ids = [a['id'] for a in articles.values('id')]
+    ranges = self.read_ranges
+    for range in compile_ranges(ids):
+      ranges = merge_range(range, ranges)
+    self.read_ranges = ranges

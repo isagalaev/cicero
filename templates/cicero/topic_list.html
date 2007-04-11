@@ -11,7 +11,7 @@
 
 <ol>
 {% for topic in object_list %}
-  <li><a href="{{ topic.id }}/">{{ topic|escape }}</a>
+  <li {% ifhasnew topic %}class="new"{% endifhasnew %}><a href="{{ topic.id }}/">{{ topic|escape }}</a>
 {% endfor %}
 </ol>
 

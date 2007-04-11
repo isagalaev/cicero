@@ -56,3 +56,23 @@ def obj_url(obj):
     return '/' + find_object_url(resolver, obj)
   except NoReverseMatch:
     return ''
+    
+class IfHasNewNode(template.Node):
+  def __init__(self, topic_expr, node_list):
+    self.topic_expr, self.node_list = topic_expr, node_list
+
+  def render(self, context):
+    topic = self.topic_expr.resolve(context)
+    if context['profile'] and context['profile'].new_articles(topic.article_set.all()):
+      return self.node_list.render(context)
+    else:
+      return ''
+
+@register.tag
+def ifhasnew(parser, token):
+  bits = token.contents.split()
+  if len(bits) != 2:
+    raise template.TemplateSyntaxError, '"%s" takes 1 parameter ' % bits[0]
+  node_list = parser.parse('end' + bits[0])
+  parser.delete_first_token()
+  return IfHasNewNode(parser.compile_filter(bits[1]), node_list)
