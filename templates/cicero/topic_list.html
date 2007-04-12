@@ -40,11 +40,11 @@
 {% endblock %}
 
 {% block aside %}
-
 <ul id="breadcrumbs" class="block">
   <li id="index_link"><a href="../">Начало</a>
 </ul>
 
+{% if user.is_authenticated %}
 <div id="mark_read" class="block">
   <form action="mark_read/" method="post">
     <button type="submit">Прочитать форум</button>
@@ -53,4 +53,6 @@
     <button type="submit">Прочитать все</button>
   </form>
 </div>
+{% endif %}
+
 {% endblock %}

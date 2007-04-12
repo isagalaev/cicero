@@ -28,9 +28,13 @@
 {% endblock %}
 
 {% block aside %}
+
+{% if user.is_authenticated %}
 <div id="mark_read" class="block">
   <form action="mark_read/" method="post">
     <button type="submit">Прочитать все</button>
   </form>
 </div>
+{% endif %}
+
 {% endblock %}
