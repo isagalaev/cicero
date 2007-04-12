@@ -10,8 +10,9 @@
 {% paginator %}
 
 <ol>
+{% setnews object_list %}
 {% for topic in object_list %}
-  <li {% ifhasnew topic %}class="new"{% endifhasnew %}><a href="{{ topic.id }}/">{{ topic|escape }}</a>
+  <li {% if topic.new %}class="new"{% endif %}><a href="{{ topic.id }}/">{{ topic|escape }}</a>
 {% endfor %}
 </ol>
 
@@ -36,8 +37,20 @@
   <div class="buttons"><button type="submit">Добавить</button></div>
 </form>
 
-<ul id="breadcrumbs">
+{% endblock %}
+
+{% block aside %}
+
+<ul id="breadcrumbs" class="block">
   <li id="index_link"><a href="../">Начало</a>
 </ul>
 
+<div id="mark_read" class="block">
+  <form action="mark_read/" method="post">
+    <button type="submit">Прочитать форум</button>
+  </form>
+  <form action="../mark_read/" method="post">
+    <button type="submit">Прочитать все</button>
+  </form>
+</div>
 {% endblock %}

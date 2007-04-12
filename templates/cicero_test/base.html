@@ -28,21 +28,28 @@
   #content {
     position: relative;
     padding: 0 1em;
+    width: 50em;
+  }
+  
+  #aside {
+    position: absolute;
+    left: 53em; top: 6.5em; width: 14em;
+  }
+  
+  #index #aside {
+    top: 4em;
+  }
+  
+  #aside .block {
+    margin: 0 0 1em 0; padding: 0.5em;
+  }
+  
+  #aside ul {
+    list-style: none;
   }
   
   h2 {
     margin: 0; padding: 1em 0;
-  }
-  
-  #breadcrumbs {
-    position: absolute; top: 0; right: 0;
-    margin: 0; padding: 1em 0;
-    list-style: none;
-  }
-  
-  #breadcrumbs li {
-    float: right;
-    padding-right: 0.5em;
   }
   
   .paginator {
@@ -168,19 +175,6 @@
     margin-top: 0;
   }
   
-  #aside {
-    position: absolute;
-    left: 53em; top: 6.5em; width: 16em;
-  }
-  
-  #aside .block {
-    margin: 0 0 1em 0; padding: 0.5em;
-  }
-  
-  #aside ul {
-    list-style: none;
-  }
-  
   #edit_profile #content .block {
     overflow: hidden;
   }
@@ -213,6 +207,14 @@
   
   #edit_profile #hcard {
     float: right; width: 12em;
+  }
+  
+  #mark_read form {
+    margin: 0.5em 0;
+  }
+  
+  #mark_read button {
+    width: 100%;
   }
     
   /* Colors */

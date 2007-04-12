@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.conf import settings
 
-from cicero.models import Forum, Topic
+from cicero.models import Forum, Topic, Article
 from cicero.forms import ArticleForm, TopicForm, AuthForm
 
 def render_to_response(request, template_name, context_dict):
@@ -154,3 +154,14 @@ def read_hcard(request):
   profile.read_hcard()
   profile.save()
   return HttpResponseRedirect('../')
+  
+@require_http_methods('POST')
+def mark_read(request, slug=None):
+  qs = Article.objects.all()
+  if slug:
+    qs = qs.filter(topic__forum__slug=slug)
+  if request.user.is_authenticated():
+    profile = request.user.cicero_profile
+    profile.add_read_articles(qs)
+    profile.save()
+  return HttpResponseRedirect(request.META.get('HTTP_REFERER') or '../')

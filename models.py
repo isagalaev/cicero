@@ -186,19 +186,35 @@ class Profile(models.Model):
     self.read_articles = dumps(ranges)
     
   read_ranges = property(_get_read_ranges, _set_read_ranges)
-    
-  def new_articles(self, articles):
+  
+  def set_news(self, objects):
     '''
-    Есть ли среди статей, переданных в articles, новые, которые 
-    пользователь еще не видел.
-    
-    Статьи передаются в виде queryset.
+    Проставляет признаки наличия новых статей переданным топикам или форумам
     '''
-    from django.db.models import Q
-    query = Q()
+    if len(objects) == 0:
+      return
+    ids = [str(o.id) for o in objects]
+    tables = 'cicero_article a'
+    if isinstance(objects[0], Forum):
+      tables += ', cicero_topic t'
+      condition = 'topic_id = t.id and forum_id in (%s)' % ','.join(ids)
+      field_name = 'forum_id'
+    else:
+      condition = 'topic_id in (%s)' % ','.join(ids)
+      field_name = 'topic_id'
+    ranges = ''
     for range in self.read_ranges:
-      query = query | Q(id__range=range)
-    return articles.exclude(query).count()
+      if ranges:
+        range += ' or '
+      ranges += 'a.id between %s and %s' % range
+    condition += ' and not (%s)' % ranges
+    query = 'select %s, count(1) as c from %s where %s group by 1' % (field_name, tables, condition)
+    from django.db import connection
+    cursor = connection.cursor()
+    cursor.execute(query)
+    counts = dict(cursor.fetchall())
+    for obj in objects:
+      obj.new = counts.get(obj.id, 0)
     
   def add_read_articles(self, articles):
     '''
@@ -206,8 +222,12 @@ class Profile(models.Model):
     
     Статьи передаются в виде queryset.
     '''
+    from django.db.models import Q
+    query = Q()
+    for range in self.read_ranges:
+      query = query | Q(id__range=range)
+    ids = [a['id'] for a in articles.exclude(query).values('id')]
     from cicero.utils.ranges import compile_ranges, merge_range
-    ids = [a['id'] for a in articles.values('id')]
     ranges = self.read_ranges
     for range in compile_ranges(ids):
       ranges = merge_range(range, ranges)

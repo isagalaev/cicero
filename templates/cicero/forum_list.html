@@ -1,9 +1,11 @@
 {% extends "cicero/auth.html" %}
+{% load cicero %}
 
 {% block cicero_title %}Форумы Cicero{% endblock %}
 
 {% block content %}
 
+{% setnews object_list %}
 {% regroup object_list by group as groups %}
 
 {% for group in groups %}
@@ -14,7 +16,7 @@
 {% endif %}
 <ul>
 {% for forum in group.list %}
-  <li><a href="{{ forum.slug }}/">{{ forum|escape }}</a>
+  <li {% if forum.new %}class="new"{% endif %}><a href="{{ forum.slug }}/">{{ forum|escape }}</a>
 {% endfor %}
 </ul>
 {% if group.grouper %}
@@ -23,4 +25,12 @@
 
 {% endfor %}
 
+{% endblock %}
+
+{% block aside %}
+<div id="mark_read" class="block">
+  <form action="mark_read/" method="post">
+    <button type="submit">Прочитать все</button>
+  </form>
+</div>
 {% endblock %}

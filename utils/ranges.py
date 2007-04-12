@@ -22,7 +22,7 @@ def merge_range(new_range, ranges):
   
 def compile_ranges(ids):
   '''
-  Составляет список чисел в список непрерывных диапазонов.
+  Переводит набор чисел в набор непрерывных диапазонов
   '''
   ids.sort()
   left = right = None
@@ -36,12 +36,3 @@ def compile_ranges(ids):
       left = right = id
   if left:
     yield (left, right)
-  
-def add_read_articles(ranges, ids):
-  for new_range in compile_ranges(ids):
-    ranges = merge_range(new_range, ranges)
-  return ranges
-
-ids = [11, 12, 15]
-print list(compile_ranges(ids))
-print add_read_articles([(1, 2), (13, 20)], ids)

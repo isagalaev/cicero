@@ -46,9 +46,11 @@
   <div class="buttons"><button type="submit">Добавить</button></div>
 </form>
 
-<ul id="breadcrumbs">
+{% endblock %}
+
+{% block aside %}
+<ul id="breadcrumbs" class="block">
   <li id="index_link"><a href="../../">Начало</a>
   <li id="forum_link"><a href="../">{{ topic.forum|escape }}</a>
 </ul>
-
 {% endblock %}
