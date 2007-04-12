@@ -205,7 +205,7 @@ class Profile(models.Model):
     ranges = ''
     for range in self.read_ranges:
       if ranges:
-        range += ' or '
+        ranges += ' or '
       ranges += 'a.id between %s and %s' % range
     condition += ' and not (%s)' % ranges
     query = 'select %s, count(1) as c from %s where %s group by 1' % (field_name, tables, condition)
