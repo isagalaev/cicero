@@ -202,11 +202,7 @@ class Profile(models.Model):
     else:
       condition = 'topic_id in (%s)' % ','.join(ids)
       field_name = 'topic_id'
-    ranges = ''
-    for range in self.read_ranges:
-      if ranges:
-        ranges += ' or '
-      ranges += 'a.id between %s and %s' % range
+    ranges = ' or '.join(['a.id between %s and %s' % range for range in self.read_ranges])
     condition += ' and not (%s)' % ranges
     query = 'select %s, count(1) as c from %s where %s group by 1' % (field_name, tables, condition)
     from django.db import connection
