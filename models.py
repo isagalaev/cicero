@@ -219,9 +219,11 @@ class Profile(models.Model):
     Статьи передаются в виде queryset.
     '''
     from django.db.models import Q
+    from datetime import date, timedelta
     query = Q()
     for range in self.read_ranges:
       query = query | Q(id__range=range)
+    articles = articles | Article.objects.filter(created__lte=date.today() - timedelta(settings.UNREAD_TRACKING_PERIOD))
     ids = [a['id'] for a in articles.exclude(query).values('id')]
     from cicero.utils.ranges import compile_ranges, merge_range
     ranges = self.read_ranges
