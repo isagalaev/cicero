@@ -219,9 +219,6 @@ class Profile(models.Model):
     Статьи передаются в виде queryset.
     '''
     from django.db.models import Q
-    from datetime import date, timedelta
-    articles = articles.filter(pk__isnull=False) # a bogus condition, Django incorrectly constructs OR for an initially unfiltered query
-    articles = articles | Article.objects.filter(created__lte=date.today() - timedelta(settings.UNREAD_TRACKING_PERIOD))
     query = Q()
     for range in self.read_ranges:
       query = query | Q(id__range=range)
@@ -230,4 +227,10 @@ class Profile(models.Model):
     ranges = self.read_ranges
     for range in compile_ranges(ids):
       ranges = merge_range(range, ranges)
+    try:
+      from datetime import date, timedelta
+      article = Article.objects.filter(created__lt=date.today() - timedelta(settings.UNREAD_TRACKING_PERIOD)).order_by('-created')[0]
+      ranges = merge_range((0, article.id), ranges)
+    except IndexError:
+      pass
     self.read_ranges = ranges
