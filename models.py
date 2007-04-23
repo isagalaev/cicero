@@ -57,7 +57,7 @@ class Article(models.Model):
   topic = models.ForeignKey(Topic)
   text = models.TextField()
   filter = models.CharField(maxlength=50)
-  created = models.DateTimeField(auto_now_add=True)
+  created = models.DateTimeField(auto_now_add=True, db_index=True)
   author = models.ForeignKey(User)
   guest_name = models.CharField(maxlength=255, blank=True)
   
