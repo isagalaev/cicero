@@ -25,14 +25,23 @@ def login_required(func):
       return HttpResponseRedirect(reverse(login) + '?redirect=' + request.path)
     return func(request, *args, **kwargs)
   return wrapper
+  
+def _acquire_redirect(request, article):
+  if request.user.is_authenticated():
+    return
+  form = AuthForm(request.session, {'openid_url': request.POST['name']})
+  if form.is_valid():
+    form.acquire_article = article
+    after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.auth')
+    return HttpResponseRedirect(after_auth_redirect)
 
 def forum(request, slug, **kwargs):
   forum = get_object_or_404(Forum, slug=slug)
   if request.method == 'POST':
     form = TopicForm(forum, request.user, request.POST)
     if form.is_valid():
-      form.save()
-      return HttpResponseRedirect('./')
+      article = form.save()
+      return _acquire_redirect(request, article) or HttpResponseRedirect('./')
   else:
     form = TopicForm(forum, request.user)
   kwargs['queryset'] = forum.topic_set.all()
@@ -44,8 +53,8 @@ def topic(request, slug, id, **kwargs):
   if request.method == 'POST':
     form = ArticleForm(topic, request.user, request.POST)
     if form.is_valid():
-      form.save()
-      return HttpResponseRedirect('./?page=last')
+      article = form.save()
+      return _acquire_redirect(request, article) or HttpResponseRedirect('./?page=last')
   else:
     form = ArticleForm(topic, request.user)
   if request.GET.get('page', '') == 'last':
@@ -80,6 +89,13 @@ def auth(request):
   if not user:
     return HttpResponseForbidden('Ошибка авторизации')
   login(request, user)
+  if 'acquire_article' in request.GET:
+    try:
+      article = Article.objects.get(pk=request.GET['acquire_article'])
+      article.author = user
+      article.save()
+    except Article.DoesNotExist:
+      pass
   return HttpResponseRedirect(request.GET.get('redirect', '/'))
   
 @require_http_methods('POST')

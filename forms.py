@@ -7,7 +7,7 @@ def _create_article(topic, user, data):
   if not user.is_authenticated():
     from django.contrib.auth.models import User
     user = User.objects.get(username='cicero_guest')
-  topic.article_set.create(
+  return topic.article_set.create(
     text=data['text'], 
     author=user,
     guest_name=data['name'],
@@ -34,7 +34,7 @@ class ArticleForm(Form):
     return _validate_name(self.user, self.clean_data)
     
   def save(self):
-    _create_article(self.topic, self.user, self.clean_data)
+    return _create_article(self.topic, self.user, self.clean_data)
   
 class TopicForm(Form):
   subject = CharField(label='Тема')
@@ -52,7 +52,7 @@ class TopicForm(Form):
     from cicero.models import Topic
     topic = Topic(forum=self.forum, subject=self.clean_data['subject'])
     topic.save()
-    _create_article(topic, self.user, self.clean_data)
+    return _create_article(topic, self.user, self.clean_data)
 
 class AuthForm(Form):
   openid_url = CharField(label='OpenID', max_length=200, required=True)
@@ -89,6 +89,8 @@ class AuthForm(Form):
     trust_url = settings.OPENID_TRUST_URL or (site_url + '/')
     return_to = site_url + reverse(view_name, args=args, kwargs=kwargs)
     self.request.return_to_args['redirect'] = target
+    if hasattr(self, 'acquire_article'):
+      self.request.return_to_args['acquire_article'] = str(self.acquire_article.id)
     return self.request.redirectURL(trust_url, return_to)
     
 def PersonalForm(profile, *args, **kwargs):
