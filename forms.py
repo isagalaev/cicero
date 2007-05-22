@@ -31,10 +31,10 @@ class ArticleForm(Form):
     self.topic, self.user = topic, user
     
   def clean_name(self):
-    return _validate_name(self.user, self.clean_data)
+    return _validate_name(self.user, self.cleaned_data)
     
   def save(self):
-    return _create_article(self.topic, self.user, self.clean_data)
+    return _create_article(self.topic, self.user, self.cleaned_data)
   
 class TopicForm(Form):
   subject = CharField(label='Тема')
@@ -46,13 +46,13 @@ class TopicForm(Form):
     self.forum, self.user = forum, user
     
   def clean_name(self):
-    return _validate_name(self.user, self.clean_data)
+    return _validate_name(self.user, self.cleaned_data)
   
   def save(self):
     from cicero.models import Topic
-    topic = Topic(forum=self.forum, subject=self.clean_data['subject'])
+    topic = Topic(forum=self.forum, subject=self.cleaned_data['subject'])
     topic.save()
-    return _create_article(topic, self.user, self.clean_data)
+    return _create_article(topic, self.user, self.cleaned_data)
 
 class AuthForm(Form):
   openid_url = CharField(label='OpenID', max_length=200, required=True)
@@ -73,7 +73,7 @@ class AuthForm(Form):
     consumer = get_consumer(self.session)
     errors = []
     try:
-      self.request = consumer.begin(self.clean_data['openid_url'])
+      self.request = consumer.begin(self.cleaned_data['openid_url'])
     except HTTPFetchingError, e:
       errors.append(str(e.why))
     except DiscoveryFailure, e:
