@@ -16,7 +16,7 @@ class Forum(models.Model):
   class Admin:
     list_display = ['name', 'ordering', 'group']
   
-  def __str__(self):
+  def __unicode__(self):
     return self.name
     
 class Topic(models.Model):
@@ -30,7 +30,7 @@ class Topic(models.Model):
   class Admin:
     pass
   
-  def __str__(self):
+  def __unicode__(self):
     return self.subject
     
 from django.db.models.query import QuerySet
@@ -69,8 +69,8 @@ class Article(models.Model):
   class Admin:
     pass
   
-  def __str__(self):
-    return '(%s, %s, %s)' % (self.topic, self.author, self.created.replace(microsecond=0))
+  def __unicode__(self):
+    return u'(%s, %s, %s)' % (self.topic, self.author, self.created.replace(microsecond=0))
     
   def html(self):
     '''
@@ -98,17 +98,17 @@ from cicero.filters import filters
 
 class Profile(models.Model):
   user = AutoOneToOneField(User, related_name='cicero_profile')
-  filter = models.CharField('Фильтр', maxlength=50, choices=[(k, k) for k in filters.keys()])
+  filter = models.CharField(u'Фильтр', maxlength=50, choices=[(k, k) for k in filters.keys()])
   openid = models.CharField(maxlength=200, null=True, unique=True)
   openid_server = models.CharField(maxlength=200, null=True)
   mutant = models.ImageField(upload_to='mutants', null=True)
-  name = models.CharField('Имя', maxlength=200, null=True)
+  name = models.CharField(u'Имя', maxlength=200, null=True)
   read_articles = models.TextField()
   
   class Admin:
     pass
   
-  def __str__(self):
+  def __unicode__(self):
     if self.name:
       return self.name
     elif self.openid:
@@ -120,7 +120,7 @@ class Profile(models.Model):
         pass
       return result
     else:
-      return str(self.user)
+      return unicode(self.user)
       
   def read_hcard(self):
     '''
@@ -179,11 +179,11 @@ class Profile(models.Model):
     from cPickle import loads
     if not self.read_articles:
       return [(0, 0)]
-    return loads(self.read_articles)
+    return loads(str(self.read_articles))
     
   def _set_read_ranges(self, ranges):
     from cPickle import dumps
-    self.read_articles = dumps(ranges)
+    self.read_articles = unicode(dumps(ranges))
     
   read_ranges = property(_get_read_ranges, _set_read_ranges)
   
