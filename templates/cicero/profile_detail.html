@@ -12,6 +12,15 @@
     <th>Зарегистрирован<td>{{ object.user.date_joined|date:"d.m.Y" }}
   <tr>
     <th>Сообщений<td>{{ object.user.article_set.count }}
+  {% if profile.moderator or user.is_superuser %}
+  <tr>
+    <th>Специальные права
+    <td>
+      <ul>
+        {% if user.is_superuser %}<li>Админ{% endif %}
+        {% if profile.moderator %}<li>Модератор{% endif %}
+      </ul>
+  {% endif %}
 </table>
 
 <div id="openid">
