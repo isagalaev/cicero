@@ -1,0 +1,25 @@
+{% extends "cicero/auth.html" %}
+
+{% block cicero_title %}Редатирование статьи{% endblock %}
+
+{% block content %}
+
+<h2>Редактирование статьи</h2>
+
+<form action="./" method="post" id="edit">
+  <p>
+    <label for="id_text">{{ form.text.label }}</label>
+    {{ form.text }}
+    {% if form.text.errors %}<em class="error">{{ form.text.errors|join:", " }}</em>{% endif %}
+  
+  <div class="buttons"><button type="submit">Сохранить</button></div>
+</form>
+
+{% endblock %}
+
+{% block aside %}
+<ul id="breadcrumbs" class="block">
+  <li><a href="{% url cicero.views.topic article.topic.forum.slug,article.topic.id %}">Топик</a>
+</ul>
+
+{% endblock %}

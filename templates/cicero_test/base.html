@@ -120,16 +120,24 @@
     display: inline; padding-left: 1em;
   }
   
-  #add {
+  #topic .control {
+    text-align: right;
+  }
+  
+  #add,
+  #edit {
     clear: both; width: 50em;
   }
   
-  #add label {
+  #add label,
+  #edit label {
     display: block;
   }
   
   #add input,
-  #add textarea {
+  #add textarea,
+  #edit input,
+  #edit textarea {
     width: 100%;
   }
   
@@ -240,7 +248,9 @@
   h2,
   h3,
   .meta,
-  .meta a {
+  .meta a,
+  .control,
+  .control a {
     color: #888;
   }
   
@@ -280,6 +290,7 @@
   }
   
   .meta,
+  .control,
   .paginator,
   #auth {
     font-size: 85%;

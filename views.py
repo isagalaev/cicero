@@ -3,6 +3,7 @@ from django.views.generic.list_detail import object_list
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
+from django.core.urlresolvers import reverse
 from django.conf import settings
 
 from cicero.models import Forum, Topic, Article
@@ -21,7 +22,6 @@ def post_redirect(request):
 def login_required(func):
   def wrapper(request, *args, **kwargs):
     if not request.user.is_authenticated():
-      from django.core.urlresolvers import reverse
       return HttpResponseRedirect(reverse(login) + '?redirect=' + request.path)
     return func(request, *args, **kwargs)
   return wrapper
@@ -181,3 +181,20 @@ def mark_read(request, slug=None):
     profile.add_read_articles(qs)
     profile.save()
   return HttpResponseRedirect(request.META.get('HTTP_REFERER') or '../')
+
+def article_edit(request, id):
+  article = get_object_or_404(Article, pk=id)
+  if not request.user.cicero_profile.can_edit(article):
+    return HttpResponseForbidden('Нет прав для редактирования')
+  from forms import ArticleEditForm
+  if request.method == 'POST':
+    form = ArticleEditForm(article, request.POST)
+    if form.is_valid():
+      form.save()
+      return HttpResponseRedirect(reverse(topic, args=(article.topic.forum.slug, article.topic.id)))
+  else:
+    form = ArticleEditForm(article, initial=article.__dict__)
+  return render_to_response(request, 'cicero/article_edit.html', {
+    'form': form,
+    'article': article,
+  })

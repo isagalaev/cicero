@@ -22,8 +22,15 @@ def _validate_name(user, data):
       raise ValidationError('Обязательное поле')
     return data['name']
 
+class ArticleTextField(CharField):
+  def __init__(self, *args, **kwargs):
+    kwargs['widget'] = Textarea(attrs={'cols': '80', 'rows': '20'})
+    if 'label' not in kwargs:
+      kwargs['label'] = 'Текст'
+    super(ArticleTextField, self).__init__(*args, **kwargs)
+
 class ArticleForm(Form):
-  text = CharField(label='Текст', widget=Textarea(attrs={'cols': '80', 'rows': '20'}))
+  text = ArticleTextField()
   name = CharField(label='Имя', required=False)
   
   def __init__(self, topic, user, *args, **kwargs):
@@ -38,7 +45,7 @@ class ArticleForm(Form):
   
 class TopicForm(Form):
   subject = CharField(label='Тема')
-  text = CharField(label='Текст', widget=Textarea(attrs={'cols': '80', 'rows': '20'}))
+  text = ArticleTextField()
   name = CharField(label='Имя', required=False)
   
   def __init__(self, forum, user, *args, **kwargs):
@@ -53,6 +60,16 @@ class TopicForm(Form):
     topic = Topic(forum=self.forum, subject=self.cleaned_data['subject'])
     topic.save()
     return _create_article(topic, self.user, self.cleaned_data)
+
+class ArticleEditForm(Form):
+  text = ArticleTextField()
+  
+  def __init__(self, article, *args, **kwargs):
+    super(ArticleEditForm, self).__init__(*args, **kwargs)
+    self.article = article
+    
+  def save(self):
+    return save_instance(self, self.article)
 
 class AuthForm(Form):
   openid_url = CharField(label='OpenID', max_length=200, required=True)

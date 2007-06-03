@@ -26,6 +26,9 @@
       </address>
       <p class="time">{{ article.created|date:"d.m.Y H:i" }}
     </div>
+    {% ifcanedit profile article %}
+    <div class="control"><a href="{% url cicero.views.article_edit article.id %}">Редактировать</a></div>
+    {% endifcanedit %}
 {% endfor %}
 </ol>
 

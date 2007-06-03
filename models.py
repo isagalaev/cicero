@@ -237,3 +237,6 @@ class Profile(models.Model):
     except IndexError:
       pass
     self.read_ranges = ranges
+  
+  def can_edit(self, article):
+    return self.moderator or article.author_id == self.user_id
