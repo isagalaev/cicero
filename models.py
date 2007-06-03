@@ -104,6 +104,7 @@ class Profile(models.Model):
   mutant = models.ImageField(upload_to='mutants', null=True)
   name = models.CharField(u'Имя', maxlength=200, null=True)
   read_articles = models.TextField()
+  moderator = models.BooleanField(default=False)
   
   class Admin:
     pass
