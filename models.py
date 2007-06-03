@@ -103,15 +103,10 @@ class Profile(models.Model):
   openid_server = models.CharField(maxlength=200, null=True)
   mutant = models.ImageField(upload_to='mutants', null=True)
   name = models.CharField(u'Имя', maxlength=200, null=True)
-  read_articles = models.TextField()
+  read_articles = models.TextField(editable=False)
   moderator = models.BooleanField(default=False)
   
   class Admin:
-    fields = [
-      (None, {
-        'fields': ('name', 'openid', 'mutant', 'moderator'),
-      })
-    ]
     list_display = ('user', 'openid', 'name', 'moderator')
     list_filter = ('moderator',)
     search_fields = ('openid', 'name', 'user__username')
