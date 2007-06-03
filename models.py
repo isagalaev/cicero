@@ -107,6 +107,11 @@ class Profile(models.Model):
   moderator = models.BooleanField(default=False)
   
   class Admin:
+    fields = [
+      (None, {
+        'fields': ('name', 'openid', 'mutant', 'moderator'),
+      })
+    ]
     list_display = ('user', 'openid', 'name', 'moderator')
     list_filter = ('moderator',)
     search_fields = ('openid', 'name', 'user__username')
