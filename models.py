@@ -84,7 +84,7 @@ class Article(models.Model):
       from django.utils.html import linebreaks, escape
       result = linebreaks(escape(self.text))
     import re
-    result = re.sub(r'\B--\B', '—', result)
+    result = re.sub(ur'\B--\B', u'—', result)
     return result
     
   def from_guest(self):
