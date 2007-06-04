@@ -182,6 +182,7 @@ def mark_read(request, slug=None):
     profile.save()
   return HttpResponseRedirect(request.META.get('HTTP_REFERER') or '../')
 
+@login_required
 def article_edit(request, id):
   article = get_object_or_404(Article, pk=id)
   if not request.user.cicero_profile.can_edit(article):

@@ -82,7 +82,7 @@ class IfCanEditNode(template.Node):
   def render(self, context):
     profile = self.profile_expr.resolve(context)
     article = self.article_expr.resolve(context)
-    if profile.can_edit(article):
+    if profile and profile.can_edit(article):
       return self.node_list.render(context)
     return ''
 
