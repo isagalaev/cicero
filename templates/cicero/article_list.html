@@ -56,7 +56,7 @@
 
 {% block aside %}
 <ul id="breadcrumbs" class="block">
-  <li id="index_link"><a href="../../">Начало</a>
-  <li id="forum_link"><a href="../">{{ topic.forum|escape }}</a>
+  <li id="index_link"><a href="{% url index %}">Начало</a>
+  <li id="forum_link"><a href="{% url cicero.views.forum topic.forum.slug %}">{{ topic.forum|escape }}</a>
 </ul>
 {% endblock %}

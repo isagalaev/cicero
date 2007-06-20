@@ -43,7 +43,7 @@
 
 {% block aside %}
 <ul id="nav" class="block">
-  <li><a href="../../">Начало</a>
+  <li><a href="{% url index %}">Начало</a>
   {% if user_only %}
   <li><a href="{% obj_url profile %}">Страница пользователя</a>
   {% endif %}

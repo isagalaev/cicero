@@ -41,7 +41,7 @@
 
 {% block aside %}
 <ul id="breadcrumbs" class="block">
-  <li id="index_link"><a href="../">Начало</a>
+  <li id="index_link"><a href="{% url index %}">Начало</a>
 </ul>
 
 {% if user.is_authenticated %}

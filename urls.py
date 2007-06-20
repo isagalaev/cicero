@@ -23,11 +23,11 @@ urlpatterns = patterns('',
   (r'^users/self/openid_complete/$', views.change_openid_complete),
   (r'^users/self/(personal|settings)/$', views.post_profile),
   (r'^users/self/hcard/$', views.read_hcard),
-  (r'^$', object_list, {
+  url(r'^$', object_list, {
     'queryset': Forum.objects.all(), 
     'context_processors': [default],
     'extra_context': {'page_id': 'index'},
-  }),
+  }, name='index'),
   url(r'^users/self/deleted_articles/$', views.deleted_articles, {'user_only': True}, name='deleted_articles'),
   (r'^mark_read/$', views.mark_read),
   (r'^([a-z0-9-]+)/mark_read/$', views.mark_read),
