@@ -220,9 +220,11 @@ class Profile(models.Model):
       tables += ', cicero_topic t'
       condition = 'topic_id = t.id and forum_id in (%s)' % ','.join(ids)
       field_name = 'forum_id'
+      condition += ' and t.deleted is null'
     else:
       condition = 'topic_id in (%s)' % ','.join(ids)
       field_name = 'topic_id'
+      condition += ' and a.deleted is null'
     ranges = ' or '.join(['a.id between %s and %s' % range for range in self.read_ranges])
     condition += ' and not (%s)' % ranges
     query = 'select %s, count(1) as c from %s where %s group by 1' % (field_name, tables, condition)
