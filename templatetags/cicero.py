@@ -75,19 +75,19 @@ def setnews(parser, token):
     raise template.TemplateSyntaxError, '"%s" takes object list as parameter ' % bits[0]
   return SetNewsNode(parser.compile_filter(bits[1]))
 
-class IfCanEditNode(template.Node):
+class IfCanChangeNode(template.Node):
   def __init__(self, profile_expr, article_expr, node_list):
     self.profile_expr, self.article_expr, self.node_list = profile_expr, article_expr, node_list
     
   def render(self, context):
     profile = self.profile_expr.resolve(context)
     article = self.article_expr.resolve(context)
-    if profile and profile.can_edit(article):
+    if profile and profile.can_change(article):
       return self.node_list.render(context)
     return ''
 
 @register.tag
-def ifcanedit(parser, token):
+def ifcanchange(parser, token):
   '''
   Выводит содержимое блока только в том случае, если пользователь
   имеет право редактироват статью
@@ -97,4 +97,4 @@ def ifcanedit(parser, token):
     raise template.TemplateSyntaxError, '"%s" принимает 2 параметра: профиль и статью' % bits[0]
   node_list = parser.parse('end' + bits[0])
   parser.delete_first_token()
-  return IfCanEditNode(parser.compile_filter(bits[1]), parser.compile_filter(bits[2]), node_list)
+  return IfCanChangeNode(parser.compile_filter(bits[1]), parser.compile_filter(bits[2]), node_list)

@@ -26,9 +26,12 @@
       </address>
       <p class="time">{{ article.created|date:"d.m.Y H:i" }}
     </div>
-    {% ifcanedit profile article %}
-    <div class="control"><a href="{% url cicero.views.article_edit article.id %}">Редактировать</a></div>
-    {% endifcanedit %}
+    <div class="control">
+      {% ifcanchange profile article %}
+      <a href="{% url cicero.views.article_edit article.id %}">Редактировать</a>
+      <form action="{% url cicero.views.article_delete article.id %}" method="post"><button>Удалить</button></form>
+      {% endifcanchange %}
+    </div>
 {% endfor %}
 </ol>
 

@@ -9,6 +9,8 @@ from django.conf import settings
 from cicero.models import Forum, Topic, Article
 from cicero.forms import ArticleForm, TopicForm, AuthForm
 
+from datetime import datetime
+
 def render_to_response(request, template_name, context_dict):
   from cicero.context import default
   from django.template import RequestContext
@@ -185,7 +187,7 @@ def mark_read(request, slug=None):
 @login_required
 def article_edit(request, id):
   article = get_object_or_404(Article, pk=id)
-  if not request.user.cicero_profile.can_edit(article):
+  if not request.user.cicero_profile.can_change(article):
     return HttpResponseForbidden('Нет прав для редактирования')
   from forms import ArticleEditForm
   if request.method == 'POST':
@@ -199,3 +201,17 @@ def article_edit(request, id):
     'form': form,
     'article': article,
   })
+
+@login_required
+def article_delete(request, id):
+  article = get_object_or_404(Article, pk=id)
+  if not request.user.cicero_profile.can_change(article):
+    return HttpResponseForbidden('Нет прав для удаления')
+  article.deleted = datetime.now()
+  article.save()
+  if article.topic.article_set.count():
+    return HttpResponseRedirect(reverse(topic, args=(article.topic.forum.slug, article.topic.id)))
+  else:
+    article.topic.deleted = datetime.now()
+    article.topic.save()
+    return HttpResponseRedirect(reverse(forum, args=(article.topic.forum.slug,)))

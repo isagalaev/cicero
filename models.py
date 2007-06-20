@@ -19,10 +19,22 @@ class Forum(models.Model):
   def __unicode__(self):
     return self.name
     
+class TopicManager(models.Manager):
+  def get_query_set(self):
+    return super(TopicManager, self).get_query_set().filter(deleted__isnull=True)
+
+class DeletedTopicManager(models.Manager):
+  def get_query_set(self):
+    return super(DeletedTopicManager, self).get_query_set().filter(deleted__isnull=False).order_by('-deleted')
+
 class Topic(models.Model):
   forum = models.ForeignKey(Forum)
   subject = models.CharField(maxlength=255)
   created = models.DateTimeField(auto_now_add=True)
+  deleted = models.DateTimeField(null=True)
+  
+  objects = TopicManager()
+  deleted_objects = DeletedTopicManager()
   
   class Meta:
     ordering = ['-id']
@@ -51,8 +63,12 @@ class ArticleQuerySet(QuerySet):
 
 class ArticleManager(models.Manager):
   def get_query_set(self):
-    return ArticleQuerySet(self.model)
-    
+    return ArticleQuerySet(self.model).filter(deleted__isnull=True)
+
+class DeletedArticleManager(models.Manager):
+  def get_query_set(self):
+    return super(DeletedArticleManager, self).get_query_set().filter(deleted__isnull=False).order_by('-deleted')
+
 class Article(models.Model):
   topic = models.ForeignKey(Topic)
   text = models.TextField()
@@ -60,8 +76,10 @@ class Article(models.Model):
   created = models.DateTimeField(auto_now_add=True, db_index=True)
   author = models.ForeignKey(User)
   guest_name = models.CharField(maxlength=255, blank=True)
+  deleted = models.DateTimeField(null=True)
   
   objects = ArticleManager()
+  deleted_objects = DeletedArticleManager()
   
   class Meta:
     ordering = ['id']
@@ -238,5 +256,5 @@ class Profile(models.Model):
       pass
     self.read_ranges = ranges
   
-  def can_edit(self, article):
+  def can_change(self, article):
     return self.moderator or article.author_id == self.user_id
