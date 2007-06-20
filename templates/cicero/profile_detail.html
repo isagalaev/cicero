@@ -50,7 +50,10 @@
 <p id="nav" class="block"><a href="../../">Начало</a>
 
 {% ifequal object profile %}
-<p id="edit" class="block"><a href="{% url cicero.views.edit_profile %}">Редактировать</a>
+<ul id="control" class="block">
+  <li><a href="{% url cicero.views.edit_profile %}">Редактировать</a>
+  <li><a href="{% url deleted_articles %}">Удаленные статьи</a>
+</div>
 {% endifequal %}
 
 {% endblock %}

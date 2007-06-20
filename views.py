@@ -2,12 +2,13 @@
 from django.views.generic.list_detail import object_list
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
 from cicero.models import Forum, Topic, Article
 from cicero.forms import ArticleForm, TopicForm, AuthForm
+from cicero.context import default
 
 from datetime import datetime
 
@@ -36,6 +37,12 @@ def _acquire_redirect(request, article):
     form.acquire_article = article
     after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.auth')
     return HttpResponseRedirect(after_auth_redirect)
+
+generic_info = {
+  'paginate_by': settings.PAGINATE_BY,
+  'allow_empty': True,
+  'context_processors': [default],
+}
 
 def forum(request, slug, **kwargs):
   forum = get_object_or_404(Forum, slug=slug)
@@ -172,7 +179,7 @@ def read_hcard(request):
   profile.read_hcard()
   profile.save()
   return HttpResponseRedirect('../')
-  
+
 @require_http_methods('POST')
 def mark_read(request, slug=None):
   qs = Article.objects.all()
@@ -215,3 +222,39 @@ def article_delete(request, id):
     article.topic.deleted = datetime.now()
     article.topic.save()
     return HttpResponseRedirect(reverse(forum, args=(article.topic.forum.slug,)))
+
+@login_required
+def article_undelete(request, id):
+  try:
+    article = Article.deleted_objects.get(pk=id)
+  except Article.DoesNotExist:
+    raise Http404
+  if not request.user.cicero_profile.can_change(article):
+    return HttpResponseForbidden('Нет прав для восстановления')
+  article.deleted = None
+  article.save()
+  try:
+    article_topic = Topic.deleted_objects.get(pk=article.topic_id)
+    article_topic.deleted = None
+    article_topic.save()
+  except Topic.DoesNotExist:
+    article_topic = article.topic
+  return HttpResponseRedirect(reverse(topic, args=(article_topic.forum.slug, article_topic.id)))
+
+@login_required
+def deleted_articles(request, user_only):
+  profile = request.user.cicero_profile
+  if not user_only and not profile.moderator:
+    return HttpResponseForbidden('Нет прав просматривать все удаленные статьи')
+  queryset = Article.deleted_objects.select_related()
+  if user_only:
+    queryset = queryset.filter(author=profile)
+  kwargs = {
+    'queryset': queryset,
+    'template_name': 'cicero/article_deleted_list.html',
+    'extra_context': {
+      'user_only': user_only and profile,
+    },
+  }
+  kwargs.update(generic_info)
+  return object_list(request, **kwargs)

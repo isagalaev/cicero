@@ -9,6 +9,12 @@
 
 <div id="aside">
 {% block aside %}{% endblock %}
+
+{% if profile.moderator %}
+<ul id="moderators" class="block">
+  <li><a href="{% url all_deleted_articles %}">Все удаленные статьи</a>
+</ul>
+{% endif %}
 </div>
 
 {% if user.is_authenticated %}

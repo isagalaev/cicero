@@ -7,11 +7,7 @@ from cicero import views
 from cicero.models import Forum, Topic, Article, Profile
 from cicero.context import default
 
-info = {
-  'paginate_by': settings.PAGINATE_BY,
-  'allow_empty': True,
-  'context_processors': [default],
-}
+info = views.generic_info
 
 urlpatterns = patterns('',
   (r'^users/login/$', views.login),
@@ -32,10 +28,13 @@ urlpatterns = patterns('',
     'context_processors': [default],
     'extra_context': {'page_id': 'index'},
   }),
+  url(r'^users/self/deleted_articles/$', views.deleted_articles, {'user_only': True}, name='deleted_articles'),
   (r'^mark_read/$', views.mark_read),
   (r'^([a-z0-9-]+)/mark_read/$', views.mark_read),
+  url(r'^deleted_articles/$', views.deleted_articles, {'user_only': False}, name='all_deleted_articles'),
   (r'^article_edit/(\d+)/$', views.article_edit),
   (r'^article_delete/(\d+)/$', views.article_delete),
+  (r'^article_undelete/(\d+)/$', views.article_undelete),
   (r'^([a-z0-9-]+)/$', views.forum, info),
   (r'^([a-z0-9-]+)/(\d+)/$', views.topic, info),
 )
