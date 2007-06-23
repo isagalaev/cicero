@@ -220,7 +220,7 @@ class Profile(models.Model):
       tables += ', cicero_topic t'
       condition = 'topic_id = t.id and forum_id in (%s)' % ','.join(ids)
       field_name = 'forum_id'
-      condition += ' and t.deleted is null'
+      condition += ' and t.deleted is null and a.deleted is null'
     else:
       condition = 'topic_id in (%s)' % ','.join(ids)
       field_name = 'topic_id'
