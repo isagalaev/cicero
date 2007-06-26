@@ -31,7 +31,7 @@ class Topic(models.Model):
   forum = models.ForeignKey(Forum)
   subject = models.CharField(maxlength=255)
   created = models.DateTimeField(auto_now_add=True)
-  deleted = models.DateTimeField(null=True)
+  deleted = models.DateTimeField(null=True, db_index=True)
   
   objects = TopicManager()
   deleted_objects = DeletedTopicManager()
@@ -76,7 +76,7 @@ class Article(models.Model):
   created = models.DateTimeField(auto_now_add=True, db_index=True)
   author = models.ForeignKey(User)
   guest_name = models.CharField(maxlength=255, blank=True)
-  deleted = models.DateTimeField(null=True)
+  deleted = models.DateTimeField(null=True, db_index=True)
   
   objects = ArticleManager()
   deleted_objects = DeletedArticleManager()
