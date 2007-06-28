@@ -85,7 +85,7 @@ class AuthForm(Form):
   
   def clean_openid_url(self):
     from cicero.auth import get_consumer
-    from yadis.discover import DiscoveryFailure
+    from openid.consumer.consumer import DiscoveryFailure
     from urljr.fetchers import HTTPFetchingError
     consumer = get_consumer(self.session)
     errors = []

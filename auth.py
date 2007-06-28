@@ -8,6 +8,7 @@ from django.conf import settings
 
 class OpenIdBackend(object):
   def authenticate(self, session=None, query=None):
+    query = dict([(k, v) for k, v in query.items()])
     consumer = get_consumer(session)
     info = consumer.complete(query)
     if info.status != SUCCESS:
