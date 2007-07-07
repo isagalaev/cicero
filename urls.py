@@ -35,6 +35,7 @@ urlpatterns = patterns('',
   (r'^article_edit/(\d+)/$', views.article_edit),
   (r'^article_delete/(\d+)/$', views.article_delete),
   (r'^article_undelete/(\d+)/$', views.article_undelete),
+  (r'^spawn_topic/(\d+)/$', views.spawn_topic),
   (r'^([a-z0-9-]+)/$', views.forum, info),
   (r'^([a-z0-9-]+)/(\d+)/$', views.topic, info),
 )

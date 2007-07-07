@@ -3,6 +3,8 @@
 from django.newforms import *
 from django.conf import settings
 
+from cicero.models import Topic
+
 def _create_article(topic, user, data):
   if not user.is_authenticated():
     from django.contrib.auth.models import User
@@ -123,3 +125,23 @@ def SettingsForm(profile, *args, **kwargs):
       return ChoiceField(label=field.verbose_name, choices=field.get_choices(False), **kwargs)
       
   return form_for_instance(profile, formfield_callback=callback)(*args, **kwargs)
+
+class SpawnForm(Form):
+  subject = CharField(label='Тема')
+  
+  def __init__(self, article, *args, **kwargs):
+    super(SpawnForm, self).__init__(*args, **kwargs)
+    self.article = article
+  
+  def save(self):
+    topic = Topic(forum=self.article.topic.forum, subject=self.cleaned_data['subject'])
+    topic.save()
+    topic.article_set.create(
+      text=self.article.text,
+      filter=self.article.filter,
+      author=self.article.author,
+      guest_name=self.article.guest_name
+    )
+    self.article.spawned_to = topic
+    self.article.save()
+    return topic

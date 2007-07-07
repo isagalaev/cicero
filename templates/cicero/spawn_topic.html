@@ -1,0 +1,32 @@
+{% extends "cicero/auth.html" %}
+
+{% block cicero_title %}Отщепление топика{% endblock %}
+
+{% block content %}
+
+<h2>Отщепление статьи в новый топик</h2>
+
+<form action="./" method="post" id="spawn">
+  <p>
+    <label for="id_subject">{{ form.subject.label }}</label>
+    {{ form.subject }}
+    {% if form.subject.errors %}<em class="error">{{ form.subject.errors|join:", " }}</em>{% endif %}
+  <div class="buttons"><button type="submit">Отщепить</button></div>
+</form>
+
+<div id="reference">
+  <p>Автор: {% if article.from_guest %}{{ article.guest_name }}{% else %}{{ article.author.cicero_profile }}{% endif %}
+  <div>
+    <p>Текст:<p>
+    <div class="usertext">{{ article.html }}</div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block aside %}
+<ul id="breadcrumbs" class="block">
+  <li><a href="{% url cicero.views.topic article.topic.forum.slug,article.topic.id %}">Топик</a>
+</ul>
+
+{% endblock %}

@@ -12,6 +12,7 @@
 <ol>
 {% for article in object_list %}
   <li>
+    {% if not article.spawned %}
     <div class="usertext">
       {{ article.html }}
     </div>
@@ -31,7 +32,15 @@
       <a href="{% url cicero.views.article_edit article.id %}">Редактировать</a>
       <form action="{% url cicero.views.article_delete article.id %}" method="post"><button>Удалить</button></form>
       {% endifcanchange %}
+      {% if profile.moderator %}
+      <a href="{% url cicero.views.spawn_topic article.id %}">Отщепить топик</a>
+      {% endif %}
     </div>
+    {% else %}
+    <div class="spwaned">
+    Отщеплен новый топик "<a href="{% url cicero.views.topic article.spawned_to.forum.slug,article.spawned_to.id %}">{{ article.spawned_to.subject|escape }}</a>".
+    </div>
+    {% endif %}
 {% endfor %}
 </ol>
 

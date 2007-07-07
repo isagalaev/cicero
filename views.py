@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 
 from cicero.models import Forum, Topic, Article
-from cicero.forms import ArticleForm, TopicForm, AuthForm
+from cicero.forms import ArticleForm, TopicForm, AuthForm, SpawnForm
 from cicero.context import default
 
 from datetime import datetime
@@ -258,3 +258,20 @@ def deleted_articles(request, user_only):
   }
   kwargs.update(generic_info)
   return object_list(request, **kwargs)
+
+@login_required
+def spawn_topic(request, article_id):
+  if not request.user.cicero_profile.moderator:
+    return HttpResponseForbidden('Нет прав отщеплять топики')
+  article = get_object_or_404(Article, pk=article_id)
+  if request.method == 'POST':
+    form = SpawnForm(article, request.POST)
+    if form.is_valid():
+      new_topic = form.save()
+      return HttpResponseRedirect(reverse('cicero.views.topic', args=(new_topic.forum.slug, new_topic.id)))
+  else:
+    form = SpawnForm(article)
+  return render_to_response(request, 'cicero/spawn_topic.html', {
+    'form': form,
+    'article': article,
+  })

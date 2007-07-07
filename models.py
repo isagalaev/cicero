@@ -77,6 +77,7 @@ class Article(models.Model):
   author = models.ForeignKey(User)
   guest_name = models.CharField(maxlength=255, blank=True)
   deleted = models.DateTimeField(null=True, db_index=True)
+  spawned_to = models.ForeignKey(Topic, null=True, related_name='spawned_from')
   
   objects = ArticleManager()
   deleted_objects = DeletedArticleManager()
@@ -111,7 +112,13 @@ class Article(models.Model):
     в шаблонах.
     '''
     return self.author.username == 'cicero_guest'
-    
+  
+  def spawned(self):
+    '''
+    Перенесена ли статья в новый топик.
+    '''
+    return self.spawned_to_id is not None
+
 from cicero.filters import filters
 
 class Profile(models.Model):
