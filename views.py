@@ -268,7 +268,7 @@ def spawn_topic(request, article_id):
     form = SpawnForm(article, request.POST)
     if form.is_valid():
       new_topic = form.save()
-      return HttpResponseRedirect(reverse('cicero.views.topic', args=(new_topic.forum.slug, new_topic.id)))
+      return HttpResponseRedirect(reverse(topic, args=(new_topic.forum.slug, new_topic.id)))
   else:
     form = SpawnForm(article)
   return render_to_response(request, 'cicero/spawn_topic.html', {
