@@ -37,7 +37,7 @@
       {% endif %}
     </div>
     {% else %}
-    <div class="spwaned">
+    <div class="spawned">
     Отщеплен новый топик "<a href="{% url cicero.views.topic article.spawned_to.forum.slug,article.spawned_to.id %}">{{ article.spawned_to.subject|escape }}</a>".
     </div>
     {% endif %}
