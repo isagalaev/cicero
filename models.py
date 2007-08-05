@@ -154,6 +154,7 @@ class Article(models.Model):
                      search_link(f.read(512 * 1024))
         if server_url:
           server = ServerProxy(server_url)
+          server.pingback.ping(topic_url, link)
       except (IOError, Fault):
         pass
       f.close()
