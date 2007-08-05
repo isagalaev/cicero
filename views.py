@@ -38,6 +38,12 @@ def _acquire_redirect(request, article):
     after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.auth')
     return HttpResponseRedirect(after_auth_redirect)
 
+def _commit_and_ping(article):
+  from django.db import transaction
+  if transaction.managed():
+    transaction.commit()
+  article.ping_external_links()
+
 generic_info = {
   'paginate_by': settings.PAGINATE_BY,
   'allow_empty': True,
@@ -50,6 +56,7 @@ def forum(request, slug, **kwargs):
     form = TopicForm(forum, request.user, request.POST)
     if form.is_valid():
       article = form.save()
+      _commit_and_ping(article)
       return _acquire_redirect(request, article) or HttpResponseRedirect('./')
   else:
     form = TopicForm(forum, request.user)
@@ -63,6 +70,7 @@ def topic(request, slug, id, **kwargs):
     form = ArticleForm(topic, request.user, request.POST)
     if form.is_valid():
       article = form.save()
+      _commit_and_ping(article)
       return _acquire_redirect(request, article) or HttpResponseRedirect('./?page=last')
   else:
     form = ArticleForm(topic, request.user)

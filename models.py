@@ -4,6 +4,8 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from cicero.fields import AutoOneToOneField
 
+import re
+
 class Forum(models.Model):
   slug = models.SlugField()
   name = models.CharField(maxlength=255)
@@ -102,7 +104,6 @@ class Article(models.Model):
     else:
       from django.utils.html import linebreaks, escape
       result = linebreaks(escape(self.text))
-    import re
     result = re.sub(ur'\B--\B', u'—', result)
     return result
     
@@ -118,6 +119,44 @@ class Article(models.Model):
     Перенесена ли статья в новый топик.
     '''
     return self.spawned_to_id is not None
+  
+  def ping_external_links(self):
+    '''
+    Пингование внешних ссылок через Pingback
+    (http://www.hixie.ch/specs/pingback/pingback)
+    '''
+    from django.contrib.sites.models import Site
+    domain = Site.objects.get_current().domain
+    from django.core.urlresolvers import reverse
+    index_url = reverse('cicero_index')
+    topic_url = reverse('cicero.views.topic', args=(self.topic.forum.slug, self.topic.id))
+    
+    def is_external(url):
+      from urlparse import urlsplit
+      scheme, server, path, query, fragment = urlsplit(url)
+      return server != '' and \
+             (server != domain or not path.startswith(index_url))
+    
+    def search_link(content):
+      match = re.search(r'<link rel="pingback" href="([^"]+)" ?/?>', content)
+      return match and match.group(1)
+    
+    from BeautifulSoup import BeautifulSoup
+    soup = BeautifulSoup(self.html())
+    links = [a['href'] for a in soup.findAll('a') if is_external(a['href'])]
+    from xmlrpclib import ServerProxy, Fault
+    from urllib2 import urlopen
+    for link in links:
+      try:
+        f = urlopen(link)
+        info = f.info()
+        server_url = info.get('X-Pingback', '') or \
+                     search_link(f.read(512 * 1024))
+        if server_url:
+          server = ServerProxy(server_url)
+      except (IOError, Fault):
+        pass
+      f.close()
 
 from cicero.filters import filters
 
@@ -161,7 +200,6 @@ class Profile(models.Model):
       content = file.read(512 * 1024)
     except (URLError, IOError):
       return
-    import re
     from BeautifulSoup import BeautifulSoup
     soup = BeautifulSoup(content)
     vcard = soup.find(None, {'class': re.compile(r'\bvcard\b')})
