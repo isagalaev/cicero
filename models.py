@@ -129,7 +129,7 @@ class Article(models.Model):
     domain = Site.objects.get_current().domain
     from django.core.urlresolvers import reverse
     index_url = reverse('cicero_index')
-    topic_url = reverse('cicero.views.topic', args=(self.topic.forum.slug, self.topic.id))
+    topic_url = 'http://%s%s' % (domain, reverse('cicero.views.topic', args=(self.topic.forum.slug, self.topic.id)))
     
     def is_external(url):
       from urlparse import urlsplit
