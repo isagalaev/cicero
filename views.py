@@ -40,8 +40,7 @@ def _acquire_redirect(request, article):
 
 def _commit_and_ping(article):
   from django.db import transaction
-  if transaction.managed():
-    transaction.commit()
+  transaction.commit()
   article.ping_external_links()
 
 generic_info = {
