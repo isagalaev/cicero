@@ -79,7 +79,7 @@ class ArticleManager(models.Manager):
       cache.set(key, value)
     return value
   
-  def invalidate_cache(self, slug, topic_id)
+  def invalidate_cache(self, slug, topic_id):
     cache.delete('latest-article-%s-%s' % (str(slug), None))
     cache.delete('latest-article-%s-%s' % (str(slug), topic_id))
 
