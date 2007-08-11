@@ -9,6 +9,7 @@ from django.conf import settings
 from cicero.models import Forum, Topic, Article
 from cicero.forms import ArticleForm, TopicForm, AuthForm, SpawnForm
 from cicero.context import default
+from cicero.conditional_get import if_modified_since
 
 from datetime import datetime
 
@@ -49,6 +50,7 @@ generic_info = {
   'context_processors': [default],
 }
 
+@if_modified_since(Article.objects.latest)
 def forum(request, slug, **kwargs):
   forum = get_object_or_404(Forum, slug=slug)
   if request.method == 'POST':
@@ -63,6 +65,7 @@ def forum(request, slug, **kwargs):
   kwargs['extra_context'] = {'forum': forum, 'form': form, 'page_id': 'forum'}
   return object_list(request, **kwargs)
 
+@if_modified_since(Article.objects.latest)
 def topic(request, slug, id, **kwargs):
   topic = get_object_or_404(Topic, forum__slug=slug, pk=id)
   if request.method == 'POST':

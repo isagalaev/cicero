@@ -66,6 +66,18 @@ class ArticleQuerySet(QuerySet):
 class ArticleManager(models.Manager):
   def get_query_set(self):
     return ArticleQuerySet(self.model).filter(deleted__isnull=True)
+  
+  def latest(self, request, slug, id=None, *args, **kwargs):
+    from django.core.cache import cache
+    key = 'latest-article-%s-%s' % (slug, id)
+    value = cache.get(key)
+    if value is None:
+      queryset = self.model.objects.filter(topic__forum__slug=slug).order_by('-created')
+      if id:
+        queryset = queryset.filter(topic__id=id)
+      value = queryset[0].created
+      cache.set(key, value)
+    return value
 
 class DeletedArticleManager(models.Manager):
   def get_query_set(self):
