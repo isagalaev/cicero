@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 from cicero.fields import AutoOneToOneField
+from django.core.cache import cache
 
 import re
 
@@ -66,9 +67,8 @@ class ArticleQuerySet(QuerySet):
 class ArticleManager(models.Manager):
   def get_query_set(self):
     return ArticleQuerySet(self.model).filter(deleted__isnull=True)
-  
+    
   def latest(self, request, slug, id=None, *args, **kwargs):
-    from django.core.cache import cache
     key = 'latest-article-%s-%s' % (slug, id)
     value = cache.get(key)
     if value is None:
@@ -78,6 +78,10 @@ class ArticleManager(models.Manager):
       value = queryset[0].created
       cache.set(key, value)
     return value
+  
+  def invalidate_cache(self, slug, topic_id):
+    cache.delete('latest-article-%s-%s' % (slug, None))
+    cache.delete('latest-article-%s-%s' % (slug, topic_id))
 
 class DeletedArticleManager(models.Manager):
   def get_query_set(self):
@@ -104,6 +108,10 @@ class Article(models.Model):
   
   def __unicode__(self):
     return u'(%s, %s, %s)' % (self.topic, self.author, self.created.replace(microsecond=0))
+  
+  def save(self):
+    Article.objects.invalidate_cache(self.topic.forum.slug, self.topic.id)
+    super(Article, self).save()
     
   def html(self):
     '''
