@@ -69,7 +69,7 @@ class ArticleManager(models.Manager):
     return ArticleQuerySet(self.model).filter(deleted__isnull=True)
     
   def latest(self, request, slug, id=None, *args, **kwargs):
-    key = 'latest-article-%s-%s' % (str(slug), id)
+    key = str('latest-article-%s-%s' % (slug, id))
     value = cache.get(key)
     if value is None:
       queryset = self.model.objects.filter(topic__forum__slug=slug).order_by('-created')
@@ -80,8 +80,8 @@ class ArticleManager(models.Manager):
     return value
   
   def invalidate_cache(self, slug, topic_id):
-    cache.delete('latest-article-%s-%s' % (str(slug), None))
-    cache.delete('latest-article-%s-%s' % (str(slug), topic_id))
+    cache.delete(str('latest-article-%s-%s' % (slug, None)))
+    cache.delete(str('latest-article-%s-%s' % (slug, topic_id)))
 
 class DeletedArticleManager(models.Manager):
   def get_query_set(self):
