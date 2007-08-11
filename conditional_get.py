@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.http import HttpResponseNotModified
 from time import mktime
-from email.utils import formatdate
+from email.Utils import formatdate
 
 def time_str(dt):
   return formatdate(mktime(dt.utctimetuple()), True)[:26] + 'GMT'
