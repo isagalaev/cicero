@@ -3,9 +3,9 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 from cicero.fields import AutoOneToOneField
-from django.core.cache import cache
 
 import re
+from datetime import datetime
 
 class Forum(models.Model):
   slug = models.SlugField()
@@ -68,21 +68,6 @@ class ArticleManager(models.Manager):
   def get_query_set(self):
     return ArticleQuerySet(self.model).filter(deleted__isnull=True)
     
-  def latest(self, request, slug, id=None, *args, **kwargs):
-    key = str('latest-article-%s-%s' % (slug, id))
-    value = cache.get(key)
-    if value is None:
-      queryset = self.model.objects.filter(topic__forum__slug=slug).order_by('-created')
-      if id:
-        queryset = queryset.filter(topic__id=id)
-      value = queryset[0].created
-      cache.set(key, value)
-    return value
-  
-  def invalidate_cache(self, slug, topic_id):
-    cache.delete(str('latest-article-%s-%s' % (slug, None)))
-    cache.delete(str('latest-article-%s-%s' % (slug, topic_id)))
-
 class DeletedArticleManager(models.Manager):
   def get_query_set(self):
     return super(DeletedArticleManager, self).get_query_set().filter(deleted__isnull=False).order_by('-deleted')
@@ -109,10 +94,6 @@ class Article(models.Model):
   def __unicode__(self):
     return u'(%s, %s, %s)' % (self.topic, self.author, self.created.replace(microsecond=0))
   
-  def save(self):
-    Article.objects.invalidate_cache(self.topic.forum.slug, self.topic.id)
-    super(Article, self).save()
-    
   def html(self):
     '''
     Возвращает HTML-текст статьи, полученный фильтрацией содержимого
@@ -189,6 +170,7 @@ class Profile(models.Model):
   mutant = models.ImageField(upload_to='mutants', null=True)
   name = models.CharField(u'Имя', maxlength=200, null=True)
   read_articles = models.TextField(editable=False)
+  read_time = models.DateTimeField(default=datetime.now)
   moderator = models.BooleanField(default=False)
   
   class Admin:
@@ -323,6 +305,7 @@ class Profile(models.Model):
     except IndexError:
       pass
     self.read_ranges = ranges
+    self.read_time = datetime.now()
   
   def can_change(self, article):
     return self.moderator or article.author_id == self.user_id
