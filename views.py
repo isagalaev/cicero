@@ -87,9 +87,10 @@ def topic(request, slug, id, **kwargs):
     return HttpResponseRedirect(page > 1 and './?page=%s' % page or './')
   if request.user.is_authenticated():
     profile = request.user.cicero_profile
-    profile.add_read_articles(topic.article_set.all())
-    profile.save()
-    caching.invalidate_by_read(request)
+    changed = profile.add_read_articles(topic.article_set.all())
+    if changed:
+      profile.save()
+      caching.invalidate_by_read(request)
   kwargs['queryset'] = topic.article_set.all().select_related()
   kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic'}
   return object_list(request, **kwargs)

@@ -304,8 +304,12 @@ class Profile(models.Model):
       ranges = merge_range((0, article.id), ranges)
     except IndexError:
       pass
-    self.read_ranges = ranges
-    self.read_time = datetime.now()
+    if self.read_ranges != ranges:
+      self.read_ranges = ranges
+      self.read_time = datetime.now()
+      return True
+    else:
+      return False
   
   def can_change(self, article):
     return self.moderator or article.author_id == self.user_id
