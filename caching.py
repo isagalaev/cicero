@@ -9,20 +9,22 @@ from django.conf import settings
 
 from cicero.models import Forum, Article
 
-def cached(func):
+def cached(key_func):
   '''
   Кеширующий декоратор.
   '''
-  def wrapper(key, *args, **kwargs):
-    key = str(key)
-    value = cache.get(key)
-    if not value:
-      value = func(*args, **kwargs)
-      cache.set(key, value)
-    return value
-  return wrapper
+  def decorator(func):
+    def wrapper(*args, **kwargs):
+      key = str(key_func(*args, **kwargs))
+      value = cache.get(key)
+      if not value:
+        value = func(*args, **kwargs)
+        cache.set(key, value)
+      return value
+    return wrapper
+  return decorator
 
-@cached
+@cached(lambda slug, topic_id: 'alc-%s-%s' % (slug, topic_id))
 def _article_latest_change(slug, topic_id):
   '''
   Запрос времени последнего обновления статей.
@@ -33,7 +35,7 @@ def _article_latest_change(slug, topic_id):
   value = queryset[0].created
   return value
 
-@cached
+@cached(lambda request: 'rlc-%s' % request.COOKIES.get(settings.SESSION_COOKIE_NAME, None))
 def _read_latest_change(request):
   '''
   Запрос времени последнего изменения состояния прочтенности 
@@ -48,8 +50,8 @@ def latest_change(request, slug, id=None, *args, **kwargs):
   Время последнего изменения страниц форумов и топиков для
   конкретного юзера.
   '''
-  article_time = _article_latest_change('alc-%s-%s' % (slug, id), slug, id)
-  read_time = _read_latest_change('rlc-%s' % request.COOKIES.get(settings.SESSION_COOKIE_NAME, None), request)
+  article_time = _article_latest_change(slug, id)
+  read_time = _read_latest_change(request)
   if read_time:
     return max(article_time, read_time)
   else:
