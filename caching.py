@@ -32,11 +32,11 @@ def _article_latest_change(slug, topic_id):
   queryset = Article.objects.filter(topic__forum__slug=slug).order_by('-created')
   if topic_id:
     queryset = queryset.filter(topic__id=topic_id)
-  created_time = len(queryset) and queryset[0].created
+  created_time = len(queryset) and queryset[0].created or None
   queryset = Article.deleted_objects.filter(topic__forum__slug=slug).order_by('-deleted')
   if topic_id:
     queryset = queryset.filter(topic__id=topic_id)
-  deleted_time = len(queryset) and queryset[0].deleted
+  deleted_time = len(queryset) and queryset[0].deleted or None
   return max(created_time, deleted_time)
 
 @cached(lambda request: 'rlc-%s' % request.COOKIES.get(settings.SESSION_COOKIE_NAME, None))
