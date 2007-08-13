@@ -234,6 +234,7 @@ def article_delete(request, id):
     return HttpResponseForbidden('Нет прав для удаления')
   article.deleted = datetime.now()
   article.save()
+  caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
   if article.topic.article_set.count():
     return HttpResponseRedirect(reverse(topic, args=(article.topic.forum.slug, article.topic.id)))
   else:
@@ -251,6 +252,7 @@ def article_undelete(request, id):
     return HttpResponseForbidden('Нет прав для восстановления')
   article.deleted = None
   article.save()
+  caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
   try:
     article_topic = Topic.deleted_objects.get(pk=article.topic_id)
     article_topic.deleted = None
