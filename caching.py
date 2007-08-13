@@ -32,8 +32,9 @@ def _article_latest_change(slug, topic_id):
   queryset = Article.objects.filter(topic__forum__slug=slug).order_by('-created')
   if topic_id:
     queryset = queryset.filter(topic__id=topic_id)
-  value = queryset[0].created
-  return value
+  if not len(queryset):
+    return None
+  return  queryset[0].created
 
 @cached(lambda request: 'rlc-%s' % request.COOKIES.get(settings.SESSION_COOKIE_NAME, None))
 def _read_latest_change(request):
@@ -51,6 +52,8 @@ def latest_change(request, slug, id=None, *args, **kwargs):
   конкретного юзера.
   '''
   article_time = _article_latest_change(slug, id)
+  if not article_time:
+      return None
   read_time = _read_latest_change(request)
   if read_time:
     return max(article_time, read_time)
