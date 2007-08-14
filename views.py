@@ -9,7 +9,7 @@ from django.conf import settings
 from cicero.models import Forum, Topic, Article
 from cicero.forms import ArticleForm, TopicForm, AuthForm, SpawnForm
 from cicero.context import default
-from cicero.conditional_get import if_modified_since
+from cicero.conditional_get import condition
 from cicero import caching
 
 from datetime import datetime
@@ -51,7 +51,7 @@ generic_info = {
   'context_processors': [default],
 }
 
-@if_modified_since(caching.latest_change)
+@condition(caching.latest_change, caching.user_etag)
 def forum(request, slug, **kwargs):
   forum = get_object_or_404(Forum, slug=slug)
   if request.method == 'POST':
@@ -67,7 +67,7 @@ def forum(request, slug, **kwargs):
   kwargs['extra_context'] = {'forum': forum, 'form': form, 'page_id': 'forum'}
   return object_list(request, **kwargs)
 
-@if_modified_since(caching.latest_change)
+@condition(caching.latest_change, caching.user_etag)
 def topic(request, slug, id, **kwargs):
   topic = get_object_or_404(Topic, forum__slug=slug, pk=id)
   if request.method == 'POST':
@@ -90,7 +90,7 @@ def topic(request, slug, id, **kwargs):
     changed = profile.add_read_articles(topic.article_set.all())
     if changed:
       profile.save()
-      caching.invalidate_by_read(request)
+      caching.invalidate_by_user(request)
   kwargs['queryset'] = topic.article_set.all().select_related()
   kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic'}
   return object_list(request, **kwargs)
@@ -113,7 +113,7 @@ def auth(request):
   if not user:
     return HttpResponseForbidden('Ошибка авторизации')
   login(request, user)
-  caching.invalidate_by_read(request)
+  caching.invalidate_by_user(request)
   if 'acquire_article' in request.GET:
     try:
       article = Article.objects.get(pk=request.GET['acquire_article'])
@@ -127,7 +127,7 @@ def auth(request):
 def logout(request):
   from django.contrib.auth import logout
   logout(request)
-  caching.invalidate_by_read(request)
+  caching.invalidate_by_user(request)
   return HttpResponseRedirect(post_redirect(request))
 
 def _profile_forms(request):
@@ -206,7 +206,7 @@ def mark_read(request, slug=None):
     profile = request.user.cicero_profile
     profile.add_read_articles(qs)
     profile.save()
-    caching.invalidate_by_read(request)
+    caching.invalidate_by_user(request)
   return HttpResponseRedirect(request.META.get('HTTP_REFERER') or '../')
 
 @login_required
