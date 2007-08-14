@@ -27,14 +27,11 @@ def condition(last_modified=_none, etag=_none):
         return func(request, *args, **kwargs)
       if_modified_since = request.META.get('HTTP_IF_MODIFIED_SINCE', None)
       if_none_match = request.META.get('HTTP_IF_NONE_MATCH', None)
-      print if_modified_since, if_none_match
-      print _last_modified(), _etag()
       if if_none_match:
         if_none_match = [e.strip() for e in if_none_match.split(',')]
       not_modified = (if_modified_since or if_none_match) and \
                      (if_modified_since and _last_modified() and if_modified_since == _last_modified()) and \
                      (if_none_match and _etag() and _etag() in if_none_match)
-      print not_modified
       if not_modified:
         return HttpResponseNotModified()
       response = func(request, *args, **kwargs)
