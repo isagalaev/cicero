@@ -29,14 +29,17 @@ def _article_latest_change(slug, topic_id):
   '''
   Запрос времени последнего обновления статей.
   '''
-  queryset = Article.objects.filter(topic__forum__slug=slug).order_by('-created')
-  if topic_id:
-    queryset = queryset.filter(topic__id=topic_id)
-  created_time = len(queryset) and queryset[0].created
-  queryset = Article.deleted_objects.filter(topic__forum__slug=slug).order_by('-deleted')
-  if topic_id:
-    queryset = queryset.filter(topic__id=topic_id)
-  deleted_time = len(queryset) and queryset[0].deleted
+  def prepare(qs):
+    if slug:
+      qs = qs.filter(topic__forum__slug=slug)
+    if topic_id:
+      qs = qs.filter(topic__id=topic_id)
+    return qs.order_by('-created')
+  
+  created_qs = prepare(Article.objects.all())
+  deleted_qs = prepare(Article.deleted_objects.all())
+  created_time = len(created_qs) and created_qs[0].created
+  deleted_time = len(deleted_qs) and deleted_qs[0].deleted
   return (created_time and deleted_time and max(created_time, deleted_time)) or created_time or deleted_time or None
 
 @cached(lambda request: 'rlc-%s' % request.COOKIES.get(settings.SESSION_COOKIE_NAME, None))
@@ -49,7 +52,7 @@ def _read_latest_change(request):
     return None
   return request.user.cicero_profile.read_time
 
-def latest_change(request, slug, id=None, *args, **kwargs):
+def latest_change(request, slug=None, id=None, *args, **kwargs):
   '''
   Время последнего изменения страниц форумов и топиков для
   конкретного юзера.
@@ -68,6 +71,7 @@ def invalidate_by_article(slug, topic_id):
   Инвалидация ключей кеша вида конретного топика и конкретного
   форума при добавлении статей.
   '''
+  cache.delete(str('alc-%s-%s' % (None, None)))
   cache.delete(str('alc-%s-%s' % (slug, None)))
   cache.delete(str('alc-%s-%s' % (slug, topic_id)))
 

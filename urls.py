@@ -6,6 +6,8 @@ from django.views.generic.list_detail import object_list, object_detail
 from cicero import views
 from cicero.models import Forum, Topic, Article, Profile
 from cicero.context import default
+from cicero.caching import latest_change
+from cicero.conditional_get import if_modified_since
 
 info = views.generic_info
 
@@ -23,7 +25,7 @@ urlpatterns = patterns('',
   (r'^users/self/openid_complete/$', views.change_openid_complete),
   (r'^users/self/(personal|settings)/$', views.post_profile),
   (r'^users/self/hcard/$', views.read_hcard),
-  url(r'^$', object_list, {
+  url(r'^$', if_modified_since(latest_change)(object_list), {
     'queryset': Forum.objects.all(), 
     'context_processors': [default],
     'extra_context': {'page_id': 'index'},
