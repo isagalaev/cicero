@@ -170,7 +170,6 @@ class Profile(models.Model):
   mutant = models.ImageField(upload_to='mutants', null=True)
   name = models.CharField(u'Имя', maxlength=200, null=True)
   read_articles = models.TextField(editable=False)
-  read_time = models.DateTimeField(default=datetime.now)
   moderator = models.BooleanField(default=False)
   
   class Admin:
@@ -306,7 +305,6 @@ class Profile(models.Model):
       pass
     if self.read_ranges != ranges:
       self.read_ranges = ranges
-      self.read_time = datetime.now()
       return True
     else:
       return False
