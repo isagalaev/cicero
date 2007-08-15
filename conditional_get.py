@@ -6,23 +6,21 @@ from email.Utils import formatdate
 
 def _none(*args, **kwargs):
   return None
-  
+
 def condition(last_modified=_none, etag=_none):
   def decorator(func):
-    
     def wrapper(request, *args, **kwargs):
       
-      def _last_modified():
-        if not '_last_modified' in locals():
-          dt = last_modified(request, *args, **kwargs)
-          _last_modified = dt and (formatdate(mktime(dt.utctimetuple()), True)[:26] + 'GMT')
-        return _last_modified
-      
-      def _etag():
-        if not '_etag' in locals():
-          _etag = etag(request, *args, **kwargs)
-        return _etag
-      
+      def memoize(f):
+        result = []
+        def caller():
+          if not result:
+            result.append(f(request, *args, **kwargs))
+          return result[0]
+        return caller
+      _last_modified = memoize(last_modified)
+      _etag = memoize(etag)
+  
       if request.method not in ('GET', 'HEAD'):
         return func(request, *args, **kwargs)
       if_modified_since = request.META.get('HTTP_IF_MODIFIED_SINCE', None)
