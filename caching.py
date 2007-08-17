@@ -50,7 +50,7 @@ def user_etag(request, *args, **kwargs):
   Запрос поьзовательского etag'а.
   '''
   if not request.user.is_authenticated():
-    return None
+    return 'None'
   return md5.new(request.user.cicero_profile.read_articles).hexdigest()
 
 def invalidate_by_article(slug, topic_id):
