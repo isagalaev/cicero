@@ -47,7 +47,7 @@
 {% endblock %}
 
 {% block aside %}
-<p id="nav" class="block"><a href="../../">Начало</a>
+<p id="nav" class="block"><a href="{% url cicero_index %}">Начало</a>
 
 {% ifequal object profile %}
 <ul id="control" class="block">
