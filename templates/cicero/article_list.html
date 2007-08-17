@@ -20,9 +20,9 @@
       <p class="mutant">{% if article.cicero_profile.mutant %}<a href="{% obj_url article.cicero_profile %}"><img src="{{ article.cicero_profile.get_mutant_url }}" alt=""></a>{% endif %}
       <address>
       {% if not article.from_guest %}
-        <a href="{% obj_url article.cicero_profile %}" title="{{ article.cicero_profile.openid|escape }}">{{ article.cicero_profile }}</a>
+        <a href="{% obj_url article.cicero_profile %}" title="{{ article.cicero_profile.openid|escape }}">{{ article.cicero_profile|escape }}</a>
       {% else %}
-        {{ article.guest_name }}
+        {{ article.guest_name|escape }}
       {% endif %}
       </address>
       <p class="time">{{ article.created|date:"d.m.Y H:i" }}
