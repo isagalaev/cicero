@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.views.generic.list_detail import object_list
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.cache import never_cache
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.core.urlresolvers import reverse
@@ -51,6 +52,7 @@ generic_info = {
   'context_processors': [default],
 }
 
+@never_cache
 @condition(caching.latest_change, caching.user_etag)
 def forum(request, slug, **kwargs):
   forum = get_object_or_404(Forum, slug=slug)
@@ -67,6 +69,7 @@ def forum(request, slug, **kwargs):
   kwargs['extra_context'] = {'forum': forum, 'form': form, 'page_id': 'forum'}
   return object_list(request, **kwargs)
 
+@never_cache
 @condition(caching.latest_change, caching.user_etag)
 def topic(request, slug, id, **kwargs):
   topic = get_object_or_404(Topic, forum__slug=slug, pk=id)

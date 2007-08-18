@@ -3,6 +3,7 @@ from django.conf.urls.defaults import *
 from django.conf import settings
 
 from django.views.generic.list_detail import object_list, object_detail
+from django.views.decorators.cache import never_cache
 from cicero import views
 from cicero.models import Forum, Topic, Article, Profile
 from cicero.context import default
@@ -25,7 +26,7 @@ urlpatterns = patterns('',
   (r'^users/self/openid_complete/$', views.change_openid_complete),
   (r'^users/self/(personal|settings)/$', views.post_profile),
   (r'^users/self/hcard/$', views.read_hcard),
-  url(r'^$', condition(latest_change, user_etag)(object_list), {
+  url(r'^$', never_cache(condition(latest_change, user_etag)(object_list)), {
     'queryset': Forum.objects.all(), 
     'context_processors': [default],
     'extra_context': {'page_id': 'index'},
