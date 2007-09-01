@@ -1,7 +1,6 @@
 # -*- coding:utf-8 -*-
 from openid.consumer.consumer import Consumer, SUCCESS
 from openid.store.filestore import FileOpenIDStore
-from openid.store.dumbstore import DumbStore
 
 from django.contrib.auth.models import User
 from django.conf import settings
