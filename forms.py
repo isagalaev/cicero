@@ -88,13 +88,10 @@ class AuthForm(Form):
   def clean_openid_url(self):
     from cicero.auth import get_consumer
     from openid.consumer.consumer import DiscoveryFailure
-    from urljr.fetchers import HTTPFetchingError
     consumer = get_consumer(self.session)
     errors = []
     try:
       self.request = consumer.begin(self.cleaned_data['openid_url'])
-    except HTTPFetchingError, e:
-      errors.append(str(e.why))
     except DiscoveryFailure, e:
       errors.append(str(e[0]))
     if hasattr(self, 'request') and self.request is None:
