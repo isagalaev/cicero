@@ -1,0 +1,37 @@
+{% extends "cicero/auth.html" %}
+{% load cicero %}
+
+{% block cicero_title %}Поиск по форуму {{ forum|escape }}{% endblock %}
+
+{% block content %}
+
+<h2>Поиск по форуму {{ forum|escape }}</h2>
+
+<form id="search">
+  <input type="search" name="term" value="{{ term|escape }}">
+  <button type="submit">Искать</button>
+</form>
+
+{% if topics %}
+
+{% paginator %}
+
+<ol>
+{% for topic in topics %}
+  <li><a href="{% url cicero.views.topic forum.slug,topic.id %}">{{ topic|escape }}</a>
+{% endfor %}
+</ol>
+
+{% paginator %}
+
+{% endif %}
+
+{% endblock %}
+
+{% block aside %}
+<ul id="breadcrumbs" class="block">
+  <li id="index_link"><a href="{% url cicero_index %}">Начало</a>
+  <li><a href="{% url cicero.views.forum forum.slug %}">{{ forum|escape }}</a>
+</ul>
+
+{% endblock %}

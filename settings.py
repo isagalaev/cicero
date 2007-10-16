@@ -46,3 +46,7 @@ OPENID_MUTANT_BACKGROUND = (255, 255, 255)
 # Все статьи старше этого срока помечаются прочитанными.
 # Задается в днях.
 UNREAD_TRACKING_PERIOD = 30
+
+# Хост и порт поискового демона Sphinx
+SPHINX_SERVER = '127.0.0.1'
+SPHINX_PORT = 3312

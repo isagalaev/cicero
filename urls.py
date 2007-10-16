@@ -41,4 +41,5 @@ urlpatterns = patterns('',
   (r'^spawn_topic/(\d+)/$', views.spawn_topic),
   (r'^([a-z0-9-]+)/$', views.forum, info),
   (r'^([a-z0-9-]+)/(\d+)/$', views.topic, info),
+  (r'^^([a-z0-9-]+)/search/$', views.search),
 )

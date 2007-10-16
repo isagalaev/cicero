@@ -46,6 +46,12 @@ def _commit_and_ping(article):
   transaction.commit()
   article.ping_external_links()
 
+def _page_count(count, per_page=settings.PAGINATE_BY):
+  result = count / per_page
+  if count % per_page:
+    result += 1
+  return result
+
 generic_info = {
   'paginate_by': settings.PAGINATE_BY,
   'allow_empty': True,
@@ -83,10 +89,7 @@ def topic(request, slug, id, **kwargs):
   else:
     form = ArticleForm(topic, request.user)
   if request.GET.get('page', '') == 'last':
-    count = topic.article_set.count()
-    page = count / settings.PAGINATE_BY
-    if count % settings.PAGINATE_BY:
-      page += 1
+    page = _page_count(topic.article_set.count())
     return HttpResponseRedirect(page > 1 and './?page=%s' % page or './')
   if request.user.is_authenticated():
     profile = request.user.cicero_profile
@@ -297,4 +300,38 @@ def spawn_topic(request, article_id):
   return render_to_response(request, 'cicero/spawn_topic.html', {
     'form': form,
     'article': article,
+  })
+
+def search(request, slug):
+  forum = get_object_or_404(Forum, slug=slug)
+  try:
+    page = int(request.GET.get('page', '1'))
+  except ValueError:
+    raise Http404
+  from sphinxapi import SphinxClient, SPH_MATCH_EXTENDED, SPH_SORT_RELEVANCE
+  sphinx = SphinxClient()
+  sphinx.SetServer(settings.SPHINX_SERVER, settings.SPHINX_PORT)
+  sphinx.SetMatchMode(SPH_MATCH_EXTENDED)
+  sphinx.SetSortMode(SPH_SORT_RELEVANCE)
+  sphinx.SetFilter('gid', [forum.id])
+  sphinx.SetLimits((page - 1) * settings.PAGINATE_BY, settings.PAGINATE_BY)
+  term = request.GET.get('term', '')
+  if term:
+    results = sphinx.Query(term.encode('utf-8'))
+  else:
+    results = []
+  if results:
+    ids = [m['id'] for m in results['matches']]
+    topics = ids and Topic.objects.filter(id__in=ids)
+  else:
+    topics = []
+  pages = results and _page_count(results['total_found']) or 0
+  return render_to_response(request, 'cicero/search.html', {
+    'forum': forum,
+    'topics': topics,
+    'term': term,
+    'has_next': page < pages,
+    'has_previous': page > 1,
+    'page': page,
+    'pages': pages,
   })
