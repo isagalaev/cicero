@@ -1,24 +1,34 @@
 # -*- coding:utf-8 -*-
 from django import template
 from django.conf import settings
+from django.utils.html import escape
 
 register=template.Library()
 
 class PaginatorNode(template.Node):
-  def render(self,context):
-    if context['has_next']:
-      next = '<a href="?page=%s" class="next">→</a> ' % (context['page'] + 1)
+  def render(self, context):
+    if 'query_dict' in context:
+      query = context['query_dict'].copy()
+      if 'page' in query:
+        del query['page']
+      query_string = query.urlencode() + '&'
+      form_input_string = u''.join([u'<input type="hidden" name="%s" value="%s">' % (k, escape(v)) for k, l in query.lists() for v in l])
     else:
-      next = '<span class="next">→</span>'
+      query_string = ''
+      form_input_string = ''
+    if context['has_next']:
+      next = u'<a href="?%spage=%s" class="next">→</a> ' % (query_string, context['page'] + 1)
+    else:
+      next = u'<span class="next">→</span>'
     
     if context['has_previous']:
-      previous = '<a href="?page=%s" class="previous">←</a> ' % (context['page'] - 1)
+      previous = u'<a href="?%spage=%s" class="previous">←</a> ' % (query_string, context['page'] - 1)
     else:
-      previous = '<span class="previous">←</span>'
+      previous = u'<span class="previous">←</span>'
     
-    pages = '<form action="./" method="get"><p><input type="text" name="page" value="%s"> (<a href="?page=last">%s</a>)</p></form>' % (context['page'], context['pages'])
+    pages = u'<form action="./" method="get"><p>%s<input type="text" name="page" value="%s"> (<a href="?%spage=last">%s</a>)</p></form>' % (form_input_string, context['page'], query_string, context['pages'])
     
-    return '''    <div class="paginator">
+    return u'''    <div class="paginator">
       <div class="links">%s%s</div>
       %s
     </div>''' % (previous, next, pages)
