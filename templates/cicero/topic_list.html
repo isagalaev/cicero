@@ -7,6 +7,10 @@
 
 <h2>{{ forum|escape }}</h2>
 
+<form id="search" action="{% url cicero.views.search forum.slug %}" method="get">
+  <input type="search" name="term"> <button type="submit">Искать</button>
+</form>
+
 {% paginator %}
 
 <ol>
