@@ -39,6 +39,12 @@ class Topic(models.Model):
   objects = TopicManager()
   deleted_objects = DeletedTopicManager()
   
+  try:
+    from django_sphinx import SphinxSearch
+    search = SphinxSearch()
+  except ImportError:
+    pass
+  
   class Meta:
     ordering = ['-id']
     
