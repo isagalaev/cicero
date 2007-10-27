@@ -304,7 +304,9 @@ def spawn_topic(request, article_id):
 
 def search(request, slug):
   forum = get_object_or_404(Forum, slug=slug)
-  if not hasattr(Topic, 'search'):
+  try:
+    from sphinxapi import SphinxClient, SPH_MATCH_EXTENDED, SPH_SORT_RELEVANCE
+  except ImportError:
     return render_to_response(request, 'cicero/search_unavailable.html', {})
   try:
     page = int(request.GET.get('page', '1'))
@@ -314,11 +316,18 @@ def search(request, slug):
     raise Http404
   term = request.GET.get('term', '').encode('utf-8')
   if term:
-    query = Topic.search.filter(gid=forum.id).query(term)
-    pages = _page_count(query.count())
+    sphinx = SphinxClient()
+    sphinx.SetServer(settings.SPHINX_SERVER, settings.SPHINX_PORT)
+    sphinx.SetMatchMode(SPH_MATCH_EXTENDED)
+    sphinx.SetSortMode(SPH_SORT_RELEVANCE)
+    sphinx.SetFilter('gid', [forum.id])
+    sphinx.SetLimits((page - 1) * settings.PAGINATE_BY, settings.PAGINATE_BY)
+    results = sphinx.Query(term)
+    pages = _page_count(results['total_found'])
     if pages > 0 and page > pages:
       raise Http404
-    topics = query[(page - 1) * settings.PAGINATE_BY : page * settings.PAGINATE_BY]
+    ids = [m['id'] for m in results['matches']]
+    topics = ids and Topic.objects.filter(id__in=ids)
   else:
     topics, pages = None, None
   return render_to_response(request, 'cicero/search.html', {

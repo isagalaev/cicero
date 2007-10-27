@@ -39,12 +39,6 @@ class Topic(models.Model):
   objects = TopicManager()
   deleted_objects = DeletedTopicManager()
   
-  try:
-    from django_sphinx import SphinxSearch
-    search = SphinxSearch()
-  except ImportError:
-    pass
-  
   class Meta:
     ordering = ['-id']
     
@@ -261,6 +255,16 @@ class Profile(models.Model):
     
   read_ranges = property(_get_read_ranges, _set_read_ranges)
   
+  def unread_topics(self):
+    '''
+    Непрочитанные топики пользователя во всех форумах
+    '''
+    from django.db.models import Q
+    query = Q()
+    for range in self.read_ranges:
+      query = query | Q(article__id__range=range)
+    return Topic.objects.exclude(query).distinct()
+  
   def set_news(self, objects):
     '''
     Проставляет признаки наличия новых статей переданным топикам или форумам
@@ -287,7 +291,7 @@ class Profile(models.Model):
     counts = dict(cursor.fetchall())
     for obj in objects:
       obj.new = counts.get(obj.id, 0)
-    
+  
   def add_read_articles(self, articles):
     '''
     Добавляет новые статьи к списку прочитанных.
