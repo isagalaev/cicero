@@ -7,9 +7,9 @@
 
 <h2>Поиск по форуму "{{ forum|escape }}"</h2>
 
-<form id="search">
-  <input type="search" name="term" value="{{ term|escape }}">
-  <button type="submit">Искать</button>
+<form id="search_form">
+  <p><input type="search" name="term" value="{{ term|escape }}">
+  <div class="buttons"><button type="submit">Искать</button></div>
 </form>
 
 {% if term %}
