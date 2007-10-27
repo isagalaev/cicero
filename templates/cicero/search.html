@@ -14,6 +14,8 @@
 
 {% if term %}
 
+{% if topics %}
+
 {% paginator %}
 
 <ol>
@@ -23,6 +25,10 @@
 </ol>
 
 {% paginator %}
+
+{% else %}
+<p id="empty">Ничего не найдено.
+{% endif %}
 
 {% endif %}
 

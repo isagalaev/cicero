@@ -316,7 +316,7 @@ def search(request, slug):
   if term:
     query = Topic.search.filter(gid=forum.id).query(term)
     pages = _page_count(query.count())
-    if page > pages:
+    if pages > 0 and page > pages:
       raise Http404
     topics = query[(page - 1) * settings.PAGINATE_BY : page * settings.PAGINATE_BY]
   else:
