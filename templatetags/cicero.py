@@ -26,7 +26,12 @@ class PaginatorNode(template.Node):
     else:
       previous = u'<span class="previous">←</span>'
     
-    pages = u'<form action="./" method="get"><p>%s<input type="text" name="page" value="%s"> (<a href="?%spage=last">%s</a>)</p></form>' % (form_input_string, context['page'], query_string, context['pages'])
+    if context.get('show_last_link'):
+      last_page = '<a href="?%spage=last">%s</a>' % (query_string, context['pages'])
+    else:
+      last_page = '%s' % context['pages']
+    
+    pages = u'<form action="./" method="get"><p>%s<input type="text" name="page" value="%s"> (%s)</p></form>' % (form_input_string, context['page'], last_page)
     
     return u'''    <div class="paginator">
       <div class="links">%s%s</div>

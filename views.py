@@ -98,7 +98,7 @@ def topic(request, slug, id, **kwargs):
       profile.save()
       caching.invalidate_by_user(request)
   kwargs['queryset'] = topic.article_set.all().select_related()
-  kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic'}
+  kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic', 'show_last_link': True}
   return object_list(request, **kwargs)
   
 def login(request):
@@ -307,26 +307,22 @@ def search(request, slug):
   if not hasattr(Topic, 'search'):
     return render_to_response(request, 'cicero/search_unavailable.html', {})
   try:
-    page = request.GET.get('page', '1')
-    page = int(page)
+    page = int(request.GET.get('page', '1'))
     if page < 1:
       raise Http404
   except ValueError:
-    if page != 'last':
-      raise Http404
-    page = 1
+    raise Http404
   term = request.GET.get('term', '').encode('utf-8')
   if term:
     query = Topic.search.filter(gid=forum.id).query(term)
     pages = _page_count(query.count())
     if page > pages:
       raise Http404
-    if request.GET.get('page') == 'last':
-      page = pages
     topics = query[(page - 1) * settings.PAGINATE_BY : page * settings.PAGINATE_BY]
   else:
     topics, pages = None, None
   return render_to_response(request, 'cicero/search.html', {
+    'page_id': 'search',
     'forum': forum,
     'topics': topics,
     'term': term,
