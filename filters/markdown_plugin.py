@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 def to_html(value):
-  from markdown2 import markdown
+  from markdown import markdown
   return markdown(value, safe_mode=True)
     
 def name():
