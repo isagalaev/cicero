@@ -1,11 +1,11 @@
 {% extends "cicero/auth.html" %}
 {% load cicero %}
 
-{% block cicero_title %}{{ topic|escape }}{% endblock %}
+{% block cicero_title %}{{ topic }}{% endblock %}
 
 {% block content %}
 
-<h2>{{ topic.subject|escape }}</h2>
+<h2>{{ topic.subject }}</h2>
 
 {% paginator %}
 
@@ -20,9 +20,9 @@
       <p class="mutant">{% if article.cicero_profile.mutant %}<a href="{% obj_url article.cicero_profile %}"><img src="{{ article.cicero_profile.get_mutant_url }}" alt=""></a>{% endif %}
       <address>
       {% if not article.from_guest %}
-        <a href="{% obj_url article.cicero_profile %}" title="{{ article.cicero_profile.openid|escape }}">{{ article.cicero_profile|escape }}</a>
+        <a href="{% obj_url article.cicero_profile %}" title="{{ article.cicero_profile.openid }}">{{ article.cicero_profile }}</a>
       {% else %}
-        {{ article.guest_name|escape }}
+        {{ article.guest_name }}
       {% endif %}
       </address>
       <p class="time">{{ article.created|date:"d.m.Y H:i" }}
@@ -38,7 +38,7 @@
     </div>
     {% else %}
     <div class="spawned">
-    Отщеплен новый топик "<a href="{% url cicero.views.topic article.spawned_to.forum.slug,article.spawned_to.id %}">{{ article.spawned_to.subject|escape }}</a>".
+    Отщеплен новый топик "<a href="{% url cicero.views.topic article.spawned_to.forum.slug,article.spawned_to.id %}">{{ article.spawned_to.subject }}</a>".
     </div>
     {% endif %}
 {% endfor %}
@@ -66,6 +66,6 @@
 {% block aside %}
 <ul id="breadcrumbs" class="block">
   <li id="index_link"><a href="{% url cicero_index %}">Начало</a>
-  <li id="forum_link"><a href="{% url cicero.views.forum topic.forum.slug %}">{{ topic.forum|escape }}</a>
+  <li id="forum_link"><a href="{% url cicero.views.forum topic.forum.slug %}">{{ topic.forum }}</a>
 </ul>
 {% endblock %}

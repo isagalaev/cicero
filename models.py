@@ -100,13 +100,14 @@ class Article(models.Model):
     через указанный фильтр.
     '''
     from cicero.filters import filters
+    from django.utils.safestring import mark_safe
     if self.filter in filters:
       result = filters[self.filter](self.text)
     else:
       from django.utils.html import linebreaks, escape
       result = linebreaks(escape(self.text))
     result = re.sub(ur'\B--\B', u'—', result)
-    return result
+    return mark_safe(result)
     
   def from_guest(self):
     '''

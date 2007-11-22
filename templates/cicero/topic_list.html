@@ -1,11 +1,11 @@
 {% extends "cicero/auth.html" %}
 {% load cicero %}
 
-{% block cicero_title %}Форум {{ forum|escape }}{% endblock %}
+{% block cicero_title %}Форум {{ forum }}{% endblock %}
 
 {% block content %}
 
-<h2>{{ forum|escape }}</h2>
+<h2>{{ forum }}</h2>
 
 <form id="search_form" action="{% url cicero.views.search forum.slug %}" method="get">
   <p><input type="search" name="term">
@@ -17,7 +17,7 @@
 <ol>
 {% setnews object_list %}
 {% for topic in object_list %}
-  <li {% if topic.new %}class="new"{% endif %}><a href="{{ topic.id }}/">{{ topic|escape }}</a>
+  <li {% if topic.new %}class="new"{% endif %}><a href="{{ topic.id }}/">{{ topic }}</a>
 {% endfor %}
 </ol>
 

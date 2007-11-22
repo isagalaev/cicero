@@ -12,11 +12,11 @@
 
 {% if group.grouper %}
 <div class="group">
-<h2>{{ group.grouper|escape }}</h2>
+<h2>{{ group.grouper }}</h2>
 {% endif %}
 <ul>
 {% for forum in group.list %}
-  <li {% if forum.new %}class="new"{% endif %}><a href="{{ forum.slug }}/">{{ forum|escape }}</a>
+  <li {% if forum.new %}class="new"{% endif %}><a href="{{ forum.slug }}/">{{ forum }}</a>
 {% endfor %}
 </ul>
 {% if group.grouper %}

@@ -7,7 +7,7 @@
 
 <table id="data">
   <tr>
-    <th>Имя<td>{{ object.name|default:"(не задано)"|escape }}
+    <th>Имя<td>{{ object.name|default:"(не задано)" }}
   <tr>
     <th>Зарегистрирован<td>{{ object.user.date_joined|date:"d.m.Y" }}
   <tr>
@@ -26,7 +26,7 @@
 <div id="openid">
   <h3>OpenID</h3>
   
-  <p id="openid_link">{% if object.openid %}<a href="{{ object.openid }}">{{ object.openid|escape }}</a>{% else %}(нет){% endif %}
+  <p id="openid_link">{% if object.openid %}<a href="{{ object.openid }}">{{ object.openid }}</a>{% else %}(нет){% endif %}
   
 {% if object.mutant %}
   <p id="mutant"><img src="{{ object.get_mutant_url }}" alt="">

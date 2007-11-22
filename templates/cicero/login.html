@@ -7,7 +7,7 @@
 <div id="content">
 
 <form action="./" method="post" id="login">
-  {% if redirect %}<input type="hidden" name="redirect" value="{{ redirect|escape }}">{% endif %}
+  {% if redirect %}<input type="hidden" name="redirect" value="{{ redirect }}">{% endif %}
   <p>
     <label for="id_openid_url">{{ form.openid_url.label }}</label>
     {{ form.openid_url }}

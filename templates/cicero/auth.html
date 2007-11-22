@@ -20,7 +20,7 @@
 {% if user.is_authenticated %}
 <form action="{% url cicero.views.logout %}" method="post" id="auth">
   <p>
-    <a href="{% obj_url profile %}">{{ profile|escape }}</a>
+    <a href="{% obj_url profile %}">{{ profile }}</a>
   <div class="buttons"><button type="submit">Выход</button></div>
 </form>
 {% else %}
