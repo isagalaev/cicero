@@ -9,8 +9,8 @@ from datetime import datetime
 
 class Forum(models.Model):
   slug = models.SlugField()
-  name = models.CharField(maxlength=255)
-  group = models.CharField(maxlength=255, blank=True)
+  name = models.CharField(max_length=255)
+  group = models.CharField(max_length=255, blank=True)
   ordering = models.IntegerField(default=0)
   
   class Meta:
@@ -32,7 +32,7 @@ class DeletedTopicManager(models.Manager):
 
 class Topic(models.Model):
   forum = models.ForeignKey(Forum)
-  subject = models.CharField(maxlength=255)
+  subject = models.CharField(max_length=255)
   created = models.DateTimeField(auto_now_add=True)
   deleted = models.DateTimeField(null=True, db_index=True)
   
@@ -75,10 +75,10 @@ class DeletedArticleManager(models.Manager):
 class Article(models.Model):
   topic = models.ForeignKey(Topic)
   text = models.TextField()
-  filter = models.CharField(maxlength=50)
+  filter = models.CharField(max_length=50)
   created = models.DateTimeField(auto_now_add=True, db_index=True)
   author = models.ForeignKey(User)
-  guest_name = models.CharField(maxlength=255, blank=True)
+  guest_name = models.CharField(max_length=255, blank=True)
   deleted = models.DateTimeField(null=True, db_index=True)
   spawned_to = models.ForeignKey(Topic, null=True, related_name='spawned_from')
   
@@ -165,11 +165,11 @@ from cicero.filters import filters
 
 class Profile(models.Model):
   user = AutoOneToOneField(User, related_name='cicero_profile')
-  filter = models.CharField(u'Фильтр', maxlength=50, choices=[(k, k) for k in filters.keys()])
-  openid = models.CharField(maxlength=200, null=True, unique=True)
-  openid_server = models.CharField(maxlength=200, null=True)
+  filter = models.CharField(u'Фильтр', max_length=50, choices=[(k, k) for k in filters.keys()])
+  openid = models.CharField(max_length=200, null=True, unique=True)
+  openid_server = models.CharField(max_length=200, null=True)
   mutant = models.ImageField(upload_to='mutants', null=True)
-  name = models.CharField(u'Имя', maxlength=200, null=True)
+  name = models.CharField(u'Имя', max_length=200, null=True)
   read_articles = models.TextField(editable=False)
   moderator = models.BooleanField(default=False)
   
