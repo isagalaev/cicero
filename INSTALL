@@ -34,7 +34,7 @@ Django-проект. Если у вас еще нет проекта, в кот�
 
         urlpatterns = patterns('',
           (r'^admin/', include('django.contrib.admin.urls')),
-          (r'^cicero/', include('apps.cicero.urls')),
+          (r'^cicero/', include('cicero.urls')),
         )
 
 4.  Подключить настройки самого Cicero в проектный файл настроек:
