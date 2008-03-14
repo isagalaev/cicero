@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from django.views.generic.list_detail import object_list
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404
@@ -129,7 +129,7 @@ def auth(request):
       pass
   return HttpResponseRedirect(request.GET.get('redirect', '/'))
   
-@require_http_methods('POST')
+@require_POST
 def logout(request):
   from django.contrib.auth import logout
   logout(request)
@@ -155,7 +155,7 @@ def edit_profile(request):
   return _profile_page(request, _profile_forms(request))
 
 @login_required
-@require_http_methods('POST')
+@require_POST
 def change_openid(request):
   forms = _profile_forms(request)
   form = forms['openid'].__class__(request.session, request.POST)
@@ -185,7 +185,7 @@ def change_openid_complete(request):
   return HttpResponseRedirect(request.GET.get('redirect', '/'))
   
 @login_required
-@require_http_methods('POST')
+@require_POST
 def post_profile(request, form_name):
   forms = _profile_forms(request)
   form = forms[form_name].__class__(request.POST)
@@ -196,14 +196,14 @@ def post_profile(request, form_name):
   return _profile_page(request, forms)
   
 @login_required
-@require_http_methods('POST')
+@require_POST
 def read_hcard(request):
   profile = request.user.cicero_profile
   profile.read_hcard()
   profile.save()
   return HttpResponseRedirect('../')
 
-@require_http_methods('POST')
+@require_POST
 def mark_read(request, slug=None):
   qs = Article.objects.all()
   if slug:
