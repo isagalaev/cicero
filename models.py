@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 from cicero.fields import AutoOneToOneField
+from cicero import antispam 
 
 import re
 from datetime import datetime
@@ -81,6 +82,7 @@ class Article(models.Model):
   guest_name = models.CharField(max_length=255, blank=True)
   deleted = models.DateTimeField(null=True, db_index=True)
   spawned_to = models.ForeignKey(Topic, null=True, related_name='spawned_from')
+  spam_status = models.CharField(max_length=20, choices=antispam.SPAM_STATUSES, default='clean')
   
   objects = ArticleManager()
   deleted_objects = DeletedArticleManager()

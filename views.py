@@ -12,6 +12,7 @@ from cicero.forms import ArticleForm, TopicForm, AuthForm, SpawnForm
 from cicero.context import default
 from cicero.conditional_get import condition
 from cicero import caching
+from cicero import antispam
 
 from datetime import datetime
 
@@ -41,10 +42,43 @@ def _acquire_redirect(request, article):
     after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.auth')
     return HttpResponseRedirect(after_auth_redirect)
 
-def _commit_and_ping(article):
+def _publish_article(slug, article):
+  if article.spam_status != 'clean':
+    article.spam_status == 'clean'
+    article.save()
   from django.db import transaction
   transaction.commit()
   article.ping_external_links()
+  caching.invalidate_by_article(slug, article.topic_id)
+
+def _process_new_article(request, article, is_new_topic, check_login):
+  article.spam_status = antispam.validate(request, article, is_new_topic)
+  article.save()
+  
+  # Detected spam is deleted independant on check_login because
+  # an OpenID server may not return from a check and the spam will hang forever
+  if article.spam_status == 'spam':
+    if is_new_topic:
+      article.topic.delete()
+    else:
+      article.delete()
+    return HttpResponse('')
+  
+  if check_login:
+    acquire_redirect = _acquire_redirect(request, article)
+    if acquire_redirect:
+      return acquire_redirect
+  if article.spam_status == 'clean':
+    slug = article.topic.forum.slug
+    _publish_article(slug, article)
+    url = reverse(topic, args=[slug, article.topic_id])
+    if not is_new_topic:
+      url += '?page=last'
+    return HttpResponseRedirect(url)
+  if article.spam_status == 'suspect':
+    return render_to_response(request, 'cicero/spam_suspect.html', {
+      'article': article,
+    })
 
 def _page_count(count, per_page=settings.PAGINATE_BY):
   result = count / per_page
@@ -66,9 +100,7 @@ def forum(request, slug, **kwargs):
     form = TopicForm(forum, request.user, request.POST)
     if form.is_valid():
       article = form.save()
-      _commit_and_ping(article)
-      caching.invalidate_by_article(slug, article.topic_id)
-      return _acquire_redirect(request, article) or HttpResponseRedirect('./')
+      return _process_new_article(request, article, True, True)
   else:
     form = TopicForm(forum, request.user)
   kwargs['queryset'] = forum.topic_set.all()
@@ -83,9 +115,7 @@ def topic(request, slug, id, **kwargs):
     form = ArticleForm(topic, request.user, request.POST)
     if form.is_valid():
       article = form.save()
-      _commit_and_ping(article)
-      caching.invalidate_by_article(slug, id)
-      return _acquire_redirect(request, article) or HttpResponseRedirect('./?page=last')
+      return _process_new_article(request, article, False, True)
   else:
     form = ArticleForm(topic, request.user)
   if request.GET.get('page', '') == 'last':
@@ -125,6 +155,7 @@ def auth(request):
       article = Article.objects.get(pk=request.GET['acquire_article'])
       article.author = user
       article.save()
+      return _process_new_article(request, article, article.topic.article_set.count() == 1, False)
     except Article.DoesNotExist:
       pass
   return HttpResponseRedirect(request.GET.get('redirect', '/'))

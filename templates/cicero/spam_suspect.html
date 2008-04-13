@@ -1,0 +1,19 @@
+{% extends "cicero/auth.html" %}
+{% load cicero %}
+
+{% block cicero_title %}Модерация{% endblock %}
+
+{% block content %}
+
+<h2>Модерация</h2>
+
+<p>Ваш пост ожидает проверки модератором.</p>
+
+{% if article.from_guest %}
+<p>Чтобы ваши посты в будущем могли публиковаться без проверки, их можно подписывать 
+вашим OpenID-логином.</p>
+{% endif %}
+
+<p><li id="forum_link"><a href="{% url cicero.views.forum article.topic.forum.slug %}">{{ article.topic.forum }}</a>
+
+{% endblock %}
