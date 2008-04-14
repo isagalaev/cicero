@@ -52,12 +52,11 @@ def _publish_article(slug, article):
   caching.invalidate_by_article(slug, article.topic_id)
 
 def _process_new_article(request, article, is_new_topic, check_login):
-  article.spam_status = antispam.validate(request, article, is_new_topic)
-  article.save()
+  spam_status = antispam.validate(request, article, is_new_topic)
   
   # Detected spam is deleted independant on check_login because
   # an OpenID server may not return from a check and the spam will hang forever
-  if article.spam_status == 'spam':
+  if spam_status == 'spam':
     if is_new_topic:
       article.topic.delete()
     else:
@@ -67,15 +66,19 @@ def _process_new_article(request, article, is_new_topic, check_login):
   if check_login:
     acquire_redirect = _acquire_redirect(request, article)
     if acquire_redirect:
+      article.spam_status = spam_status
+      article.save()
       return acquire_redirect
-  if article.spam_status == 'clean':
+  if spam_status == 'clean':
     slug = article.topic.forum.slug
     _publish_article(slug, article)
     url = reverse(topic, args=[slug, article.topic_id])
     if not is_new_topic:
       url += '?page=last'
     return HttpResponseRedirect(url)
-  if article.spam_status == 'suspect':
+  if spam_status == 'suspect':
+    article.spam_status = spam_status
+    article.save()
     return render_to_response(request, 'cicero/spam_suspect.html', {
       'article': article,
     })
