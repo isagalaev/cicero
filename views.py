@@ -306,6 +306,35 @@ def deleted_articles(request, user_only):
   return object_list(request, **kwargs)
 
 @login_required
+def article_publish(request, id):
+  if not request.user.cicero_profile.moderator:
+    return HttpResponseForbidden('Нет прав публиковать спам')
+  article = get_object_or_404(Article, pk=id)
+  article.set_spam_status('clean')
+  caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
+  return HttpResponseRedirect(reverse(suspected_articles))
+
+@login_required
+def delete_spam(request):
+  if not request.user.cicero_profile.moderator:
+    return HttpResponseForbidden('Нет прав удалять спам')
+  Article.objects.filter(spam_status='suspect').delete()
+  Topic.objects.filter(spam_status='suspect').delete()
+  return HttpResponseRedirect(reverse(suspected_articles))
+
+@login_required
+def suspected_articles(request):
+  if not request.user.cicero_profile.moderator:
+    return HttpResponseForbidden('Нет прав просматривать спам')
+  queryset = Article.objects.filter(spam_status='suspect').order_by('-created').select_related()
+  kwargs = {
+    'queryset': queryset,
+    'template_name': 'cicero/article_suspect_list.html',
+  }
+  kwargs.update(generic_info)
+  return object_list(request, **kwargs)
+
+@login_required
 def spawn_topic(request, article_id):
   if not request.user.cicero_profile.moderator:
     return HttpResponseForbidden('Нет прав отщеплять топики')

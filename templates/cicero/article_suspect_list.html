@@ -1,0 +1,52 @@
+{% extends "cicero/auth.html" %}
+{% load cicero %}
+
+{% block cicero_title %}Подозрение на спам{% endblock %}
+
+{% block content %}
+
+<h2>Подозрение на спам</h2>
+
+{% if object_list|length %}
+
+{% paginator %}
+
+<table>
+<thead>
+  <tr>
+    <th>Форум
+    <th>Топик
+    <th>Статья
+    <th>Амнистия
+<tbody>
+{% for article in object_list %}
+  <tr>
+    <td>{{ article.topic.forum }}
+    <td>{{ article.topic }}
+    <td>{{ article.html|truncatewords_html:"10" }}
+    <td>
+      <form action="{% url cicero.views.article_publish article.id %}" method="post">
+      <button>Не спам</button>
+      </form>
+{% endfor %}
+</table>
+
+{% paginator %}
+
+<form action="{% url cicero.views.delete_spam %}" method="post">
+  <button>Удалить все</button>
+</form>
+
+{% else %}
+
+<p id="empty">Очередь пуста
+
+{% endif %}
+
+{% endblock %}
+
+{% block aside %}
+<ul id="nav" class="block">
+  <li><a href="{% url cicero_index %}">Начало</a>
+</ul>
+{% endblock %}
