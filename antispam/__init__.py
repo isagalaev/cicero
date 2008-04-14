@@ -16,9 +16,11 @@ def spam_validators():
     yield __import__('cicero.antispam.' + module_name, {}, {}, [''])
 
 def validate(request, article, is_new_topic):
-  result = None
+  status = None
   for module in spam_validators():
     result = module.validate(request, article, is_new_topic)
     if result in ['clean', 'spam']:
       return result
-  return result or 'clean'
+    if result is not None:
+      status = result
+  return status or 'clean'
