@@ -33,15 +33,6 @@ def login_required(func):
     return func(request, *args, **kwargs)
   return wrapper
   
-def _acquire_redirect(request, article):
-  if request.user.is_authenticated():
-    return
-  form = AuthForm(request.session, {'openid_url': request.POST['name']})
-  if form.is_valid():
-    form.acquire_article = article
-    after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.auth')
-    return HttpResponseRedirect(after_auth_redirect)
-
 def _publish_article(slug, article):
   if article.spam_status != 'clean':
     article.spam_status == 'clean'
@@ -63,12 +54,13 @@ def _process_new_article(request, article, is_new_topic, check_login):
       article.delete()
     return HttpResponse('')
   
-  if check_login:
-    acquire_redirect = _acquire_redirect(request, article)
-    if acquire_redirect:
+  if check_login and not request.user.is_authenticated():
+    form = AuthForm(request.session, {'openid_url': request.POST['name']})
+    if form.is_valid():
       article.spam_status = spam_status
       article.save()
-      return acquire_redirect
+      url = form.auth_redirect(post_redirect(request), 'cicero.views.auth', acquire=article)
+      return HttpResponseRedirect(url)
   if spam_status == 'clean':
     slug = article.topic.forum.slug
     _publish_article(slug, article)
