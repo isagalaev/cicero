@@ -36,6 +36,7 @@ class Topic(models.Model):
   subject = models.CharField(max_length=255)
   created = models.DateTimeField(auto_now_add=True)
   deleted = models.DateTimeField(null=True, db_index=True)
+  spam_status = models.CharField(max_length=20, choices=antispam.SPAM_STATUSES, default='clean')
   
   objects = TopicManager()
   deleted_objects = DeletedTopicManager()
@@ -95,6 +96,12 @@ class Article(models.Model):
   
   def __unicode__(self):
     return u'(%s, %s, %s)' % (self.topic, self.author, self.created.replace(microsecond=0))
+  
+  def delete(self):
+    topic = self.topic
+    super(Article, self).delete()
+    if topic.article_set.count() == 0:
+      topic.delete()
   
   def html(self):
     '''
@@ -162,6 +169,19 @@ class Article(models.Model):
       except (IOError, Fault):
         pass
       f.close()
+  
+  def set_spam_status(self, spam_status):
+    '''
+    Проставляет статус спамности, поправляя, если надо, аналогичный статус топика.
+    Сохраняет результат в базу.
+    '''
+    if self.spam_status == spam_status:
+      return
+    self.spam_status = spam_status
+    self.save()
+    if self.topic.spam_status != spam_status and self.topic.article_set.count() == 1:
+      self.topic.spam_status = spam_status
+      self.topic.save()
 
 from cicero.filters import filters
 
@@ -280,11 +300,12 @@ class Profile(models.Model):
       tables += ', cicero_topic t'
       condition = 'topic_id = t.id and forum_id in (%s)' % ','.join(ids)
       field_name = 'forum_id'
-      condition += ' and t.deleted is null and a.deleted is null'
+      condition += ' and t.deleted is null and a.deleted is null' \
+                   ' and t.spam_status = \'clean\' and a.spam_status = \'clean\''
     else:
       condition = 'topic_id in (%s)' % ','.join(ids)
       field_name = 'topic_id'
-      condition += ' and a.deleted is null'
+      condition += ' and a.deleted is null and a.spam_status = \'clean\''
     ranges = ' or '.join(['a.id between %s and %s' % range for range in self.read_ranges])
     condition += ' and not (%s)' % ranges
     query = 'select %s, count(1) as c from %s where %s group by 1' % (field_name, tables, condition)

@@ -34,9 +34,7 @@ def login_required(func):
   return wrapper
   
 def _publish_article(slug, article):
-  if article.spam_status != 'clean':
-    article.spam_status == 'clean'
-    article.save()
+  article.set_spam_status('clean')
   from django.db import transaction
   transaction.commit()
   article.ping_external_links()
@@ -48,17 +46,13 @@ def _process_new_article(request, article, is_new_topic, check_login):
   # Detected spam is deleted independant on check_login because
   # an OpenID server may not return from a check and the spam will hang forever
   if spam_status == 'spam':
-    if is_new_topic:
-      article.topic.delete()
-    else:
-      article.delete()
+    article.delete()
     return HttpResponse('')
   
   if check_login and not request.user.is_authenticated():
     form = AuthForm(request.session, {'openid_url': request.POST['name']})
     if form.is_valid():
-      article.spam_status = spam_status
-      article.save()
+      article.set_spam_status(spam_status)
       url = form.auth_redirect(post_redirect(request), 'cicero.views.auth', acquire=article)
       return HttpResponseRedirect(url)
   if spam_status == 'clean':
@@ -69,8 +63,7 @@ def _process_new_article(request, article, is_new_topic, check_login):
       url += '?page=last'
     return HttpResponseRedirect(url)
   if spam_status == 'suspect':
-    article.spam_status = spam_status
-    article.save()
+    article.set_spam_status(spam_status)
     return render_to_response(request, 'cicero/spam_suspect.html', {
       'article': article,
     })
@@ -98,7 +91,7 @@ def forum(request, slug, **kwargs):
       return _process_new_article(request, article, True, True)
   else:
     form = TopicForm(forum, request.user)
-  kwargs['queryset'] = forum.topic_set.all()
+  kwargs['queryset'] = forum.topic_set.filter(spam_status='clean')
   kwargs['extra_context'] = {'forum': forum, 'form': form, 'page_id': 'forum'}
   return object_list(request, **kwargs)
 
@@ -122,7 +115,7 @@ def topic(request, slug, id, **kwargs):
     if changed:
       profile.save()
       caching.invalidate_by_user(request)
-  kwargs['queryset'] = topic.article_set.all().select_related()
+  kwargs['queryset'] = topic.article_set.filter(spam_status='clean').select_related()
   kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic', 'show_last_link': True}
   return object_list(request, **kwargs)
   

@@ -13,7 +13,6 @@
 {% for article in object_list %}
   <li>
     {% if not article.spawned %}
-    <p>{{ article.spam_status }}
     <div class="usertext">
       {{ article.html }}
     </div>
