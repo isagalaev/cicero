@@ -13,7 +13,7 @@
 {% if profile.moderator %}
 <ul id="moderators" class="block">
   <li><a href="{% url all_deleted_articles %}">Все удаленные статьи</a>
-  <li><a href="{% url cicero.views.suspected_articles %}">Спам</a>
+  <li><a href="{% url cicero.views.spam_queue %}">Спам</a>
 </ul>
 {% endif %}
 </div>

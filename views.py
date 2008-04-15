@@ -312,24 +312,24 @@ def article_publish(request, id):
   article = get_object_or_404(Article, pk=id)
   article.set_spam_status('clean')
   caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
-  return HttpResponseRedirect(reverse(suspected_articles))
+  return HttpResponseRedirect(reverse(spam_queue))
 
 @login_required
 def delete_spam(request):
   if not request.user.cicero_profile.moderator:
     return HttpResponseForbidden('Нет прав удалять спам')
-  Article.objects.filter(spam_status='suspect').delete()
-  Topic.objects.filter(spam_status='suspect').delete()
-  return HttpResponseRedirect(reverse(suspected_articles))
+  Article.objects.exclude(spam_status='clean').delete()
+  Topic.objects.exclude(spam_status='clean').delete()
+  return HttpResponseRedirect(reverse(spam_queue))
 
 @login_required
-def suspected_articles(request):
+def spam_queue(request):
   if not request.user.cicero_profile.moderator:
     return HttpResponseForbidden('Нет прав просматривать спам')
-  queryset = Article.objects.filter(spam_status='suspect').order_by('-created').select_related()
+  queryset = Article.objects.exclude(spam_status='clean').order_by('-created').select_related()
   kwargs = {
     'queryset': queryset,
-    'template_name': 'cicero/article_suspect_list.html',
+    'template_name': 'cicero/spam_queue.html',
   }
   kwargs.update(generic_info)
   return object_list(request, **kwargs)
