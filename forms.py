@@ -99,7 +99,7 @@ class AuthForm(Form):
     if errors:
       raise ValidationError(errors)
     
-  def auth_redirect(self, target, view_name, acquire=None, *args, **kwargs):
+  def auth_redirect(self, target, view_name, acquire=None, args=[], kwargs={}):
     from django.core.urlresolvers import reverse
     site_url = self._site_url()
     trust_url = settings.OPENID_TRUST_URL or (site_url + '/')

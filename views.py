@@ -181,7 +181,7 @@ def change_openid(request):
   form = forms['openid'].__class__(request.session, request.POST)
   forms['openid'] = form
   if form.is_valid():
-    after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.change_openid_complete', request.user.id)
+    after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.change_openid_complete', args=[request.user.id])
     return HttpResponseRedirect(after_auth_redirect)
   return _profile_page(request, forms)
 
