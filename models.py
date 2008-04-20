@@ -194,10 +194,10 @@ class Profile(models.Model):
   name = models.CharField(u'Имя', max_length=200, null=True)
   read_articles = models.TextField(editable=False)
   moderator = models.BooleanField(default=False)
-  not_spamer = models.BooleanField(default=False)
+  spamer = models.NullBooleanField()
   
   class Admin:
-    list_display = ('user', 'openid', 'name', 'moderator', 'not_spamer')
+    list_display = ('user', 'openid', 'name', 'moderator', 'spamer')
     list_filter = ('moderator',)
     search_fields = ('openid', 'name', 'user__username')
   
