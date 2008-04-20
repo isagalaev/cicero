@@ -38,6 +38,9 @@
     {{ form.name }}
     {% if form.name.errors %}<em class="error">{{ form.name.errors|join:", " }}</em>{% endif %}
   {% endif %}
+  <p style="position: absolute; left: -1000px;">
+    <label>Это поле — ловушка для роботов, оставьте его пустым</label>
+    <input type="text" name="email" value="" tabindex="-1">
   
   <div class="buttons"><button type="submit">Добавить</button></div>
 </form>

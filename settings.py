@@ -50,3 +50,6 @@ UNREAD_TRACKING_PERIOD = 30
 # Хост и порт поискового демона Sphinx
 SPHINX_SERVER = '127.0.0.1'
 SPHINX_PORT = 3312
+
+# API-ключ Akismet'а
+AKISMET_KEY = ''
