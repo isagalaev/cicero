@@ -33,6 +33,7 @@
       <form action="{% url cicero.views.article_delete article.id %}" method="post"><button>Удалить</button></form>
       {% endifcanchange %}
       {% if profile.moderator %}
+      <form action="{% url cicero.views.article_spam article.id %}" method="post"><button>Спам</button></form>
       <a href="{% url cicero.views.spawn_topic article.id %}">Отщепить топик</a>
       {% endif %}
     </div>

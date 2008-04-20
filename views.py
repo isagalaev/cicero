@@ -318,6 +318,19 @@ def article_publish(request, id):
   return HttpResponseRedirect(reverse(spam_queue))
 
 @login_required
+def article_spam(request, id):
+  if not request.user.cicero_profile.moderator:
+    return HttpResponseForbidden('Нет прав определять спам')
+  article = get_object_or_404(Article, pk=id)
+  slug, topic_id = article.topic.forum.slug, article.topic.id
+  article.delete()
+  caching.invalidate_by_article(slug, topic_id)
+  if Topic.objects.filter(pk=topic_id).count():
+    return HttpResponseRedirect(reverse(topic, args=(slug, topic_id)))
+  else:
+    return HttpResponseRedirect(reverse(forum, args=(slug,)))
+
+@login_required
 def delete_spam(request):
   if not request.user.cicero_profile.moderator:
     return HttpResponseForbidden('Нет прав удалять спам')
