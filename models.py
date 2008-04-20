@@ -84,6 +84,7 @@ class Article(models.Model):
   deleted = models.DateTimeField(null=True, db_index=True)
   spawned_to = models.ForeignKey(Topic, null=True, related_name='spawned_from')
   spam_status = models.CharField(max_length=20, choices=antispam.SPAM_STATUSES, default='clean')
+  ip = models.IPAddressField(default='127.0.0.1')
   
   objects = ArticleManager()
   deleted_objects = DeletedArticleManager()

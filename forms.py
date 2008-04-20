@@ -5,13 +5,14 @@ from django.conf import settings
 
 from cicero.models import Topic
 
-def _create_article(topic, user, data):
+def _create_article(topic, user, ip, data):
   if not user.is_authenticated():
     from django.contrib.auth.models import User
     user = User.objects.get(username='cicero_guest')
   return topic.article_set.create(
     text=data['text'], 
     author=user,
+    ip=ip,
     guest_name=data['name'],
     filter=user.cicero_profile.filter,
   )
@@ -35,24 +36,24 @@ class ArticleForm(Form):
   text = ArticleTextField()
   name = CharField(label='Имя', required=False)
   
-  def __init__(self, topic, user, *args, **kwargs):
+  def __init__(self, topic, user, ip, *args, **kwargs):
     super(ArticleForm, self).__init__(*args, **kwargs)
-    self.topic, self.user = topic, user
+    self.topic, self.user, self.ip = topic, user, ip
     
   def clean_name(self):
     return _validate_name(self.user, self.cleaned_data)
     
   def save(self):
-    return _create_article(self.topic, self.user, self.cleaned_data)
+    return _create_article(self.topic, self.user, self.ip, self.cleaned_data)
   
 class TopicForm(Form):
   subject = CharField(label='Тема')
   text = ArticleTextField()
   name = CharField(label='Имя', required=False)
   
-  def __init__(self, forum, user, *args, **kwargs):
+  def __init__(self, forum, user, ip, *args, **kwargs):
     super(TopicForm, self).__init__(*args, **kwargs)
-    self.forum, self.user = forum, user
+    self.forum, self.user, self.ip = forum, user, ip
     
   def clean_name(self):
     return _validate_name(self.user, self.cleaned_data)
@@ -61,7 +62,7 @@ class TopicForm(Form):
     from cicero.models import Topic
     topic = Topic(forum=self.forum, subject=self.cleaned_data['subject'])
     topic.save()
-    return _create_article(topic, self.user, self.cleaned_data)
+    return _create_article(topic, self.user, self.ip, self.cleaned_data)
 
 class ArticleEditForm(Form):
   text = ArticleTextField()

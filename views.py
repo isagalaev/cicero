@@ -13,6 +13,7 @@ from cicero.context import default
 from cicero.conditional_get import condition
 from cicero import caching
 from cicero import antispam
+from cicero.utils.akismet_wrapper import submit_spam, submit_ham
 
 from datetime import datetime
 
@@ -89,12 +90,12 @@ generic_info = {
 def forum(request, slug, **kwargs):
   forum = get_object_or_404(Forum, slug=slug)
   if request.method == 'POST':
-    form = TopicForm(forum, request.user, request.POST)
+    form = TopicForm(forum, request.user, request.META['REMOTE_ADDR'], request.POST)
     if form.is_valid():
       article = form.save()
       return _process_new_article(request, article, True, True)
   else:
-    form = TopicForm(forum, request.user)
+    form = TopicForm(forum, request.user, request.META['REMOTE_ADDR'])
   kwargs['queryset'] = forum.topic_set.filter(spam_status='clean')
   kwargs['extra_context'] = {'forum': forum, 'form': form, 'page_id': 'forum'}
   return object_list(request, **kwargs)
@@ -104,12 +105,12 @@ def forum(request, slug, **kwargs):
 def topic(request, slug, id, **kwargs):
   topic = get_object_or_404(Topic, forum__slug=slug, pk=id)
   if request.method == 'POST':
-    form = ArticleForm(topic, request.user, request.POST)
+    form = ArticleForm(topic, request.user, request.META['REMOTE_ADDR'], request.POST)
     if form.is_valid():
       article = form.save()
       return _process_new_article(request, article, False, True)
   else:
-    form = ArticleForm(topic, request.user)
+    form = ArticleForm(topic, request.user, request.META['REMOTE_ADDR'])
   if request.GET.get('page', '') == 'last':
     page = _page_count(topic.article_set.count())
     return HttpResponseRedirect(page > 1 and './?page=%s' % page or './')
@@ -314,6 +315,7 @@ def article_publish(request, id):
     return HttpResponseForbidden('Нет прав публиковать спам')
   article = get_object_or_404(Article, pk=id)
   article.set_spam_status('clean')
+  submit_ham(request, article, article.topic.article_set.count() == 1)
   caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
   return HttpResponseRedirect(reverse(spam_queue))
 
@@ -324,6 +326,7 @@ def article_spam(request, id):
   article = get_object_or_404(Article, pk=id)
   slug, topic_id = article.topic.forum.slug, article.topic.id
   article.delete()
+  submit_spam(request, article, article.topic.article_set.count() == 1)
   caching.invalidate_by_article(slug, topic_id)
   if Topic.objects.filter(pk=topic_id).count():
     return HttpResponseRedirect(reverse(topic, args=(slug, topic_id)))
