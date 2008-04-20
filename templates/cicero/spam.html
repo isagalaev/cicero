@@ -1,0 +1,23 @@
+{% extends "cicero/auth.html" %}
+{% load cicero %}
+
+{% block cicero_title %}Спам{% endblock %}
+
+{% block content %}
+
+<h2>Спам</h2>
+
+<p>Ваш пост был распознан форумом как спам. Если вы считаете, что это произошло
+ошибочно, свяжитесь с администратором ({{ admins|join:", " }}), чтобы исправить эту ситуацию.
+
+<p>Сохраните текст вашего поста, потому что форум его хранить не будет:
+
+<pre class="usertext">{{ text }}</pre>
+
+{% endblock %}
+
+{% block aside %}
+<ul id="nav" class="block">
+  <li><a href="{% url cicero_index %}">Начало</a>
+</ul>
+{% endblock %}

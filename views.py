@@ -48,7 +48,10 @@ def _process_new_article(request, article, is_new_topic, check_login):
   if spam_status == 'spam':
     slug = article.topic.forum.slug
     article.delete()
-    return HttpResponseRedirect(reverse(forum, args=[slug]))
+    return render_to_response(request, 'cicero/spam.html', {
+      'text': article.text,
+      'admins': [e for n, e in settings.ADMINS],
+    })
   
   if check_login and not request.user.is_authenticated():
     form = AuthForm(request.session, {'openid_url': request.POST['name']})
