@@ -36,6 +36,9 @@ def login_required(func):
   
 def _publish_article(slug, article):
   article.set_spam_status('clean')
+  if not article.from_guest() and article.author.cicero_profile.spamer is None:
+    article.author.cicero_profile.spamer = False
+    article.author.cicero_profile.save()
   from django.db import transaction
   transaction.commit()
   article.ping_external_links()
@@ -315,6 +318,9 @@ def article_publish(request, id):
     return HttpResponseForbidden('Нет прав публиковать спам')
   article = get_object_or_404(Article, pk=id)
   article.set_spam_status('clean')
+  if not article.from_guest() and article.author.cicero_profile.spamer is None:
+    article.author.cicero_profile.spamer = False
+    article.author.cicero_profile.save()
   submit_ham(request, article, article.topic.article_set.count() == 1)
   caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
   return HttpResponseRedirect(reverse(spam_queue))
@@ -324,9 +330,12 @@ def article_spam(request, id):
   if not request.user.cicero_profile.moderator:
     return HttpResponseForbidden('Нет прав определять спам')
   article = get_object_or_404(Article, pk=id)
+  if not article.from_guest() and article.author.cicero_profile.spamer is None:
+    article.author.cicero_profile.spamer = True
+    article.author.cicero_profile.save()
+  submit_spam(request, article, article.topic.article_set.count() == 1)
   slug, topic_id = article.topic.forum.slug, article.topic.id
   article.delete()
-  submit_spam(request, article, article.topic.article_set.count() == 1)
   caching.invalidate_by_article(slug, topic_id)
   if Topic.objects.filter(pk=topic_id).count():
     return HttpResponseRedirect(reverse(topic, args=(slug, topic_id)))

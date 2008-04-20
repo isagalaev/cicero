@@ -24,7 +24,7 @@ class AkismetError(Exception):
         self.response = response
         self.statuscode = statuscode
     def __str__(self):
-         return repr(self.value)
+         return '%s: %s' % (self.statuscode, self.response)
 
 def __post(request, host, path, port = 80):
     connection = httplib.HTTPConnection(host, port)
@@ -87,7 +87,7 @@ def submit_spam(key, blog, user_ip, user_agent, **other):
     request = {'blog': blog, 'user_ip': user_ip, 'user_agent': user_agent}
     request.update(other)
     response, status = __post(urlencode(request), "%s.%s" % (key,AKISMET_URL), "/1.1/submit-spam", AKISMET_PORT)
-    if status != 200 or response != "":
+    if status != 200:
         raise AkismetError(response, status)
 
 def submit_ham(key, blog, user_ip, user_agent, **other):
@@ -98,5 +98,5 @@ def submit_ham(key, blog, user_ip, user_agent, **other):
     request = {'blog': blog, 'user_ip': user_ip, 'user_agent': user_agent}
     request.update(other)
     response, status = __post(urlencode(request), "%s.%s" % (key,AKISMET_URL), "/1.1/submit-ham", AKISMET_PORT)
-    if status != 200 or response != "":
+    if status != 200:
         raise AkismetError(response, status)
