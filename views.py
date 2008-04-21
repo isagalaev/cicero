@@ -13,7 +13,7 @@ from cicero.context import default
 from cicero.conditional_get import condition
 from cicero import caching
 from cicero import antispam
-from cicero.utils.akismet_wrapper import submit_spam, submit_ham
+from cicero.antispam.akismet import submit_spam, submit_ham
 
 from datetime import datetime
 

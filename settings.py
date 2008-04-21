@@ -51,5 +51,14 @@ UNREAD_TRACKING_PERIOD = 30
 SPHINX_SERVER = '127.0.0.1'
 SPHINX_PORT = 3312
 
+# Список модулей антиспамных плагинов в порядке применения
+# Допускает любые модули, в которых есть функция validate
+# Параметры функции см. в существующих плагинах
+ANTISPAM_PLUGINS = [
+  'cicero.antispam.honeypots',
+  'cicero.antispam.whitelist',
+  'cicero.antispam.akismet',
+]
+
 # API-ключ Akismet'а
 AKISMET_KEY = ''

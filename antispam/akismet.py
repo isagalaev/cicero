@@ -37,3 +37,12 @@ def _create_operation(operation):
 comment_check = _create_operation('comment_check')
 submit_spam = _create_operation('submit_spam')
 submit_ham = _create_operation('submit_ham')
+
+def validate(request, article, is_new_topic):
+  try:
+    result = comment_check(request, article, is_new_topic)
+    if result:
+      return 'suspect'
+  except akismet.AkismetError, IOError:
+    return
+  
