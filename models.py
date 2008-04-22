@@ -133,7 +133,7 @@ class Article(models.Model):
     Была ли написана статья от имени гостя. Используется, в основном,
     в шаблонах.
     '''
-    return self.author.username == 'cicero_guest'
+    return self.author.is_guest()
   
   def spawned(self):
     '''
@@ -210,7 +210,7 @@ class Profile(models.Model):
   
   class Admin:
     list_display = ('user', 'openid', 'name', 'moderator', 'spamer')
-    list_filter = ('moderator',)
+    list_filter = ('moderator', 'spamer')
     search_fields = ('openid', 'name', 'user__username')
   
   def __unicode__(self):
@@ -226,7 +226,10 @@ class Profile(models.Model):
       return result
     else:
       return unicode(self.user)
-      
+  
+  def is_guest(self):
+    return self.username == 'cicero_guest'
+  
   def read_hcard(self):
     '''
     Ищет на странице, на которую указывает openid, микроформамт hCard,
@@ -358,3 +361,29 @@ class Profile(models.Model):
   
   def can_change(self, article):
     return self.moderator or article.author_id == self.user_id
+
+class WhitelistSource(models.Model):
+  url = models.URLField()
+  
+  class Admin:
+    pass
+  
+  def __unicode__(self):
+    return self.url
+
+class CleanOpenID(models.Model):
+  openid = models.CharField(max_length=200, db_index=True)
+  source = models.ForeignKey(WhitelistSource)
+  
+  class Meta:
+    unique_together = [('openid', 'source')]
+    ordering = ['openid']
+    verbose_name = 'Clean OpenID'
+    verbose_name_plural = 'Clean OpenIDs'
+  
+  class Admin:
+    list_display = ['openid', 'source']
+    list_filter = ['source']
+  
+  def __unicode__(self):
+    return self.openid

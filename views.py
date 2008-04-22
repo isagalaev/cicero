@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidde
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
-from cicero.models import Forum, Topic, Article
+from cicero.models import Forum, Topic, Article, Profile
 from cicero.forms import ArticleForm, TopicForm, AuthForm, SpawnForm
 from cicero.context import default
 from cicero.conditional_get import condition
@@ -36,9 +36,6 @@ def login_required(func):
   
 def _publish_article(slug, article):
   article.set_spam_status('clean')
-  if not article.from_guest() and article.author.cicero_profile.spamer is None:
-    article.author.cicero_profile.spamer = False
-    article.author.cicero_profile.save()
   from django.db import transaction
   transaction.commit()
   article.ping_external_links()
@@ -163,6 +160,38 @@ def logout(request):
   caching.invalidate_by_user(request)
   return HttpResponseRedirect(post_redirect(request))
 
+def openid_whitelist(request):
+  openids = (p.openid for p in Profile.objects.filter(spamer=False) if p.openid)
+  from cicero.utils.mimeparse import best_match
+  MIMETYPES = ['application/xml', 'text/xml', 'application/json', 'text/plain']
+  accept = request.META.get('HTTP_ACCEPT')
+  if accept:
+    mimetype = best_match(MIMETYPES, accept)
+  else:
+    mimetype = 'text/plain'
+  if mimetype.endswith('/xml'):
+    try:
+      import xml.etree.ElementTree as ET
+    except ImportError:
+      import elementtree.ElementTree as ET
+    root = ET.Element('whitelist')
+    for openid in openids:
+      ET.SubElement(root, 'openid').text = openid
+    xml = ET.ElementTree(root)
+    response = HttpResponse(mimetype=mimetype)
+    xml.write(response, encoding='utf-8')
+    return response
+  if mimetype == 'application/json':
+    from django.utils import simplejson
+    response = HttpResponse(mimetype=mimetype)
+    simplejson.dump(list(openids), response)
+    return response
+  if mimetype == 'text/plain':
+    return HttpResponse((o + '\n' for o in openids), mimetype=mimetype)
+  response = HttpResponse('Can accept only: %s' % ', '.join(MIMETYPES))
+  response.status_code = 406
+  return response
+  
 def _profile_forms(request):
   from cicero.forms import AuthForm, PersonalForm, SettingsForm
   profile = request.user.cicero_profile
@@ -171,7 +200,7 @@ def _profile_forms(request):
     'personal': PersonalForm(profile, initial=profile.__dict__),
     'settings': SettingsForm(profile, initial=profile.__dict__),
   }
-  
+
 def _profile_page(request, forms):
   data = {'page_id': 'edit_profile'}
   data.update(forms)
