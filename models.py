@@ -117,8 +117,17 @@ class Article(models.Model):
       from django.utils.html import linebreaks, escape
       result = linebreaks(escape(self.text))
     result = re.sub(ur'\B--\B', u'—', result)
+    from BeautifulSoup import BeautifulSoup
+    soup = BeautifulSoup(result)
+    for link in soup.findAll('a'):
+      if 'rel' in link:
+        link['rel'] += ' '
+      else:
+        link['rel'] = ''
+      link['rel'] += 'nofollow'
+    result = unicode(soup)
     return mark_safe(result)
-    
+  
   def from_guest(self):
     '''
     Была ли написана статья от имени гостя. Используется, в основном,
