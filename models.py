@@ -170,15 +170,17 @@ class Article(models.Model):
     for link in links:
       try:
         f = urlopen(link)
-        info = f.info()
-        server_url = info.get('X-Pingback', '') or \
-                     search_link(f.read(512 * 1024))
-        if server_url:
-          server = ServerProxy(server_url)
-          server.pingback.ping(topic_url, link)
+        try:
+          info = f.info()
+          server_url = info.get('X-Pingback', '') or \
+                       search_link(f.read(512 * 1024))
+          if server_url:
+            server = ServerProxy(server_url)
+            server.pingback.ping(topic_url, link)
+        finally:
+          f.close()
       except (IOError, Fault):
         pass
-      f.close()
   
   def set_spam_status(self, spam_status):
     '''
