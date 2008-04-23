@@ -2,7 +2,7 @@
 from cicero.models import CleanOpenID
 
 def author_in_whitelist(author):
-  if author.is_guest():
+  if author.cicero_profile.is_guest():
     return False
   try:
     CleanOpenID.objects.get(openid=author.cicero_profile.openid)
