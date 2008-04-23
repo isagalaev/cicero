@@ -16,6 +16,7 @@
   <tr>
     <th>Форум
     <th>Топик
+    <th>Автор
     <th>Статья
     <th>Амнистия
 <tbody>
@@ -23,6 +24,7 @@
   <tr>
     <td>{{ article.topic.forum }}
     <td>{{ article.topic }}
+    <td>{% if article.from_guest %}{{ article.guest_name }}{% else %}<a href="{{ article.author.cicero_profile.openid }}">{{ article.author.cicero_profile }}</a>
     <td>{{ article.html|truncatewords_html:"10" }}
     <td>
       <form action="{% url cicero.views.article_publish article.id %}" method="post">
