@@ -133,7 +133,7 @@ class Article(models.Model):
     Была ли написана статья от имени гостя. Используется, в основном,
     в шаблонах.
     '''
-    return self.author.is_guest()
+    return self.author.username == 'cicero_guest'
   
   def spawned(self):
     '''
@@ -226,9 +226,6 @@ class Profile(models.Model):
       return result
     else:
       return unicode(self.user)
-  
-  def is_guest(self):
-    return self.username == 'cicero_guest'
   
   def read_hcard(self):
     '''
