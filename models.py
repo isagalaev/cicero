@@ -198,7 +198,7 @@ class Article(models.Model):
 from cicero.filters import filters
 
 class Profile(models.Model):
-  user = AutoOneToOneField(User, related_name='cicero_profile')
+  user = AutoOneToOneField(User, related_name='cicero_profile', primary_key=True)
   filter = models.CharField(u'Фильтр', max_length=50, choices=[(k, k) for k in filters.keys()])
   openid = models.CharField(max_length=200, null=True, unique=True)
   openid_server = models.CharField(max_length=200, null=True)
