@@ -52,20 +52,22 @@ class Topic(models.Model):
     
 from django.db.models.query import QuerySet
 class ArticleQuerySet(QuerySet):
-  def _get_data(self):
-    update_profiles = self._result_cache is None and self._select_related
-    if update_profiles:
-      profile_select = dict((Profile._meta.db_table + '_' + f.attname, Profile._meta.db_table + '.' + f.attname) for f in Profile._meta.fields)
-      self._select.update(profile_select)
-      self._tables.extend([Profile._meta.db_table])
-      self._where.extend(['%s.%s = %s.%s' % (Profile._meta.db_table, Profile._meta.pk.attname, User._meta.db_table, User._meta.pk.attname)])
-    result = super(ArticleQuerySet, self)._get_data()
-    if update_profiles:
-      for article in result:
+  def select_related(self, *args, **kwargs):
+    qs = super(ArticleQuerySet, self).select_related(*args, **kwargs)
+    return qs.extra(
+      select=dict((Profile._meta.db_table + '_' + f.attname, Profile._meta.db_table + '.' + f.attname) for f in Profile._meta.fields),
+      where=['%s.%s = %s.%s' % (Profile._meta.db_table, Profile._meta.pk.attname, User._meta.db_table, User._meta.pk.attname)],
+      tables=[Profile._meta.db_table, User._meta.db_table],
+    )
+  
+  def iterator(self):
+    iterator = super(ArticleQuerySet, self).iterator()
+    for article in iterator:
+      if self.query.select_related:
         data = dict((f.attname, getattr(article, Profile._meta.db_table + '_' + f.attname)) for f in Profile._meta.fields)
         article.cicero_profile = Profile(**data)
-    return result
-
+      yield article
+  
 class ArticleManager(models.Manager):
   def get_query_set(self):
     return ArticleQuerySet(self.model).filter(deleted__isnull=True)
