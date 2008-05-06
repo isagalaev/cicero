@@ -165,9 +165,9 @@ def openid_whitelist(request):
   from cicero.utils.mimeparse import best_match
   MIMETYPES = ['application/xml', 'text/xml', 'application/json', 'text/plain']
   accept = request.META.get('HTTP_ACCEPT')
-  if accept:
+  try:
     mimetype = best_match(MIMETYPES, accept)
-  else:
+  except ValueError:
     mimetype = 'text/plain'
   if mimetype.endswith('/xml'):
     try:
