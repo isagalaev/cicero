@@ -87,13 +87,13 @@ class AuthForm(Form):
     return 'http://' + site.domain
   
   def clean_openid_url(self):
-    from cicero.auth import get_consumer
+    from cicero.auth import get_consumer, OpenIdSetupError
     from openid.consumer.consumer import DiscoveryFailure
-    consumer = get_consumer(self.session)
     errors = []
     try:
+      consumer = get_consumer(self.session)
       self.request = consumer.begin(self.cleaned_data['openid_url'])
-    except DiscoveryFailure, e:
+    except (DiscoveryFailure, OpenIdSetupError), e:
       errors.append(str(e[0]))
     if hasattr(self, 'request') and self.request is None:
       errors.append('OpenID сервис не найден')

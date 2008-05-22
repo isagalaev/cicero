@@ -35,8 +35,11 @@ class OpenIdBackend(object):
       return User.objects.get(pk=user_id)
     except User.DoesNotExist:
       return None
-      
+
+class OpenIdSetupError(Exception):
+    pass
+
 def get_consumer(session):
   if not settings.OPENID_STORE_ROOT:
-    raise Exception('OPENID_STORE_ROOT is not set')
+    raise OpenIdSetupError('OPENID_STORE_ROOT is not set')
   return Consumer(session, FileOpenIDStore(settings.OPENID_STORE_ROOT))
