@@ -56,7 +56,10 @@ class ArticleQuerySet(QuerySet):
     qs = super(ArticleQuerySet, self).select_related(*args, **kwargs)
     return qs.extra(
       select=dict((Profile._meta.db_table + '_' + f.attname, Profile._meta.db_table + '.' + f.attname) for f in Profile._meta.fields),
-      where=['%s.%s = %s.%s' % (Profile._meta.db_table, Profile._meta.pk.attname, User._meta.db_table, User._meta.pk.attname)],
+      where=[
+        '%s.%s = %s.%s' % (Profile._meta.db_table, Profile._meta.pk.attname, User._meta.db_table, User._meta.pk.attname),
+        '%s.%s = %s.%s' % (Article._meta.db_table, Article._meta.get_field('author').attname, Profile._meta.db_table, Profile._meta.pk.attname),
+      ],
       tables=[Profile._meta.db_table, User._meta.db_table],
     )
   
