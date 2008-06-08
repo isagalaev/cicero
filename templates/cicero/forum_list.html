@@ -16,7 +16,7 @@
 {% endif %}
 <ul>
 {% for forum in group.list %}
-  <li {% if forum.new %}class="new"{% endif %}><a href="{{ forum.slug }}/">{{ forum }}</a>
+  <li {% if forum.new %}class="new"{% endif %}><a href="{{ forum.slug }}/">{{ forum }}</a> (<a href="{% url cicero_feeds url="articles" %}{{ forum.slug }}/">feed</a>)
 {% endfor %}
 </ul>
 {% if group.grouper %}

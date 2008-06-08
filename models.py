@@ -22,6 +22,10 @@ class Forum(models.Model):
   
   def __unicode__(self):
     return self.name
+  
+  @models.permalink
+  def get_absolute_url(self):
+    return 'cicero.views.forum', [self.slug]
     
 class TopicManager(models.Manager):
   def get_query_set(self):
@@ -49,7 +53,11 @@ class Topic(models.Model):
   
   def __unicode__(self):
     return self.subject
-    
+  
+  @models.permalink
+  def get_absolute_url(self):
+    return 'cicero.views.topic', [self.forum.slug, self.id]
+
 from django.db.models.query import QuerySet
 class ArticleQuerySet(QuerySet):
   def select_related(self, *args, **kwargs):

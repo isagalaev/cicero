@@ -3,6 +3,8 @@
 
 {% block cicero_title %}{{ topic }}{% endblock %}
 
+{% block cicero_extrahead %}<link rel="alternate" type="application/atom+xml" href="{% url cicero_feeds url="articles" %}{{ topic.forum.slug }}/{{ topic.id }}/">{% endblock %}
+
 {% block content %}
 
 <h2>{{ topic.subject }}</h2>

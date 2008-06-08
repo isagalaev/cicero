@@ -3,8 +3,10 @@ from django.conf.urls.defaults import *
 from django.conf import settings
 
 from django.views.generic.list_detail import object_list, object_detail
+from django.contrib.syndication.views import feed
 from django.views.decorators.cache import never_cache
 from cicero import views
+from cicero import feeds
 from cicero.models import Forum, Topic, Article, Profile
 from cicero.context import default
 from cicero.caching import latest_change, user_etag
@@ -44,7 +46,9 @@ urlpatterns = patterns('',
   (r'^article_spam/(\d+)/$', views.article_spam),
   (r'^delete_spam/$', views.delete_spam),
   (r'^spawn_topic/(\d+)/$', views.spawn_topic),
-  (r'^atom/$', include('cicero.atom.urls')),
+  url(r'^feeds/(?P<url>.*)/$', feed, {'feed_dict': {
+    'articles': feeds.Article,
+  }}, name='cicero_feeds'),
   (r'^([a-z0-9-]+)/$', views.forum, info),
   (r'^([a-z0-9-]+)/(\d+)/$', views.topic, info),
   (r'^^([a-z0-9-]+)/search/$', views.search),
