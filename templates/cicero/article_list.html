@@ -7,7 +7,14 @@
 
 {% block content %}
 
-<h2>{{ topic.subject }}</h2>
+<div id="subject">
+  <h2>{{ topic.subject }}</h2>
+  {% if profile.moderator %}
+  <div class="meta">
+    <a href="{% url cicero.views.topic_edit topic.id %}">Редактировать</a>
+  </div>
+  {% endif %}
+</div>
 
 {% paginator %}
 

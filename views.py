@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 
 from cicero.models import Forum, Topic, Article, Profile
-from cicero.forms import ArticleForm, TopicForm, AuthForm, SpawnForm
+from cicero.forms import ArticleForm, TopicForm, TopicEditForm, AuthForm, SpawnForm
 from cicero.context import default
 from cicero.conditional_get import condition
 from cicero import caching
@@ -392,7 +392,24 @@ def spam_queue(request):
   return object_list(request, **kwargs)
 
 @login_required
-def spawn_topic(request, article_id):
+def topic_edit(request, topic_id):
+  if not request.user.cicero_profile.moderator:
+    return HttpResponseForbidden('Нет прав редактировать топики')
+  t = get_object_or_404(Topic, pk=topic_id)
+  if request.method == 'POST':
+    form = TopicEditForm(t, request.POST)
+    if form.is_valid():
+      form.save()
+      caching.invalidate_by_article(t.forum.slug, t.id)
+      return HttpResponseRedirect(reverse(topic, args=[t.forum.slug, t.id]))
+  else:
+    form = TopicEditForm(t)
+  return render_to_response(request, 'cicero/topic_edit.html', {
+    'form': form,
+  })
+
+@login_required
+def topic_spawn(request, article_id):
   if not request.user.cicero_profile.moderator:
     return HttpResponseForbidden('Нет прав отщеплять топики')
   article = get_object_or_404(Article, pk=article_id)

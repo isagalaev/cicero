@@ -124,6 +124,14 @@ def SettingsForm(profile, *args, **kwargs):
       
   return form_for_instance(profile, formfield_callback=callback)(*args, **kwargs)
 
+def TopicEditForm(instance, *args, **kwargs):
+    def callback(field, **kwargs):
+        if field.name == 'subject':
+            formfield = field.formfield(**kwargs)
+            formfield.label = u'Тема'
+            return formfield
+    return form_for_instance(instance, formfield_callback=callback)(*args, **kwargs)
+
 class SpawnForm(Form):
   subject = CharField(label='Тема')
   
