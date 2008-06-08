@@ -5,7 +5,7 @@ from xml.sax.saxutils import escape
 from django.core.management.base import BaseCommand, CommandError
 
 def text(topic):
-  return ' '.join([a.text for a in topic.article_set.all()])
+  return ' '.join([a.text for a in topic.article_set.filter(spam_status='clean')])
 
 def format_document(document):
   return  '\n'.join(
