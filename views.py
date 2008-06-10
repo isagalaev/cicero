@@ -138,7 +138,7 @@ def login(request):
     
 def auth(request):
   from django.contrib.auth import authenticate, login
-  user = authenticate(session=request.session, query=request.GET)
+  user = authenticate(session=request.session, query=request.GET, return_path=request.path)
   if not user:
     return HttpResponseForbidden('Ошибка авторизации')
   login(request, user)
@@ -224,7 +224,7 @@ def change_openid(request):
 @login_required
 def change_openid_complete(request):
   from django.contrib.auth import authenticate
-  user = authenticate(session=request.session, query=request.GET)
+  user = authenticate(session=request.session, query=request.GET, return_path=request.path)
   if not user:
     return HttpResponseForbidden('Ошибка авторизации')
   new_profile = user.cicero_profile

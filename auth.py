@@ -3,15 +3,14 @@ from openid.consumer.consumer import Consumer, SUCCESS
 from openid.store.filestore import FileOpenIDStore
 
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
 from django.conf import settings
 
 class OpenIdBackend(object):
-  def authenticate(self, session=None, query=None):
+  def authenticate(self, session=None, query=None, return_path=None):
     query = dict([(k, v) for k, v in query.items()])
     consumer = get_consumer(session)
-    info = consumer.complete(query, 'http://%s%s' % (Site.objects.get_current().domain, reverse('cicero.views.auth')))
+    info = consumer.complete(query, 'http://%s%s' % (Site.objects.get_current().domain, return_path))
     if info.status != SUCCESS:
       return None
     from cicero.models import Profile
