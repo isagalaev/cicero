@@ -439,40 +439,48 @@ class SearchPage(object):
   def previous_page_number(self):
     return self.number - 1
 
+class SearchUnavailable(Exception):
+    pass
+
 def search(request, slug):
   forum = get_object_or_404(Forum, slug=slug)
   try:
-    from sphinxapi import SphinxClient, SPH_MATCH_EXTENDED, SPH_SORT_RELEVANCE
-  except ImportError:
+    try:
+      from sphinxapi import SphinxClient, SPH_MATCH_EXTENDED, SPH_SORT_RELEVANCE
+    except ImportError:
+      raise SearchUnavailable()
+    try:
+      page = int(request.GET.get('page', '1'))
+      if page < 1:
+        raise Http404
+    except ValueError:
+      raise Http404
+    term = request.GET.get('term', '').encode('utf-8')
+    if term:
+      sphinx = SphinxClient()
+      sphinx.SetServer(settings.SPHINX_SERVER, settings.SPHINX_PORT)
+      sphinx.SetMatchMode(SPH_MATCH_EXTENDED)
+      sphinx.SetSortMode(SPH_SORT_RELEVANCE)
+      sphinx.SetFilter('gid', [forum.id])
+      sphinx.SetLimits((page - 1) * settings.PAGINATE_BY, settings.PAGINATE_BY)
+      results = sphinx.Query(term)
+      if results == {}:
+        raise SearchUnavailable
+      pages = _page_count(results['total_found'])
+      if pages > 0 and page > pages:
+        raise Http404
+      ids = [m['id'] for m in results['matches']]
+      topics = ids and Topic.objects.filter(id__in=ids)
+    else:
+      topics, pages = None, None
+    return render_to_response(request, 'cicero/search.html', {
+      'page_id': 'search',
+      'forum': forum,
+      'topics': topics,
+      'term': term,
+      'paginator': SearchPage(page, pages),
+      'page_obj': SearchPage(page, pages),
+      'query_dict': request.GET,
+    })
+  except SearchUnavailable:
     return render_to_response(request, 'cicero/search_unavailable.html', {})
-  try:
-    page = int(request.GET.get('page', '1'))
-    if page < 1:
-      raise Http404
-  except ValueError:
-    raise Http404
-  term = request.GET.get('term', '').encode('utf-8')
-  if term:
-    sphinx = SphinxClient()
-    sphinx.SetServer(settings.SPHINX_SERVER, settings.SPHINX_PORT)
-    sphinx.SetMatchMode(SPH_MATCH_EXTENDED)
-    sphinx.SetSortMode(SPH_SORT_RELEVANCE)
-    sphinx.SetFilter('gid', [forum.id])
-    sphinx.SetLimits((page - 1) * settings.PAGINATE_BY, settings.PAGINATE_BY)
-    results = sphinx.Query(term)
-    pages = _page_count(results['total_found'])
-    if pages > 0 and page > pages:
-      raise Http404
-    ids = [m['id'] for m in results['matches']]
-    topics = ids and Topic.objects.filter(id__in=ids)
-  else:
-    topics, pages = None, None
-  return render_to_response(request, 'cicero/search.html', {
-    'page_id': 'search',
-    'forum': forum,
-    'topics': topics,
-    'term': term,
-    'paginator': SearchPage(page, pages),
-    'page_obj': SearchPage(page, pages),
-    'query_dict': request.GET,
-  })
