@@ -17,14 +17,14 @@ def _article_data(request, article, is_new_topic):
     'key': settings.AKISMET_KEY, 
     'blog': _forum_url('cicero_index'), 
     'user_ip': article.ip,
-    'user_agent': request.META['HTTP_USER_AGENT'],
-    'referrer': request.META['HTTP_REFERER'],
+    'user_agent': request.META.get('HTTP_USER_AGENT', ''),
+    'referrer': request.META.get('HTTP_REFERER', ''),
     'permalink': _forum_url('cicero.views.topic', args=[article.topic.forum.slug, article.topic.id]),
     'comment_type': 'post',
     'comment_author': article.from_guest() and article.guest_name.encode('utf-8') or str(article.author.cicero_profile),
     'comment_author_url': article.author.cicero_profile.openid or '',
     'comment_content': text.encode('utf-8'),
-    'HTTP_ACCEPT': request.META['HTTP_ACCEPT'],
+    'HTTP_ACCEPT': request.META.get('HTTP_ACCEPT', ''),
   }
 
 def _create_operation(operation):
