@@ -26,6 +26,7 @@ def paginator(context):
     'query_string': query_string,
     'form_input_string': form_input_string,
     'show_last_link': context.get('show_last_link'),
+    'style_url': context['style_url'],
   }
   
 @register.simple_tag
