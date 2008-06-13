@@ -405,6 +405,7 @@ def topic_edit(request, topic_id):
     form = TopicEditForm(t)
   return render_to_response(request, 'cicero/topic_edit.html', {
     'form': form,
+    'topic': t,
   })
 
 @login_required
