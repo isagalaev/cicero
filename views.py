@@ -47,9 +47,10 @@ def _process_new_article(request, article, is_new_topic, check_login):
   # Detected spam is deleted independant on check_login because
   # an OpenID server may not return from a check and the spam will hang forever
   if spam_status == 'spam':
-    slug = article.topic.forum.slug
+    forum = article.topic.forum
     article.delete()
     return render_to_response(request, 'cicero/spam.html', {
+      'forum': forum,
       'text': article.text,
       'admins': [e for n, e in settings.ADMINS],
     })
