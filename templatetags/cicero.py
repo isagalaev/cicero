@@ -5,51 +5,28 @@ from django.utils.html import escape
 
 register=template.Library()
 
-class PaginatorNode(template.Node):
-  def render(self, context):
-    paginator = context['paginator']
-    page = context['page_obj']
-    if paginator.num_pages == 1:
-      return ''
-    if 'query_dict' in context:
-      query = context['query_dict'].copy()
-      if 'page' in query:
-        del query['page']
-      query_string = query.urlencode() + '&'
-      form_input_string = u''.join([u'<input type="hidden" name="%s" value="%s">' % (k, escape(v)) for k, l in query.lists() for v in l])
-    else:
-      query_string = ''
-      form_input_string = ''
-    if page.has_next():
-      next = u'<a href="?%spage=%s" class="next">→</a> ' % (query_string, page.number + 1)
-    else:
-      next = u'<span class="next">→</span>'
-    
-    if page.has_previous():
-      previous = u'<a href="?%spage=%s" class="previous">←</a> ' % (query_string, page.number - 1)
-    else:
-      previous = u'<span class="previous">←</span>'
-    
-    if context.get('show_last_link'):
-      last_page = '<a href="?%spage=last">%s</a>' % (query_string, paginator.num_pages)
-    else:
-      last_page = '%s' % paginator.num_pages
-    
-    pages = u'<form action="./" method="get"><p>%s<input type="text" name="page" value="%s"> (%s)</p></form>' % (form_input_string, page.number, last_page)
-    
-    return u'''    <div class="paginator">
-      <div class="links">%s%s</div>
-      %s
-    </div>''' % (previous, next, pages)
-    
-
-@register.tag
-def paginator(parser, token):
+@register.inclusion_tag('cicero/paginator.html', takes_context=True)
+def paginator(context):
   '''
   Выводит навигатор по страницам. Данные берет из контекста в том же
   виде, как их туда передает generic view "object_list".
   '''
-  return PaginatorNode()
+  if 'query_dict' in context:
+    query = context['query_dict'].copy()
+    if 'page' in query:
+      del query['page']
+    query_string = query.urlencode() + '&'
+    form_input_string = u''.join([u'<input type="hidden" name="%s" value="%s">' % (k, escape(v)) for k, l in query.lists() for v in l])
+  else:
+    query_string = u''
+    form_input_string = u''
+  return {
+    'paginator': context['paginator'],
+    'page': context['page_obj'],
+    'query_string': query_string,
+    'form_input_string': form_input_string,
+    'show_last_link': context.get('show_last_link'),
+  }
   
 @register.simple_tag
 def obj_url(obj):

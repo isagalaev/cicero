@@ -1,0 +1,19 @@
+<div class="paginator">
+  <div class="links">
+    {% if page.has_previous %}
+    <a href="?{{ query_string }}page={{ page.previous_page_number }}" class="previous">←</a>
+    {% else %}
+    <span class="previous">←</span>
+    {% endif %}
+    {% if page.has_next %}
+    <a href="?{{ query_string }}page={{ page.next_page_number }}" class="next">→</a>
+    {% else %}
+    <span class="next">→</span>
+    {% endif %}
+  </div>
+  <form action="./" method="get">
+    {{ form_input_string }}
+    <input type="text" name="page" value="{{ page.number }}"> 
+    ({% if show_last_link %}<a href="?{{ query_string }}page=last">{{ paginator.num_pages }}</a>{% else %}{{ paginator.num_pages }}{% endif %})
+  </form>
+</div>
