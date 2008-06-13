@@ -7,6 +7,10 @@ register=template.Library()
 
 class PaginatorNode(template.Node):
   def render(self, context):
+    paginator = context['paginator']
+    page = context['page_obj']
+    if paginator.num_pages == 1:
+      return ''
     if 'query_dict' in context:
       query = context['query_dict'].copy()
       if 'page' in query:
@@ -16,8 +20,6 @@ class PaginatorNode(template.Node):
     else:
       query_string = ''
       form_input_string = ''
-    paginator = context['paginator']
-    page = context['page_obj']
     if page.has_next():
       next = u'<a href="?%spage=%s" class="next">→</a> ' % (query_string, page.number + 1)
     else:
