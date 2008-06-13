@@ -312,15 +312,13 @@ def article_undelete(request, id):
     raise Http404
   if not request.user.cicero_profile.can_change(article):
     return HttpResponseForbidden('Нет прав для восстановления')
-  article.deleted = None
-  article.save()
-  caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
+  Article.deleted_objects.filter(pk=id).update(deleted=None)
   try:
     article_topic = Topic.deleted_objects.get(pk=article.topic_id)
-    article_topic.deleted = None
-    article_topic.save()
+    Topic.deleted_objects.filter(pk=article.topic_id).update(deleted=None)
   except Topic.DoesNotExist:
     article_topic = article.topic
+  caching.invalidate_by_article(article_topic.forum.slug, article_topic.id)
   return HttpResponseRedirect(reverse(topic, args=(article_topic.forum.slug, article_topic.id)))
 
 @login_required
