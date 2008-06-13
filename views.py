@@ -422,6 +422,22 @@ def topic_spawn(request, article_id):
     'form': form,
     'article': article,
   })
+  
+class SearchPage(object):
+  def __init__(self, number, num_pages):
+    self.number, self.num_pages = number, num_pages
+  
+  def has_next(self):
+    return self.number < self.num_pages
+  
+  def next_page_number(self):
+    return self.number + 1
+  
+  def has_previous(self):
+    return self.number > 1
+  
+  def previous_page_number(self):
+    return self.number - 1
 
 def search(request, slug):
   forum = get_object_or_404(Forum, slug=slug)
@@ -456,9 +472,7 @@ def search(request, slug):
     'forum': forum,
     'topics': topics,
     'term': term,
-    'has_next': page < pages,
-    'has_previous': page > 1,
-    'page': page,
-    'pages': pages,
+    'paginator': SearchPage(page, pages),
+    'page_obj': SearchPage(page, pages),
     'query_dict': request.GET,
   })

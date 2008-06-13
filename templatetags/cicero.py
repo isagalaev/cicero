@@ -1,7 +1,8 @@
 # -*- coding:utf-8 -*-
 from django import template
 from django.conf import settings
-from django.utils.html import escape
+from django.utils.html import conditional_escape
+from django.utils.safestring import mark_safe
 
 register=template.Library()
 
@@ -16,7 +17,7 @@ def paginator(context):
     if 'page' in query:
       del query['page']
     query_string = query.urlencode() + '&'
-    form_input_string = u''.join([u'<input type="hidden" name="%s" value="%s">' % (k, escape(v)) for k, l in query.lists() for v in l])
+    form_input_string = u''.join([u'<input type="hidden" name="%s" value="%s">' % (k, conditional_escape(v)) for k, l in query.lists() for v in l])
   else:
     query_string = u''
     form_input_string = u''
@@ -24,7 +25,7 @@ def paginator(context):
     'paginator': context['paginator'],
     'page': context['page_obj'],
     'query_string': query_string,
-    'form_input_string': form_input_string,
+    'form_input_string': mark_safe(form_input_string),
     'show_last_link': context.get('show_last_link'),
     'style_url': context['style_url'],
   }
