@@ -93,7 +93,7 @@ class AuthForm(Form):
     try:
       consumer = get_consumer(self.session)
       self.request = consumer.begin(self.cleaned_data['openid_url'])
-    except (DiscoveryFailure, OpenIdSetupError), e:
+    except (DiscoveryFailure, OpenIdSetupError, ValueError), e:
       errors.append(str(e[0]))
     if hasattr(self, 'request') and self.request is None:
       errors.append('OpenID сервис не найден')
