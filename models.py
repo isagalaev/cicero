@@ -216,7 +216,7 @@ class Profile(models.Model):
   openid = models.CharField(max_length=200, null=True, unique=True)
   openid_server = models.CharField(max_length=200, null=True)
   mutant = models.ImageField(upload_to='mutants', null=True)
-  name = models.CharField(u'Имя', max_length=200, null=True)
+  name = models.CharField(u'Имя', max_length=200, null=True, blank=True)
   read_articles = models.TextField(editable=False)
   moderator = models.BooleanField(default=False)
   spamer = models.NullBooleanField()
