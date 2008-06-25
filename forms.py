@@ -4,6 +4,7 @@ from django.newforms import *
 from django.conf import settings
 
 from cicero.models import Topic
+from cicero.filters import filters
 
 def _create_article(topic, user, ip, data):
   if not user.is_authenticated():
@@ -66,6 +67,7 @@ class TopicForm(Form):
 
 class ArticleEditForm(Form):
   text = ArticleTextField()
+  filter = ChoiceField(max_length=50, choices=[(k, k) for k in filters.keys()])
   
   def __init__(self, article, *args, **kwargs):
     super(ArticleEditForm, self).__init__(*args, **kwargs)

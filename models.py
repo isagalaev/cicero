@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from cicero.fields import AutoOneToOneField
 from cicero import antispam 
+from cicero.filters import filters
 
 import re
 from datetime import datetime
@@ -90,7 +91,7 @@ class DeletedArticleManager(models.Manager):
 class Article(models.Model):
   topic = models.ForeignKey(Topic)
   text = models.TextField()
-  filter = models.CharField(max_length=50)
+  filter = models.CharField(u'Фильтр', max_length=50, choices=[(k, k) for k in filters.keys()])
   created = models.DateTimeField(auto_now_add=True, db_index=True)
   author = models.ForeignKey(User)
   guest_name = models.CharField(max_length=255, blank=True)
@@ -122,7 +123,6 @@ class Article(models.Model):
     Возвращает HTML-текст статьи, полученный фильтрацией содержимого
     через указанный фильтр.
     '''
-    from cicero.filters import filters
     from django.utils.safestring import mark_safe
     if self.filter in filters:
       result = filters[self.filter](self.text)
@@ -207,8 +207,6 @@ class Article(models.Model):
     if self.topic.spam_status != spam_status and self.topic.article_set.count() == 1:
       self.topic.spam_status = spam_status
       self.topic.save()
-
-from cicero.filters import filters
 
 class Profile(models.Model):
   user = AutoOneToOneField(User, related_name='cicero_profile', primary_key=True)
