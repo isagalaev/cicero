@@ -67,7 +67,7 @@ class TopicForm(Form):
 
 class ArticleEditForm(Form):
   text = ArticleTextField()
-  filter = ChoiceField(max_length=50, choices=[(k, k) for k in filters.keys()])
+  filter = ChoiceField(choices=[(k, k) for k in filters.keys()])
   
   def __init__(self, article, *args, **kwargs):
     super(ArticleEditForm, self).__init__(*args, **kwargs)
