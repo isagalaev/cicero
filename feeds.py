@@ -25,9 +25,18 @@ class Article(Feed):
   def item_link(self, article):
     return reverse('cicero.views.topic', args=[article.topic.forum.slug, article.topic.id])
   
+  def item_author_name(self, article):
+    if article.from_guest():
+      return article.guest_name
+    else:
+      return unicode(article.cicero_profile)
+  
+  def item_pubdate(self, article):
+    return article.created
+  
   def items(self, obj):
     if isinstance(obj, models.Forum):
       articles = models.Article.objects.filter(topic__forum=obj)
     elif isinstance(obj, models.Topic):
       articles = obj.article_set.all()
-    return articles.filter(spam_status='clean').order_by('-created')[:settings.PAGINATE_BY]
+    return articles.filter(spam_status='clean').order_by('-created').select_related()[:settings.PAGINATE_BY]
