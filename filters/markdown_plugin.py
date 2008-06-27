@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-try
+try:
   from markdown2 import markdown
   
   def to_html(value):
