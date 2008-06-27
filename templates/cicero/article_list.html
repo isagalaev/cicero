@@ -20,7 +20,7 @@
 
 <ol>
 {% for article in object_list %}
-  <li>
+  <li id="{{ article.id }}">
     {% if not article.spawned %}
     <div class="usertext">
       {{ article.html }}

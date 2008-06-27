@@ -67,6 +67,7 @@ def _process_new_article(request, article, is_new_topic, check_login):
     url = reverse(topic, args=[slug, article.topic_id])
     if not is_new_topic:
       url += '?page=last'
+    url += '#%s' % article.id
     return HttpResponseRedirect(url)
   if spam_status == 'suspect':
     article.set_spam_status(spam_status)
