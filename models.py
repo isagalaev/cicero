@@ -93,6 +93,7 @@ class Article(models.Model):
   text = models.TextField()
   filter = models.CharField(u'Фильтр', max_length=50, choices=[(k, k) for k in filters.keys()])
   created = models.DateTimeField(auto_now_add=True, db_index=True)
+  updated = models.DateTimeField(auto_now=True, db_index=True)
   author = models.ForeignKey(User)
   guest_name = models.CharField(max_length=255, blank=True)
   deleted = models.DateTimeField(null=True, db_index=True)

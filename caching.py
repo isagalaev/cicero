@@ -38,13 +38,13 @@ def latest_change(request, slug=None, topic_id=None, *args, **kwargs):
       qs = qs.filter(topic__forum__slug=slug)
     if topic_id:
       qs = qs.filter(topic__id=topic_id)
-    return qs.order_by('-created')
+    return qs.order_by('-updated')
   
-  created_qs = prepare(Article.objects.all())
+  updated_qs = prepare(Article.objects.all())
   deleted_qs = prepare(Article.deleted_objects.all())
-  created_time = len(created_qs) and created_qs[0].created
+  updated_time = len(updated_qs) and updated_qs[0].updated
   deleted_time = len(deleted_qs) and deleted_qs[0].deleted
-  return (created_time and deleted_time and max(created_time, deleted_time)) or created_time or deleted_time or None
+  return (updated_time and deleted_time and max(updated_time, deleted_time)) or updated_time or deleted_time or None
 
 @cached(lambda request, *args, **kwargs: 'ulc-%s' % request.COOKIES.get(settings.SESSION_COOKIE_NAME, None))
 def user_etag(request, *args, **kwargs):

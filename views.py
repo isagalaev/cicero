@@ -295,7 +295,9 @@ def article_edit(request, id):
     form = ArticleEditForm(article, request.POST)
     if form.is_valid():
       form.save()
-      return HttpResponseRedirect(reverse(topic, args=(article.topic.forum.slug, article.topic.id)))
+      caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
+      url = '%s#%s' % (reverse(topic, args=(article.topic.forum.slug, article.topic.id)), article.id)
+      return HttpResponseRedirect(url)
   else:
     form = ArticleEditForm(article, initial=article.__dict__)
   return render_to_response(request, 'cicero/article_edit.html', {
