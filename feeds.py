@@ -13,7 +13,10 @@ class Article(Feed):
     if len(bits) == 1:
       return models.Forum.objects.get(slug=bits[0])
     if len(bits) == 2:
-      return models.Topic.objects.get(forum__slug=bits[0], id=int(bits[1]))
+      try:
+        return models.Topic.objects.get(forum__slug=bits[0], id=int(bits[1]))
+      except ValueError:
+        pass
     raise FeedDoesNotExist
   
   def title(self, obj):
