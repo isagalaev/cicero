@@ -56,7 +56,7 @@ def mutant(openid, openid_server):
   body = Image.open(partfile('body', hash[8])).convert('RGBA')
   body = transpose(body, hash[9])
 
-  host = urlsplit(openid_server)[1]
+  host = urlsplit(openid)[1]
   host = '.'.join(host.split('.')[-2:])
   hash = md5.new(host).digest()
   from ImageOps import colorize
