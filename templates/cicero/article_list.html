@@ -43,7 +43,13 @@
       {% endifcanchange %}
       {% if profile.moderator %}
       <form action="{% url cicero.views.article_spam article.id %}" method="post"><button>Спам</button></form>
-      <a href="{% url cicero.views.spawn_topic article.id %}">Отщепить топик</a>
+      {% if not article.from_guest %}
+      {% with article.cicero_profile.spamer|yesno:"yes,no,unknown" as spamer %}
+      {% ifequal spamer "unknown" %}
+      <form action="{% url cicero.views.openid_whitelist %}" method="post"><input type="hidden" name="id" value="{{ article.author.id }}"><button>Whitelist</button></form>
+      {% endifequal %}
+      {% endwith %}
+      {% endif %}      <a href="{% url cicero.views.spawn_topic article.id %}">Отщепить топик</a>
       {% endif %}
     </div>
     {% else %}

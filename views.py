@@ -3,7 +3,7 @@ from django.views.generic.list_detail import object_list
 from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseBadRequest, Http404
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
@@ -163,36 +163,48 @@ def logout(request):
   return HttpResponseRedirect(post_redirect(request))
 
 def openid_whitelist(request):
-  openids = (p.openid for p in Profile.objects.filter(spamer=False) if p.openid)
-  from cicero.utils.mimeparse import best_match
-  MIMETYPES = ['application/xml', 'text/xml', 'application/json', 'text/plain']
-  accept = request.META.get('HTTP_ACCEPT', '')
-  try:
-    mimetype = best_match(MIMETYPES, accept)
-  except ValueError:
-    mimetype = 'text/plain'
-  if mimetype.endswith('/xml'):
+  if request.method == 'POST':
     try:
-      import xml.etree.ElementTree as ET
-    except ImportError:
-      import elementtree.ElementTree as ET
-    root = ET.Element('whitelist')
-    for openid in openids:
-      ET.SubElement(root, 'openid').text = openid
-    xml = ET.ElementTree(root)
-    response = HttpResponse(mimetype=mimetype)
-    xml.write(response, encoding='utf-8')
+      profile = Profile.objects.get(pk=int(request.POST['id']))
+      profile.spamer = False
+      profile.save()
+      try:
+        return HttpResponseRedirect(request.META['HTTP_REFERER'])
+      except KeyError:
+        return HttpResponse()
+    except (Profile.DoesNotExist, ValueError, KeyError):
+      return HttpResponseBadRequest()
+  else:
+    openids = (p.openid for p in Profile.objects.filter(spamer=False) if p.openid)
+    from cicero.utils.mimeparse import best_match
+    MIMETYPES = ['application/xml', 'text/xml', 'application/json', 'text/plain']
+    accept = request.META.get('HTTP_ACCEPT', '')
+    try:
+      mimetype = best_match(MIMETYPES, accept)
+    except ValueError:
+      mimetype = 'text/plain'
+    if mimetype.endswith('/xml'):
+      try:
+        import xml.etree.ElementTree as ET
+      except ImportError:
+        import elementtree.ElementTree as ET
+      root = ET.Element('whitelist')
+      for openid in openids:
+        ET.SubElement(root, 'openid').text = openid
+      xml = ET.ElementTree(root)
+      response = HttpResponse(mimetype=mimetype)
+      xml.write(response, encoding='utf-8')
+      return response
+    if mimetype == 'application/json':
+      from django.utils import simplejson
+      response = HttpResponse(mimetype=mimetype)
+      simplejson.dump(list(openids), response)
+      return response
+    if mimetype == 'text/plain':
+      return HttpResponse((o + '\n' for o in openids), mimetype=mimetype)
+    response = HttpResponse('Can accept only: %s' % ', '.join(MIMETYPES))
+    response.status_code = 406
     return response
-  if mimetype == 'application/json':
-    from django.utils import simplejson
-    response = HttpResponse(mimetype=mimetype)
-    simplejson.dump(list(openids), response)
-    return response
-  if mimetype == 'text/plain':
-    return HttpResponse((o + '\n' for o in openids), mimetype=mimetype)
-  response = HttpResponse('Can accept only: %s' % ', '.join(MIMETYPES))
-  response.status_code = 406
-  return response
   
 def _profile_forms(request):
   from cicero.forms import AuthForm, PersonalForm, SettingsForm
