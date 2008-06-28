@@ -31,6 +31,8 @@ def latest_change(request, slug=None, topic_id=None, *args, **kwargs):
   '''
   Запрос времени последнего обновления статей.
   '''
+  if request.user.is_authenticated() and request.user.cicero_profile.moderator:
+    return None
   def prepare(qs):
     if slug:
       qs = qs.filter(topic__forum__slug=slug)
