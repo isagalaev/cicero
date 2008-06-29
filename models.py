@@ -9,6 +9,10 @@ from cicero.filters import filters
 import re
 from datetime import datetime
 
+WWW_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)www\.', re.UNICODE)
+FTP_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)ftp\.', re.UNICODE)
+PROTOCOL_PATTERN = re.compile(r'(http://|ftp://|mailto:|https://)(.*?)([\.\,\?\!\)\>]?)(\s|$)')
+
 class Forum(models.Model):
   slug = models.SlugField()
   name = models.CharField(max_length=255)
@@ -131,8 +135,25 @@ class Article(models.Model):
       from django.utils.html import linebreaks, escape
       result = linebreaks(escape(self.text))
     result = re.sub(ur'\B--\B', u'—', result)
+    
     from BeautifulSoup import BeautifulSoup
     soup = BeautifulSoup(result)
+    
+    def urlify(s):
+      s = re.sub(WWW_PATTERN, r'\1http://www.', s)
+      s = re.sub(FTP_PATTERN, r'\1ftp://ftp.', s)
+      s = re.sub(PROTOCOL_PATTERN, r'<a href="\1\2">\1\2</a>\3\4', s)
+      return BeautifulSoup(s)
+    
+    def in_a(node):
+      if node is None:
+        return False
+      return node.name == u'a' or in_a(node.parent)
+    
+    for s in soup.recursiveChildGenerator():
+      if isinstance(s, unicode) and not in_a(s.parent):
+        s.replaceWith(urlify(s))
+    
     for link in soup.findAll('a'):
       if 'rel' in link:
         link['rel'] += ' '
