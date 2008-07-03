@@ -5,7 +5,7 @@ try:
   
   def to_html(value):
     return markdown(value, safe_mode='escape')
-except ImportEror:
+except ImportError:
   from markdown import markdown
   
   def to_html(value):
