@@ -460,6 +460,7 @@ class BBCodeParser:
 
     def _prepare(self, bbcode):
         # Replace newlines with 'soft' brs
+        bbcode = bbcode.replace("\r\n", '\n')
         bbcode = bbcode.replace("\n", '[softbr]')
         return bbcode
 
