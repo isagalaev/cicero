@@ -3,78 +3,64 @@
 from django.newforms import *
 from django.conf import settings
 
-from cicero.models import Topic
+from cicero.models import Topic, Article, Profile
 from cicero.filters import filters
 
-def _create_article(topic, user, ip, data):
-  if not user.is_authenticated():
-    from django.contrib.auth.models import User
-    user = User.objects.get(username='cicero_guest')
-  return topic.article_set.create(
-    text=data['text'], 
-    author=user,
-    ip=ip,
-    guest_name=data['name'],
-    filter=user.cicero_profile.filter,
-  )
+def model_field(model, fieldname, **kwargs):
+    return model._meta.get_field(fieldname).formfield(**kwargs)
+
+class PostForm(Form):
+  text = model_field(Article, 'text', widget=Textarea(attrs={'cols': '80', 'rows': '20'}))
+  name = CharField(label=u'Имя', required=False)
   
-def _validate_name(user, data):
-  if user.is_authenticated():
-    return u''
-  else:
-    if not data['name']:
+  def __init__(self, user, ip, *args, **kwargs):
+    super(PostForm, self).__init__(*args, **kwargs)
+    self.user, self.ip = user, ip
+
+  def clean_name(self):
+    if self.user.is_authenticated():
+      return u''
+    if not self.cleaned_data['name']:
       raise ValidationError('Обязательное поле')
-    return data['name']
-
-class ArticleTextField(CharField):
-  def __init__(self, *args, **kwargs):
-    kwargs['widget'] = Textarea(attrs={'cols': '80', 'rows': '20'})
-    if 'label' not in kwargs:
-      kwargs['label'] = 'Текст'
-    super(ArticleTextField, self).__init__(*args, **kwargs)
-
-class ArticleForm(Form):
-  text = ArticleTextField()
-  name = CharField(label='Имя', required=False)
+    return self.cleaned_data['name']
   
-  def __init__(self, topic, user, ip, *args, **kwargs):
-    super(ArticleForm, self).__init__(*args, **kwargs)
-    self.topic, self.user, self.ip = topic, user, ip
-    
-  def clean_name(self):
-    return _validate_name(self.user, self.cleaned_data)
+  def _create_article(self, topic):
+    user = self.user
+    if not user.is_authenticated():
+      from django.contrib.auth.models import User
+      user = User.objects.get(username='cicero_guest')
+    return topic.article_set.create(
+      text=self.cleaned_data['text'], 
+      author=user,
+      ip=self.ip,
+      guest_name=self.cleaned_data['name'],
+      filter=user.cicero_profile.filter,
+    )
+
+class ArticleForm(PostForm):
+  def __init__(self, topic, *args, **kwargs):
+    super(ArticleForm, self).__init__(user, *args, **kwargs)
+    self.topic = topic
     
   def save(self):
-    return _create_article(self.topic, self.user, self.ip, self.cleaned_data)
+    return self._create_article(self.topic)
   
-class TopicForm(Form):
-  subject = CharField(label='Тема')
-  text = ArticleTextField()
-  name = CharField(label='Имя', required=False)
+class TopicForm(PostForm):
+  subject = model_field(Topic, 'subject')
   
-  def __init__(self, forum, user, ip, *args, **kwargs):
-    super(TopicForm, self).__init__(*args, **kwargs)
-    self.forum, self.user, self.ip = forum, user, ip
+  def __init__(self, forum, *args, **kwargs):
+    super(TopicForm, self).__init__(user, *args, **kwargs)
+    self.forum = forum
     
-  def clean_name(self):
-    return _validate_name(self.user, self.cleaned_data)
-  
   def save(self):
-    from cicero.models import Topic
     topic = Topic(forum=self.forum, subject=self.cleaned_data['subject'])
     topic.save()
-    return _create_article(topic, self.user, self.ip, self.cleaned_data)
+    return self._create_article(topic)
 
-class ArticleEditForm(Form):
-  text = ArticleTextField()
-  filter = ChoiceField(choices=[(k, k) for k in filters.keys()])
-  
-  def __init__(self, article, *args, **kwargs):
-    super(ArticleEditForm, self).__init__(*args, **kwargs)
-    self.article = article
-    
-  def save(self):
-    return save_instance(self, self.article)
+class ArticleEditForm(ModelForm):
+  class Meta:
+      model = Article
+      fields = ['text', 'filter']
 
 class AuthForm(Form):
   openid_url = CharField(label='OpenID', max_length=200, required=True)
@@ -111,20 +97,16 @@ class AuthForm(Form):
     if acquire:
       self.request.return_to_args['acquire_article'] = str(acquire.id)
     return self.request.redirectURL(trust_url, return_to)
-    
-def PersonalForm(profile, *args, **kwargs):
-  def callback(field, **kwargs):
-    if field.name in ['name']:
-      return field.formfield(**kwargs)
 
-  return form_for_instance(profile, formfield_callback=callback)(*args, **kwargs)
-  
-def SettingsForm(profile, *args, **kwargs):
-  def callback(field, **kwargs):
-    if field.name == 'filter':
-      return ChoiceField(label=field.verbose_name, choices=field.get_choices(False), **kwargs)
-      
-  return form_for_instance(profile, formfield_callback=callback)(*args, **kwargs)
+class PersonalForm(ModelForm):
+  class Meta:
+    model = Profile
+    fields = ['name']
+
+class SettingsForm(ModelForm):
+  class Meta:
+    model = Profile
+    fields = ['filter']
 
 def TopicEditForm(instance, *args, **kwargs):
     def callback(field, **kwargs):
@@ -135,7 +117,7 @@ def TopicEditForm(instance, *args, **kwargs):
     return form_for_instance(instance, formfield_callback=callback)(*args, **kwargs)
 
 class SpawnForm(Form):
-  subject = CharField(label='Тема')
+  subject = model_field(Topic, 'subject')
   
   def __init__(self, article, *args, **kwargs):
     super(SpawnForm, self).__init__(*args, **kwargs)

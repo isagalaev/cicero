@@ -8,12 +8,12 @@
 
 <form action="./" method="post" id="edit">
   <p>
-    <label for="id_filter">{{ form.filter.label }}</label>
+    {{ form.filter.label_tag }}
     {{ form.filter }}
     {% if form.filter.errors %}<em class="error">{{ form.filter.errors|join:", " }}</em>{% endif %}
 
   <p>
-    <label for="id_text">{{ form.text.label }}</label>
+    {{ form.text.label_tag }}
     {{ form.text }}
     {% if form.text.errors %}<em class="error">{{ form.text.errors|join:", " }}</em>{% endif %}
   

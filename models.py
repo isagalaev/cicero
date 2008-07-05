@@ -42,7 +42,7 @@ class DeletedTopicManager(models.Manager):
 
 class Topic(models.Model):
   forum = models.ForeignKey(Forum)
-  subject = models.CharField(max_length=255)
+  subject = models.CharField(u'Тема', max_length=255)
   created = models.DateTimeField(auto_now_add=True)
   deleted = models.DateTimeField(null=True, db_index=True)
   spam_status = models.CharField(max_length=20, choices=antispam.SPAM_STATUSES, default='clean')
@@ -94,7 +94,7 @@ class DeletedArticleManager(models.Manager):
 
 class Article(models.Model):
   topic = models.ForeignKey(Topic)
-  text = models.TextField()
+  text = models.TextField(u'Текст')
   filter = models.CharField(u'Фильтр', max_length=50, choices=[(k, k) for k in filters.keys()])
   created = models.DateTimeField(auto_now_add=True, db_index=True)
   updated = models.DateTimeField(auto_now=True, db_index=True)

@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 
 from cicero.models import Forum, Topic, Article, Profile
-from cicero.forms import ArticleForm, TopicForm, TopicEditForm, AuthForm, SpawnForm
+from cicero.forms import ArticleForm, TopicForm, TopicEditForm, AuthForm, SpawnForm, ArticleEditForm, PersonalForm, SettingsForm
 from cicero.context import default
 from cicero.conditional_get import condition
 from cicero import caching
@@ -207,12 +207,11 @@ def openid_whitelist(request):
     return response
   
 def _profile_forms(request):
-  from cicero.forms import AuthForm, PersonalForm, SettingsForm
   profile = request.user.cicero_profile
   return {
     'openid': AuthForm(request.session, initial={'openid_url': profile.openid}),
-    'personal': PersonalForm(profile, initial=profile.__dict__),
-    'settings': SettingsForm(profile, initial=profile.__dict__),
+    'personal': PersonalForm(instance=profile),
+    'settings': SettingsForm(instance=profile),
   }
 
 def _profile_page(request, forms):
@@ -258,7 +257,7 @@ def change_openid_complete(request):
 @require_POST
 def post_profile(request, form_name):
   forms = _profile_forms(request)
-  form = forms[form_name].__class__(request.POST)
+  form = forms[form_name].__class__(request.POST, instance=request.user.cicero_profile)
   forms[form_name] = form
   if form.is_valid():
     form.save()
@@ -290,16 +289,15 @@ def article_edit(request, id):
   article = get_object_or_404(Article, pk=id)
   if not request.user.cicero_profile.can_change(article):
     return HttpResponseForbidden('Нет прав для редактирования')
-  from forms import ArticleEditForm
   if request.method == 'POST':
-    form = ArticleEditForm(article, request.POST)
+    form = ArticleEditForm(request.POST, instance=article)
     if form.is_valid():
       form.save()
       caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
       url = '%s#%s' % (reverse(topic, args=(article.topic.forum.slug, article.topic.id)), article.id)
       return HttpResponseRedirect(url)
   else:
-    form = ArticleEditForm(article, initial=article.__dict__)
+    form = ArticleEditForm(instance=article)
   return render_to_response(request, 'cicero/article_edit.html', {
     'form': form,
     'article': article,
