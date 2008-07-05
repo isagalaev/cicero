@@ -39,7 +39,7 @@ class PostForm(Form):
 
 class ArticleForm(PostForm):
   def __init__(self, topic, *args, **kwargs):
-    super(ArticleForm, self).__init__(user, *args, **kwargs)
+    super(ArticleForm, self).__init__(*args, **kwargs)
     self.topic = topic
     
   def save(self):
@@ -49,7 +49,7 @@ class TopicForm(PostForm):
   subject = model_field(Topic, 'subject')
   
   def __init__(self, forum, *args, **kwargs):
-    super(TopicForm, self).__init__(user, *args, **kwargs)
+    super(TopicForm, self).__init__(*args, **kwargs)
     self.forum = forum
     
   def save(self):
