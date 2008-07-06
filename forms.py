@@ -51,7 +51,13 @@ class TopicForm(PostForm):
   def __init__(self, forum, *args, **kwargs):
     super(TopicForm, self).__init__(*args, **kwargs)
     self.forum = forum
-    
+  
+  def clean_subject(self):
+    value = self.cleaned_data['subject'].strip()
+    if not value:
+      raise ValidationError(u'Тема не может состоять из одних пробелов')
+    return value
+  
   def save(self):
     topic = Topic(forum=self.forum, subject=self.cleaned_data['subject'])
     topic.save()
