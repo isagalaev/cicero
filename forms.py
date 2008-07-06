@@ -59,8 +59,12 @@ class TopicForm(PostForm):
 
 class ArticleEditForm(ModelForm):
   class Meta:
-      model = Article
-      fields = ['text', 'filter']
+    model = Article
+    fields = ['text', 'filter']
+  
+  def __init__(self, *args, **kwargs):
+    super(ArticleEditForm, self).__init__(*args, **kwargs)
+    self.fields['text'].widget = Textarea(attrs={'cols': '80', 'rows': '20'})
 
 class AuthForm(Form):
   openid_url = CharField(label='OpenID', max_length=200, required=True)
