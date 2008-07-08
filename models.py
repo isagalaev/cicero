@@ -145,13 +145,13 @@ class Article(models.Model):
       s = re.sub(PROTOCOL_PATTERN, r'<a href="\1\2">\1\2</a>\3\4', s)
       return BeautifulSoup(s)
     
-    def in_a(node):
+    def has_parents(node, tags):
       if node is None:
         return False
-      return node.name == u'a' or in_a(node.parent)
+      return node.name in tags or has_parents(node.parent, tags)
     
     for s in soup.recursiveChildGenerator():
-      if isinstance(s, unicode) and not in_a(s.parent):
+      if isinstance(s, unicode) and not has_parents(s.parent, ['a', 'code']):
         s.replaceWith(urlify(s))
     
     for link in soup.findAll('a'):
