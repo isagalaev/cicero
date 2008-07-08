@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from openid.consumer.consumer import Consumer, SUCCESS, DiscoveryFailure
+from openid.extensions.sreg import SRegRequest, SRegResponse
 from openid.store.filestore import FileOpenIDStore
 
 from django.contrib.auth.models import User
@@ -25,6 +26,8 @@ class OpenIdBackend(object):
       profile = user.cicero_profile
       profile.openid = info.identity_url
       profile.openid_server = info.endpoint.server_url
+      sreg_response = SRegResponse.fromSuccessResponse(info)
+      profile.name = sreg_response.get('nickname', sreg_response.get('fullname', ''))
       profile.generate_mutant()
       profile.save()
     return user
@@ -57,4 +60,6 @@ def create_request(openid_url, session):
     errors.append(str(e[0]))
   if errors:
     raise OpenIdError(errors)
+  sreg_request = SRegRequest(optional=['nickname', 'fullname'])
+  request.addExtension(sreg_request)
   return request
