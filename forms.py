@@ -85,18 +85,12 @@ class AuthForm(Form):
     return 'http://' + site.domain
   
   def clean_openid_url(self):
-    from cicero.auth import get_consumer, OpenIdSetupError
-    from openid.consumer.consumer import DiscoveryFailure
-    errors = []
+    from cicero.auth import create_request, OpenIdError
     try:
-      consumer = get_consumer(self.session)
-      self.request = consumer.begin(self.cleaned_data['openid_url'])
-    except (DiscoveryFailure, OpenIdSetupError, ValueError), e:
-      errors.append(str(e[0]))
-    if hasattr(self, 'request') and self.request is None:
-      errors.append('OpenID сервис не найден')
-    if errors:
-      raise ValidationError(errors)
+      self.request = create_request(self.cleaned_data['openid_url'], self.session)
+    except OpenIdError, e:
+      raise ValidationError(e)
+    return self.cleaned_data['openid_url']
     
   def auth_redirect(self, target, view_name, acquire=None, args=[], kwargs={}):
     from django.core.urlresolvers import reverse

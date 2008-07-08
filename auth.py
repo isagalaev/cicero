@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from openid.consumer.consumer import Consumer, SUCCESS
+from openid.consumer.consumer import Consumer, SUCCESS, DiscoveryFailure
 from openid.store.filestore import FileOpenIDStore
 
 from django.contrib.auth.models import User
@@ -36,9 +36,25 @@ class OpenIdBackend(object):
       return None
 
 class OpenIdSetupError(Exception):
-    pass
+  pass
+
+class OpenIdError(Exception):
+  pass
 
 def get_consumer(session):
   if not settings.OPENID_STORE_ROOT:
     raise OpenIdSetupError('OPENID_STORE_ROOT is not set')
   return Consumer(session, FileOpenIDStore(settings.OPENID_STORE_ROOT))
+
+def create_request(openid_url, session):
+  errors = []
+  try:
+    consumer = get_consumer(session)
+    request = consumer.begin(openid_url)
+    if request is None:
+      errors.append('OpenID сервис не найден')
+  except (DiscoveryFailure, OpenIdSetupError, ValueError), e:
+    errors.append(str(e[0]))
+  if errors:
+    raise OpenIdError(errors)
+  return request
