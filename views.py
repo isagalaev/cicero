@@ -37,7 +37,8 @@ def login_required(func):
 def _publish_article(slug, article):
   article.set_spam_status('clean')
   from django.db import transaction
-  transaction.commit()
+  if transaction.is_managed():
+    transaction.commit()
   article.ping_external_links()
   caching.invalidate_by_article(slug, article.topic_id)
 
