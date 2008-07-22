@@ -22,9 +22,6 @@ class Forum(models.Model):
   class Meta:
     ordering = ['ordering', 'group']
   
-  class Admin:
-    list_display = ['name', 'ordering', 'group']
-  
   def __unicode__(self):
     return self.name
   
@@ -53,9 +50,6 @@ class Topic(models.Model):
   class Meta:
     ordering = ['-id']
     
-  class Admin:
-    pass
-  
   def __unicode__(self):
     return self.subject
   
@@ -111,9 +105,6 @@ class Article(models.Model):
   class Meta:
     ordering = ['id']
     
-  class Admin:
-    pass
-  
   def __unicode__(self):
     return u'(%s, %s, %s)' % (self.topic, self.author, self.created.replace(microsecond=0))
   
@@ -240,11 +231,6 @@ class Profile(models.Model):
   read_articles = models.TextField(editable=False)
   moderator = models.BooleanField(default=False)
   spamer = models.NullBooleanField()
-  
-  class Admin:
-    list_display = ('user', 'openid', 'name', 'moderator', 'spamer')
-    list_filter = ('moderator', 'spamer')
-    search_fields = ('openid', 'name', 'user__username')
   
   def __unicode__(self):
     if self.name:
@@ -395,9 +381,6 @@ class Profile(models.Model):
 class WhitelistSource(models.Model):
   url = models.URLField()
   
-  class Admin:
-    pass
-  
   def __unicode__(self):
     return self.url
 
@@ -410,10 +393,6 @@ class CleanOpenID(models.Model):
     ordering = ['openid']
     verbose_name = 'Clean OpenID'
     verbose_name_plural = 'Clean OpenIDs'
-  
-  class Admin:
-    list_display = ['openid', 'source']
-    list_filter = ['source']
   
   def __unicode__(self):
     return self.openid
