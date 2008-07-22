@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
-
-from django.newforms import *
+from django.forms import *
 from django.conf import settings
 
 from cicero.models import Topic, Article, Profile
