@@ -17,13 +17,7 @@
 {% if topics %}
 
 {% paginator %}
-
-<ol>
-{% for topic in topics %}
-  <li><a href="{% url cicero.views.topic forum.slug,topic.id %}">{{ topic }}</a>
-{% endfor %}
-</ol>
-
+{% topic_list_block topics %}
 {% paginator %}
 
 {% else %}

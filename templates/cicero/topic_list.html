@@ -16,12 +16,8 @@
 
 {% paginator %}
 
-<ol>
 {% setnews object_list %}
-{% for topic in object_list %}
-  <li {% if topic.new %}class="new"{% endif %}><a href="{{ topic.id }}/">{{ topic }}</a>
-{% endfor %}
-</ol>
+{% topic_list_block object_list %}
 
 {% paginator %}
 

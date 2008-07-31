@@ -96,3 +96,13 @@ def ifcanchange(parser, token):
   node_list = parser.parse('end' + bits[0])
   parser.delete_first_token()
   return IfCanChangeNode(parser.compile_filter(bits[1]), parser.compile_filter(bits[2]), node_list)
+
+@register.inclusion_tag('cicero/topic_list_block.html')
+def topic_list_block(topics):
+  '''
+  Блок со списком топиков.
+  Используется в основном шаблоне форума, списке топиков юзера, результатах поиска.
+  '''
+  return {
+    'topics': topics,
+  }
