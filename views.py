@@ -5,6 +5,7 @@ from django.views.decorators.cache import never_cache
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseBadRequest, Http404
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 from django.conf import settings
 
 from cicero.models import Forum, Topic, Article, Profile
@@ -162,6 +163,18 @@ def logout(request):
   logout(request)
   caching.invalidate_by_user(request)
   return HttpResponseRedirect(post_redirect(request))
+
+def user_topics(request, user_id):
+  user = get_object_or_404(User, pk=user_id)
+  return object_list(request,
+    queryset=Topic.objects.filter(article__author=user).distinct().select_related('forum'),
+    allow_empty=True,
+    paginate_by=settings.PAGINATE_BY,
+    template_name='cicero/user_topics.html',
+    extra_context={
+      'author_profile': user.cicero_profile,
+    }
+  )
 
 def openid_whitelist(request):
   if request.method == 'POST':

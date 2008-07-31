@@ -1,0 +1,28 @@
+{% extends "cicero/auth.html" %}
+{% load cicero %}
+
+{% block cicero_title %}Статьи пользователя "{{ author_profile }}"{% endblock %}
+
+{% block content %}
+
+<h2>Статьи пользователя "{{ author_profile }}"</h2>
+
+{% if object_list %}
+
+{% paginator %}
+{% topic_list_block object_list %}
+{% paginator %}
+
+{% else %}
+<p id="empty">У пользователя нет статей.
+{% endif %}
+
+{% endblock %}
+
+{% block aside %}
+<ul id="breadcrumbs" class="block">
+  <li id="index_link"><a href="{% url cicero_index %}">Начало</a>
+  <li><a href="{% obj_url author_profile %}">Страница пользователя</a>
+</ul>
+
+{% endblock %}
