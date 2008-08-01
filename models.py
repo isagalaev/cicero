@@ -125,7 +125,6 @@ class Article(models.Model):
     else:
       from django.utils.html import linebreaks, escape
       result = linebreaks(escape(self.text))
-    result = re.sub(ur'\B--\B', u'—', result)
     
     from BeautifulSoup import BeautifulSoup
     soup = BeautifulSoup(result)
@@ -141,9 +140,14 @@ class Article(models.Model):
         return False
       return node.name in tags or has_parents(node.parent, tags)
     
-    for s in soup.recursiveChildGenerator():
-      if isinstance(s, unicode) and not has_parents(s.parent, ['a', 'code']):
-        s.replaceWith(urlify(s))
+    text_chunks = (c for c in soup.recursiveChildGenerator() if isinstance(c, unicode))
+    for chunk in text_chunks:
+      s = chunk
+      if not has_parents(chunk.parent, ['code']):
+        s = re.sub(ur'\B--\B', u'—', s)
+      if not has_parents(chunk.parent, ['a', 'code']):
+        s = urlify(s)
+      chunk.replaceWith(s)
     
     for link in soup.findAll('a'):
       if 'rel' in link:
