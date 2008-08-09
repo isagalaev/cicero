@@ -196,6 +196,7 @@ class Article(models.Model):
     soup = BeautifulSoup(self.html())
     links = [a['href'] for a in soup.findAll('a') if is_external(a['href'])]
     from xmlrpclib import ServerProxy, Fault, ProtocolError
+    from xml.parsers.expat import ExpatError
     from urllib2 import urlopen
     for link in links:
       try:
@@ -209,7 +210,7 @@ class Article(models.Model):
             server.pingback.ping(topic_url, link)
         finally:
           f.close()
-      except (IOError, Fault, ProtocolError):
+      except (IOError, Fault, ProtocolError, ExpatError):
         pass
   
   def set_spam_status(self, spam_status):
