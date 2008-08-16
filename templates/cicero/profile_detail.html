@@ -11,7 +11,7 @@
   <tr>
     <th>Зарегистрирован<td>{{ object.user.date_joined|date:"d.m.Y" }}
   <tr>
-    <th>Сообщений<td>{{ object.user.article_set.count }}
+    <th>Топики<td>{{ object.topics.count }}
   {% if object.moderator or object.user.is_superuser %}
   <tr>
     <th>Специальные права

@@ -382,6 +382,9 @@ class Profile(models.Model):
   
   def can_change(self, article):
     return self.moderator or article.author_id == self.user_id
+  
+  def topics(self):
+    return Topic.objects.filter(article__author=self).distinct().select_related('forum')
 
 class WhitelistSource(models.Model):
   url = models.URLField()

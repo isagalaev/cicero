@@ -167,7 +167,7 @@ def logout(request):
 def user_topics(request, user_id):
   user = get_object_or_404(User, pk=user_id)
   return object_list(request,
-    queryset=Topic.objects.filter(article__author=user).distinct().select_related('forum'),
+    queryset=user.cicero_profile.topics(),
     allow_empty=True,
     paginate_by=settings.PAGINATE_BY,
     template_name='cicero/user_topics.html',
