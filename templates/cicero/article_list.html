@@ -26,7 +26,7 @@
       {{ article.html }}
     </div>
     <div class="meta">
-      <p class="mutant">{% if article.cicero_profile.mutant %}<a href="{% obj_url article.cicero_profile %}"><img src="{{ article.cicero_profile.get_mutant_url }}" alt=""></a>{% endif %}
+      <p class="mutant">{% if article.cicero_profile.mutant %}<a href="{% obj_url article.cicero_profile %}"><img src="{{ article.cicero_profile.mutant.url }}" alt=""></a>{% endif %}
       <address>
       {% if not article.from_guest %}
         <a href="{% obj_url article.cicero_profile %}" title="{{ article.cicero_profile.openid }}">{{ article.cicero_profile }}</a>

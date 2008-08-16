@@ -10,7 +10,7 @@
   <h3>OpenID</h3>
   {% if profile.mutant %}
   <p id="mutant">
-    <img src="{{ profile.get_mutant_url }}" alt="">
+    <img src="{{ profile.mutant.url }}" alt="">
   {% endif %}
   <p>
     <label for="id_openid_url">{{ openid.openid_url.label }}</label>

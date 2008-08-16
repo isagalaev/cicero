@@ -111,13 +111,10 @@ class SettingsForm(ModelForm):
     model = Profile
     fields = ['filter']
 
-def TopicEditForm(instance, *args, **kwargs):
-    def callback(field, **kwargs):
-        if field.name == 'subject':
-            formfield = field.formfield(**kwargs)
-            formfield.label = u'Тема'
-            return formfield
-    return form_for_instance(instance, formfield_callback=callback)(*args, **kwargs)
+class TopicEditForm(ModelForm):
+  class Meta:
+    model = Topic
+    fields = ['subject']
 
 class SpawnForm(Form):
   subject = model_field(Topic, 'subject')

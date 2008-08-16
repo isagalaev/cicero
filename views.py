@@ -423,13 +423,13 @@ def topic_edit(request, topic_id):
     return HttpResponseForbidden('Нет прав редактировать топики')
   t = get_object_or_404(Topic, pk=topic_id)
   if request.method == 'POST':
-    form = TopicEditForm(t, request.POST)
+    form = TopicEditForm(request.POST, instance=t)
     if form.is_valid():
       form.save()
       caching.invalidate_by_article(t.forum.slug, t.id)
       return HttpResponseRedirect(reverse(topic, args=[t.forum.slug, t.id]))
   else:
-    form = TopicEditForm(t)
+    form = TopicEditForm(instance=t)
   return render_to_response(request, 'cicero/topic_edit.html', {
     'form': form,
     'topic': t,

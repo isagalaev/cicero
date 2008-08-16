@@ -29,7 +29,7 @@
   <p id="openid_link">{% if object.openid %}<a href="{{ object.openid }}">{{ object.openid }}</a>{% else %}(нет){% endif %}
   
 {% if object.mutant %}
-  <p id="mutant"><img src="{{ object.get_mutant_url }}" alt="">
+  <p id="mutant"><img src="{{ object.mutant.url }}" alt="">
   <div id="description">
     <p>Это персональный форумный эльф пользователя.
     <p>Изначально эльф — это порождение OpenID, его внутренняя сущность. 
