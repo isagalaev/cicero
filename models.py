@@ -2,7 +2,7 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
-from cicero.fields import AutoOneToOneField
+from cicero import fields
 from cicero import antispam 
 from cicero.filters import filters
 
@@ -227,13 +227,13 @@ class Article(models.Model):
       self.topic.save()
 
 class Profile(models.Model):
-  user = AutoOneToOneField(User, related_name='cicero_profile', primary_key=True)
+  user = fields.AutoOneToOneField(User, related_name='cicero_profile', primary_key=True)
   filter = models.CharField(u'Фильтр', max_length=50, choices=[(k, k) for k in filters.keys()])
   openid = models.CharField(max_length=200, null=True, unique=True)
   openid_server = models.CharField(max_length=200, null=True)
   mutant = models.ImageField(upload_to='mutants', null=True)
   name = models.CharField(u'Имя', max_length=200, null=True, blank=True)
-  read_articles = models.TextField(editable=False)
+  read_articles = fields.RangesField(editable=False)
   moderator = models.BooleanField(default=False)
   spamer = models.NullBooleanField()
   
@@ -303,18 +303,6 @@ class Profile(models.Model):
     content = StringIO()
     mutant(self.openid, self.openid_server).save(content, 'PNG')
     self.mutant.save('%s.png' % self._get_pk_val(), ContentFile(content.getvalue()))
-    
-  def _get_read_ranges(self):
-    from cPickle import loads
-    if not self.read_articles:
-      return [(0, 0)]
-    return loads(str(self.read_articles))
-    
-  def _set_read_ranges(self, ranges):
-    from cPickle import dumps
-    self.read_articles = unicode(dumps(ranges))
-    
-  read_ranges = property(_get_read_ranges, _set_read_ranges)
   
   def unread_topics(self):
     '''
@@ -322,7 +310,7 @@ class Profile(models.Model):
     '''
     from django.db.models import Q
     query = Q()
-    for range in self.read_ranges:
+    for range in self.read_articles:
       query = query | Q(article__id__range=range)
     return Topic.objects.exclude(query).distinct()
   
@@ -344,7 +332,7 @@ class Profile(models.Model):
       condition = 'topic_id in (%s)' % ','.join(ids)
       field_name = 'topic_id'
       condition += ' and a.deleted is null and a.spam_status = \'clean\''
-    ranges = ' or '.join(['a.id between %s and %s' % range for range in self.read_ranges])
+    ranges = ' or '.join(['a.id between %s and %s' % range for range in self.read_articles])
     condition += ' and not (%s)' % ranges
     query = 'select %s, count(1) as c from %s where %s group by 1' % (field_name, tables, condition)
     from django.db import connection
@@ -362,11 +350,11 @@ class Profile(models.Model):
     '''
     from django.db.models import Q
     query = Q()
-    for range in self.read_ranges:
+    for range in self.read_articles:
       query = query | Q(id__range=range)
     ids = [a['id'] for a in articles.exclude(query).values('id')]
     from cicero.utils.ranges import compile_ranges, merge_range
-    ranges = self.read_ranges
+    ranges = self.read_articles
     for range in compile_ranges(ids):
       ranges = merge_range(range, ranges)
     try:
@@ -375,8 +363,8 @@ class Profile(models.Model):
       ranges = merge_range((0, article.id), ranges)
     except IndexError:
       pass
-    if self.read_ranges != ranges:
-      self.read_ranges = ranges
+    if self.read_articles != ranges:
+      self.read_articles = ranges
       return True
     else:
       return False
