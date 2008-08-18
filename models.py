@@ -293,7 +293,7 @@ class Profile(models.Model):
     Создает, если возможно, картинку мутанта из OpenID.
     '''
     import os
-    if os.path.exists(self.mutant.path):
+    if self.mutant and os.path.exists(self.mutant.path):
       os.remove(self.mutant.path)
     if not settings.OPENID_MUTANT_PARTS or not self.openid or not self.openid_server:
       return
