@@ -79,12 +79,13 @@ class IfCanChangeNode(template.Node):
   def render(self, context):
     profile = self.profile_expr.resolve(context)
     object = self.object_expr.resolve(context)
-    if self.object_type == 'article':
-      check = profile.can_change_article
-    elif self.object_type == 'topic':
-      check = profile.can_change_topic
-    if profile and check(object):
-      return self.node_list.render(context)
+    if profile:
+      if self.object_type == 'article':
+        check = profile.can_change_article
+      elif self.object_type == 'topic':
+        check = profile.can_change_topic
+      if check(object):
+        return self.node_list.render(context)
     return ''
 
 def ifcanchangenode(parser, token, object_type):
