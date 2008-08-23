@@ -9,11 +9,11 @@
 
 <div id="subject">
   <h2>{{ topic.subject }}</h2>
-  {% if profile.moderator %}
+  {% ifcanchangetopic profile topic %}
   <div class="meta">
     <a href="{% url cicero.views.topic_edit topic.id %}">Редактировать</a>
   </div>
-  {% endif %}
+  {% endifcanchangetopic %}
 </div>
 
 {% paginator %}
@@ -37,10 +37,10 @@
       <p class="time">{{ article.created|date:"d.m.Y H:i" }}
     </div>
     <div class="control">
-      {% ifcanchange profile article %}
+      {% ifcanchangearticle profile article %}
       <a href="{% url cicero.views.article_edit article.id %}">Редактировать</a>
       <form action="{% url cicero.views.article_delete article.id %}" method="post"><button>Удалить</button></form>
-      {% endifcanchange %}
+      {% endifcanchangearticle %}
       {% if profile.moderator %}
       <form action="{% url cicero.views.article_spam article.id %}" method="post"><button>Спам</button></form>
       {% if not article.from_guest %}

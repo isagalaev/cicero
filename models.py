@@ -369,8 +369,11 @@ class Profile(models.Model):
     else:
       return False
   
-  def can_change(self, article):
-    return self.moderator or article.author_id == self.user_id
+  def can_change_article(self, article):
+    return self.moderator or (not article.from_guest() and article.author.id == self.user_id)
+  
+  def can_change_topic(self, topic):
+    return self.can_change_article(topic.article_set.all()[0])
   
   def topics(self):
     return Topic.objects.filter(article__author=self).distinct().select_related('forum')

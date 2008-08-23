@@ -73,28 +73,43 @@ def setnews(parser, token):
   return SetNewsNode(parser.compile_filter(bits[1]))
 
 class IfCanChangeNode(template.Node):
-  def __init__(self, profile_expr, article_expr, node_list):
-    self.profile_expr, self.article_expr, self.node_list = profile_expr, article_expr, node_list
+  def __init__(self, profile_expr, object_expr, object_type, node_list):
+    self.profile_expr, self.object_expr, self.object_type, self.node_list = profile_expr, object_expr, object_type, node_list
     
   def render(self, context):
     profile = self.profile_expr.resolve(context)
-    article = self.article_expr.resolve(context)
-    if profile and profile.can_change(article):
+    object = self.object_expr.resolve(context)
+    if self.object_type == 'article':
+      check = profile.can_change_article
+    elif self.object_type == 'topic':
+      check = profile.can_change_topic
+    if profile and check(object):
       return self.node_list.render(context)
     return ''
 
+def ifcanchangenode(parser, token, object_type):
+  bits = token.contents.split()
+  if len(bits) != 3:
+    raise template.TemplateSyntaxError, '"%s" принимает 2 параметра' % bits[0].encode('utf-8')
+  node_list = parser.parse('end' + bits[0])
+  parser.delete_first_token()
+  return IfCanChangeNode(parser.compile_filter(bits[1]), parser.compile_filter(bits[2]), object_type, node_list)
+
 @register.tag
-def ifcanchange(parser, token):
+def ifcanchangearticle(parser, token):
   '''
   Выводит содержимое блока только в том случае, если пользователь
   имеет право редактироват статью
   '''
-  bits = token.contents.split()
-  if len(bits) != 3:
-    raise template.TemplateSyntaxError, '"%s" принимает 2 параметра: профиль и статью' % bits[0]
-  node_list = parser.parse('end' + bits[0])
-  parser.delete_first_token()
-  return IfCanChangeNode(parser.compile_filter(bits[1]), parser.compile_filter(bits[2]), node_list)
+  return ifcanchangenode(parser, token, 'article')
+
+@register.tag
+def ifcanchangetopic(parser, token):
+  '''
+  Выводит содержимое блока только в том случае, если пользователь
+  имеет право редактироват топик
+  '''
+  return ifcanchangenode(parser, token, 'topic')
 
 @register.inclusion_tag('cicero/topic_list_block.html')
 def topic_list_block(topics):

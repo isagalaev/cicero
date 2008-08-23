@@ -301,7 +301,7 @@ def mark_read(request, slug=None):
 @login_required
 def article_edit(request, id):
   article = get_object_or_404(Article, pk=id)
-  if not request.user.cicero_profile.can_change(article):
+  if not request.user.cicero_profile.can_change_article(article):
     return HttpResponseForbidden('Нет прав для редактирования')
   if request.method == 'POST':
     form = ArticleEditForm(request.POST, instance=article)
@@ -320,7 +320,7 @@ def article_edit(request, id):
 @login_required
 def article_delete(request, id):
   article = get_object_or_404(Article, pk=id)
-  if not request.user.cicero_profile.can_change(article):
+  if not request.user.cicero_profile.can_change_article(article):
     return HttpResponseForbidden('Нет прав для удаления')
   article.deleted = datetime.now()
   article.save()
@@ -338,7 +338,7 @@ def article_undelete(request, id):
     article = Article.deleted_objects.get(pk=id)
   except Article.DoesNotExist:
     raise Http404
-  if not request.user.cicero_profile.can_change(article):
+  if not request.user.cicero_profile.can_change_article(article):
     return HttpResponseForbidden('Нет прав для восстановления')
   Article.deleted_objects.filter(pk=id).update(deleted=None)
   try:
@@ -419,9 +419,9 @@ def spam_queue(request):
 
 @login_required
 def topic_edit(request, topic_id):
-  if not request.user.cicero_profile.moderator:
-    return HttpResponseForbidden('Нет прав редактировать топики')
   t = get_object_or_404(Topic, pk=topic_id)
+  if not request.user.cicero_profile.can_change_topic(t):
+    return HttpResponseForbidden('Нет прав редактировать топик')
   if request.method == 'POST':
     form = TopicEditForm(request.POST, instance=t)
     if form.is_valid():
