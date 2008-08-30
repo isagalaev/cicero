@@ -3,21 +3,26 @@ from django.contrib.admin import site, ModelAdmin
 
 import models
 
-class ForumAdmin(ModelAdmin):
-    list_display = ['name', 'ordering', 'group']
+site.register(models.Forum, 
+    list_display = ['name', 'ordering', 'group'],
+)
 
-class ProfileAdmin(ModelAdmin):
-    list_display = ['user', 'openid', 'name', 'moderator', 'spamer']
-    list_filter = ['moderator', 'spamer']
-    search_fields = ['openid', 'name', 'user__username']
+site.register(models.Topic,
+    list_display = ['subject', 'created', 'forum'],
+    list_filter = ['forum'],
+)
 
-class CleanOpenIDAdmin(ModelAdmin):
-    list_display = ['openid', 'source']
-    list_filter = ['source']
+site.register(models.Article)
 
-site.register(models.Forum, ForumAdmin)
-site.register(models.Topic, ModelAdmin)
-site.register(models.Article, ModelAdmin)
-site.register(models.Profile, ProfileAdmin)
-site.register(models.WhitelistSource, ModelAdmin)
-site.register(models.CleanOpenID, CleanOpenIDAdmin)
+site.register(models.Profile,
+    list_display = ['user', 'openid', 'name', 'moderator', 'spamer'],
+    list_filter = ['moderator', 'spamer'],
+    search_fields = ['openid', 'name', 'user__username'],
+)
+
+site.register(models.WhitelistSource)
+
+site.register(models.CleanOpenID,
+    list_display = ['openid', 'source'],
+    list_filter = ['source'],
+)
