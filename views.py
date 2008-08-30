@@ -115,9 +115,6 @@ def topic(request, slug, id, **kwargs):
       return _process_new_article(request, article, False, True)
   else:
     form = ArticleForm(topic, request.user, request.META['REMOTE_ADDR'])
-  if request.GET.get('page', '') == 'last':
-    page = _page_count(topic.article_set.count())
-    return HttpResponseRedirect(page > 1 and './?page=%s' % page or './')
   if request.user.is_authenticated():
     profile = request.user.cicero_profile
     changed = profile.add_read_articles(topic.article_set.all())
