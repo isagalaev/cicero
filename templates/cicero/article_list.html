@@ -49,7 +49,7 @@
       <form action="{% url cicero.views.openid_whitelist %}" method="post"><input type="hidden" name="id" value="{{ article.author.id }}"><button>Whitelist</button></form>
       {% endifequal %}
       {% endwith %}
-      {% endif %}      <a href="{% url cicero.views.spawn_topic article.id %}">Отщепить топик</a>
+      {% endif %}      <a href="{% url cicero.views.topic_spawn article.id %}">Отщепить топик</a>
       {% endif %}
     </div>
     {% else %}
