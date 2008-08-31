@@ -122,8 +122,8 @@ def topic_list_block(topics):
         'topics': topics,
     }
 
-@register.inclusion_tag('cicero/post_form.html')
-def post_form(form, profile, forum, topic=None):
+@register.inclusion_tag('cicero/post_form.html', takes_context=True)
+def post_form(context, form, forum, topic=None):
     if topic:
         action = reverse('cicero.views.topic', args=[forum.slug, topic.id])
     else:
@@ -132,6 +132,6 @@ def post_form(form, profile, forum, topic=None):
         'form': form,
         'topic': topic,
         'action': action,
-        'user': profile.user,
-        'profile': profile,
+        'user': context['user'],
+        'profile': context['profile'],
     }
