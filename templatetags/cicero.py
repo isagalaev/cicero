@@ -3,6 +3,7 @@ from django import template
 from django.conf import settings
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
+from django.core.urlresolvers import RegexURLResolver, NoReverseMatch, reverse_helper, reverse
 
 register=template.Library()
 
@@ -31,7 +32,6 @@ def paginator(context):
     
 @register.simple_tag
 def obj_url(obj):
-    from django.core.urlresolvers import RegexURLResolver, NoReverseMatch, reverse_helper
     
     def find_object_url(resolver, obj):
         for pattern in resolver.urlconf_module.urlpatterns:
@@ -120,4 +120,18 @@ def topic_list_block(topics):
     '''
     return {
         'topics': topics,
+    }
+
+@register.inclusion_tag('cicero/post_form.html')
+def post_form(form, profile, forum, topic=None):
+    if topic:
+        action = reverse('cicero.views.topic', args=[forum.slug, topic.id])
+    else:
+        action = reverse('cicero.views.forum', args=[forum.slug])
+    return {
+        'form': form,
+        'topic': topic,
+        'action': action,
+        'user': profile.user,
+        'profile': profile,
     }

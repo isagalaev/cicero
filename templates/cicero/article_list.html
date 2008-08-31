@@ -62,24 +62,7 @@
 
 {% paginator %}
 
-<form action="./" method="post" id="add">
-  <p>
-    <label for="id_text">{{ form.text.label }}</label>
-    {{ form.text }}
-    {% if form.text.errors %}<em class="error">{{ form.text.errors|join:", " }}</em>{% endif %}
-  {% if not user.is_authenticated %}
-  <p>
-    <label for="id_name">{{ form.name.label }}</label>
-    {{ form.name }}
-    {% if form.name.errors %}<em class="error">{{ form.name.errors|join:", " }}</em>{% endif %}
-  {% endif %}
-  <p style="position: absolute; left: -1000px;">
-    <label>Это поле — ловушка для роботов, оставьте его пустым</label>
-    <input type="text" name="email" value="" tabindex="-1">
-    
-  
-  <div class="buttons"><button type="submit">Добавить</button></div>
-</form>
+{% post_form form profile topic.forum topic %}
 
 {% endblock %}
 
