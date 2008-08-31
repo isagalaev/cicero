@@ -15,6 +15,12 @@
     {{ form.name }}
     {% if form.name.errors %}<em class="error">{{ form.name.errors|join:", " }}</em>{% endif %}
   {% endif %}
+  {% if user.is_authenticated %}
+  <p>
+    <label for="id_filter">{{ form.filter.label }}</label>
+    {{ form.filter }}
+    {% if form.filter.errors %}<em class="error">{{ form.filter.errors|join:", " }}</em>{% endif %}
+  {% endif %}
   <p style="position: absolute; left: -1000px;">
     <label>Это поле — ловушка для роботов, оставьте его пустым</label>
     <input type="text" name="email" value="" tabindex="-1">

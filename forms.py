@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from django.forms import *
+from django.contrib.auth.models import User
 from django.conf import settings
 
 from cicero.models import Topic, Article, Profile
@@ -11,30 +12,38 @@ def model_field(model, fieldname, **kwargs):
 class PostForm(Form):
     text = model_field(Article, 'text', widget=Textarea(attrs={'cols': '80', 'rows': '20'}))
     name = CharField(label=u'Имя', required=False)
+    filter = model_field(Article, 'filter', required=False)
     
     def __init__(self, user, ip, *args, **kwargs):
-        super(PostForm, self).__init__(*args, **kwargs)
+        if not user.is_authenticated():
+            user = User.objects.get(username='cicero_guest')
         self.user, self.ip = user, ip
+        if 'initial' not in kwargs:
+            kwargs['initial'] = {}
+        kwargs['initial']['filter'] = user.cicero_profile.filter
+        super(PostForm, self).__init__(*args, **kwargs)
 
     def clean_name(self):
-        if self.user.is_authenticated():
+        if self.user.username != 'cicero_guest':
             return u''
         if not self.cleaned_data['name']:
             raise ValidationError('Обязательное поле')
         return self.cleaned_data['name']
     
-    def _create_article(self, topic):
-        user = self.user
-        if not user.is_authenticated():
-            from django.contrib.auth.models import User
-            user = User.objects.get(username='cicero_guest')
-        return topic.article_set.create(
+    def _save(self, topic):
+        profile = self.user.cicero_profile
+        filter = self.cleaned_data['filter'] or profile.filter
+        article = topic.article_set.create(
             text=self.cleaned_data['text'], 
-            author=user,
+            author=self.user,
             ip=self.ip,
             guest_name=self.cleaned_data['name'],
-            filter=user.cicero_profile.filter,
+            filter=filter,
         )
+        if self.user.username != 'cicero_guest' and profile.filter != filter:
+            profile.filter = filter
+            profile.save()
+        return article
 
 class ArticleForm(PostForm):
     def __init__(self, topic, *args, **kwargs):
@@ -42,7 +51,7 @@ class ArticleForm(PostForm):
         self.topic = topic
         
     def save(self):
-        return self._create_article(self.topic)
+        return self._save(self.topic)
     
 class TopicForm(PostForm):
     subject = model_field(Topic, 'subject')
@@ -60,7 +69,7 @@ class TopicForm(PostForm):
     def save(self):
         topic = Topic(forum=self.forum, subject=self.cleaned_data['subject'])
         topic.save()
-        return self._create_article(topic)
+        return self._save(topic)
 
 class ArticleEditForm(ModelForm):
     class Meta:
