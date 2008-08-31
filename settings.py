@@ -28,10 +28,10 @@ OPENID_MUTANT_PARTS = ''
 # Оттенки, используемые в колоризации мутантов. 
 # Рекомендуется не менее четырех.
 OPENID_MUTANT_COLORS = [
-  (0, 84, 102), 
-  (102, 0, 0), 
-  (43, 102, 0), 
-  (102, 0, 102),
+    (0, 84, 102), 
+    (102, 0, 0), 
+    (43, 102, 0), 
+    (102, 0, 102),
 ]
 
 # Фон для картинки мутанта. Если не задан (None), используется 
@@ -51,9 +51,9 @@ SPHINX_PORT = 3312
 # Допускает любые модули, в которых есть функция validate
 # Параметры функции см. в существующих плагинах
 ANTISPAM_PLUGINS = [
-  'cicero.antispam.honeypots',
-  'cicero.antispam.whitelist',
-  'cicero.antispam.akismet',
+    'cicero.antispam.honeypots',
+    'cicero.antispam.whitelist',
+    'cicero.antispam.akismet',
 ]
 
 # API-ключ Akismet'а
