@@ -458,6 +458,7 @@ class SphinxObjectList(object):
         results = self.sphinx.Query(self.term)
         if results == {}:
             raise SearchUnavailable()
+        return results
     
     def count(self):
         if not hasattr(self, 'results'):
