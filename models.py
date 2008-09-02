@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from django.db import models
+from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.auth.models import User
 from cicero import fields
@@ -178,7 +179,6 @@ class Article(models.Model):
         '''
         from django.contrib.sites.models import Site
         domain = Site.objects.get_current().domain
-        from django.core.urlresolvers import reverse
         index_url = reverse('cicero_index')
         topic_url = 'http://%s%s' % (domain, reverse('cicero.views.topic', args=(self.topic.forum.slug, self.topic.id)))
         
@@ -250,6 +250,9 @@ class Profile(models.Model):
             return result
         else:
             return unicode(self.user)
+    
+    def get_absolute_url(self):
+        return reverse('profile', args=[self.user_id])
     
     def read_hcard(self):
         '''

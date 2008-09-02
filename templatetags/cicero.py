@@ -3,7 +3,7 @@ from django import template
 from django.conf import settings
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
-from django.core.urlresolvers import RegexURLResolver, NoReverseMatch, reverse_helper, reverse
+from django.core.urlresolvers import RegexURLResolver, NoReverseMatch, reverse
 
 register=template.Library()
 
@@ -30,30 +30,6 @@ def paginator(context):
         'show_last_link': context.get('show_last_link'),
     }
     
-@register.simple_tag
-def obj_url(obj):
-    
-    def find_object_url(resolver, obj):
-        for pattern in resolver.urlconf_module.urlpatterns:
-            if isinstance(pattern, RegexURLResolver):
-                try:
-                    return reverse_helper(pattern.regex) + find_object_url(pattern, obj)
-                except NoReverseMatch:
-                    continue
-            elif pattern.callback.__name__ == 'object_detail':
-                queryset = pattern.default_args['queryset']
-                if isinstance(obj, queryset.model):
-                    return pattern.reverse_helper(obj._get_pk_val())
-                else:
-                    continue
-        raise NoReverseMatch
-    
-    resolver = RegexURLResolver(r'^/', settings.ROOT_URLCONF)
-    try:
-        return '/' + find_object_url(resolver, obj)
-    except NoReverseMatch:
-        return ''
-        
 class SetNewsNode(template.Node):
     def __init__(self, objects_expr):
         self.objects_expr = objects_expr

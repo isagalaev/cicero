@@ -53,6 +53,6 @@
 {% block aside %}
 <ul id="nav" class="block">
   <li><a href="../../">Начало</a>
-  <li><a href="{% obj_url profile %}">Страница пользователя</a>
+  <li><a href="{{ profile.get_absolute_url }}">Страница пользователя</a>
 </ul>
 {% endblock %}

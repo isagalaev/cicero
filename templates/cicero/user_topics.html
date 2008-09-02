@@ -22,7 +22,7 @@
 {% block aside %}
 <ul id="breadcrumbs" class="block">
   <li id="index_link"><a href="{% url cicero_index %}">Начало</a>
-  <li><a href="{% obj_url author_profile %}">Страница пользователя</a>
+  <li><a href="{{ author_profile.get_absolute_url }}">Страница пользователя</a>
 </ul>
 
 {% endblock %}
