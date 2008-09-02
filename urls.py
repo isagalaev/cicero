@@ -53,5 +53,5 @@ urlpatterns = patterns('',
     }}, name='cicero_feeds'),
     (r'^([a-z0-9-]+)/$', views.forum, info),
     (r'^([a-z0-9-]+)/(\d+)/$', views.topic, info),
-    (r'^^([a-z0-9-]+)/search/$', views.search),
+    (r'^([a-z0-9-]+)/search/$', views.search),
 )

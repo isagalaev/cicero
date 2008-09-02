@@ -14,10 +14,10 @@
 
 {% if term %}
 
-{% if topics %}
+{% if page_obj.object_list %}
 
 {% paginator %}
-{% topic_list_block topics %}
+{% topic_list_block page_obj.object_list %}
 {% paginator %}
 
 {% else %}

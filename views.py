@@ -1,10 +1,13 @@
 # -*- coding:utf-8 -*-
+import sys
+
 from django.views.generic.list_detail import object_list
 from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseBadRequest, Http404
 from django.core.urlresolvers import reverse
+from django.core.paginator import Paginator, InvalidPage
 from django.contrib.auth.models import User
 from django.conf import settings
 
@@ -76,12 +79,6 @@ def _process_new_article(request, article, is_new_topic, check_login):
         return render_to_response(request, 'cicero/spam_suspect.html', {
             'article': article,
         })
-
-def _page_count(count, per_page=settings.PAGINATE_BY):
-    result = count / per_page
-    if count % per_page:
-        result += 1
-    return result
 
 generic_info = {
     'paginate_by': settings.PAGINATE_BY,
@@ -449,24 +446,31 @@ def topic_spawn(request, article_id):
         'article': article,
     })
     
-class SearchPage(object):
-    def __init__(self, number, num_pages):
-        self.number, self.num_pages = number, num_pages
-    
-    def has_next(self):
-        return self.number < self.num_pages
-    
-    def next_page_number(self):
-        return self.number + 1
-    
-    def has_previous(self):
-        return self.number > 1
-    
-    def previous_page_number(self):
-        return self.number - 1
-
 class SearchUnavailable(Exception):
         pass
+
+class SphinxObjectList(object):
+    def __init__(self, sphinx, term):
+        self.sphinx = sphinx
+        self.term = term
+    
+    def _get_results(self):
+        results = self.sphinx.Query(self.term)
+        if results == {}:
+            raise SearchUnavailable()
+    
+    def count(self):
+        if not hasattr(self, 'results'):
+            return self._get_results()['total_found']
+        return self.results['total_found']
+    
+    def __getitem__(self, k):
+        if hasattr(self, 'result'):
+            raise Exception('Search result already available')
+        self.sphinx.SetLimits(k.start, k.stop - k.start)
+        self.results = self._get_results()
+        ids = [m['id'] for m in self.results['matches']]
+        return Topic.objects.filter(id__in=ids)
 
 def search(request, slug):
     forum = get_object_or_404(Forum, slug=slug)
@@ -475,12 +479,6 @@ def search(request, slug):
             from sphinxapi import SphinxClient, SPH_MATCH_EXTENDED, SPH_SORT_RELEVANCE
         except ImportError:
             raise SearchUnavailable()
-        try:
-            page = int(request.GET.get('page', '1'))
-            if page < 1:
-                raise Http404
-        except ValueError:
-            raise Http404
         term = request.GET.get('term', '').encode('utf-8')
         if term:
             sphinx = SphinxClient()
@@ -488,24 +486,21 @@ def search(request, slug):
             sphinx.SetMatchMode(SPH_MATCH_EXTENDED)
             sphinx.SetSortMode(SPH_SORT_RELEVANCE)
             sphinx.SetFilter('gid', [forum.id])
-            sphinx.SetLimits((page - 1) * settings.PAGINATE_BY, settings.PAGINATE_BY)
-            results = sphinx.Query(term)
-            if results == {}:
-                raise SearchUnavailable
-            pages = _page_count(results['total_found'])
-            if pages > 0 and page > pages:
+            paginator = Paginator(SphinxObjectList(sphinx, term), settings.PAGINATE_BY)
+            try:
+                page = paginator.page(request.GET.get('page', '1'))
+            except InvalidPage:
                 raise Http404
-            ids = [m['id'] for m in results['matches']]
-            topics = ids and Topic.objects.filter(id__in=ids)
         else:
-            topics, pages = None, None
+            paginator = Paginator([], 1)
+            page = paginator.page(1)
+        print page.object_list
         return render_to_response(request, 'cicero/search.html', {
             'page_id': 'search',
             'forum': forum,
-            'topics': topics,
             'term': term,
-            'paginator': SearchPage(page, pages),
-            'page_obj': SearchPage(page, pages),
+            'paginator': paginator,
+            'page_obj': page,
             'query_dict': request.GET,
         })
     except SearchUnavailable:
