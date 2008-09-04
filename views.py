@@ -468,7 +468,7 @@ class SphinxObjectList(object):
     def __getitem__(self, k):
         if hasattr(self, 'result'):
             raise Exception('Search result already available')
-        self.sphinx.SetLimits(k.start, k.stop - k.start)
+        self.sphinx.SetLimits(k.start, (k.stop - k.start) or 1)
         self.results = self._get_results()
         ids = [m['id'] for m in self.results['matches']]
         return Topic.objects.filter(id__in=ids)
