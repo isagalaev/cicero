@@ -7,29 +7,34 @@ from django.core.urlresolvers import RegexURLResolver, NoReverseMatch, reverse
 
 register=template.Library()
 
-@register.inclusion_tag('cicero/paginator.html', takes_context=True)
-def paginator(context):
+class PaginatorNode(template.Node):
+    def render(self, context):
+        if 'query_dict' in context:
+            query = context['query_dict'].copy()
+            if 'page' in query:
+                del query['page']
+            query_string = query.urlencode() + '&'
+            form_input_string = u''.join([u'<input type="hidden" name="%s" value="%s">' % (k, conditional_escape(v)) for k, l in query.lists() for v in l])
+        else:
+            query_string = u''
+            form_input_string = u''
+        context.push()
+        context.update({
+            'query_string': query_string,
+            'form_input_string': mark_safe(form_input_string),
+        })
+        result = template.loader.get_template('cicero/paginator.html').render(context)
+        context.pop()
+        return result
+
+@register.tag
+def paginator(parser, token):
     '''
     Выводит навигатор по страницам. Данные берет из контекста в том же
     виде, как их туда передает generic view "object_list".
     '''
-    if 'query_dict' in context:
-        query = context['query_dict'].copy()
-        if 'page' in query:
-            del query['page']
-        query_string = query.urlencode() + '&'
-        form_input_string = u''.join([u'<input type="hidden" name="%s" value="%s">' % (k, conditional_escape(v)) for k, l in query.lists() for v in l])
-    else:
-        query_string = u''
-        form_input_string = u''
-    return {
-        'paginator': context['paginator'],
-        'page': context['page_obj'],
-        'query_string': query_string,
-        'form_input_string': mark_safe(form_input_string),
-        'show_last_link': context.get('show_last_link'),
-    }
-    
+    return PaginatorNode()
+        
 class SetNewsNode(template.Node):
     def __init__(self, objects_expr):
         self.objects_expr = objects_expr
