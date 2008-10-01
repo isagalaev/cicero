@@ -323,8 +323,8 @@ class BBNode:
         
     def render_children_xhtml(self):
         """Render the child nodes as XHTML"""
-        self.children = strip_outside_brs(self.children)
-        return "".join([child.render_xhtml() for child in self.children])
+        children = strip_outside_brs(self.children)
+        return "".join([child.render_xhtml() for child in children])
 
     def render_children_bbcode(self):
         """Render the child nodes as BBCode"""
