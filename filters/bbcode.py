@@ -41,6 +41,7 @@
 ## - uses <pre><code> for code blocks
 
 import re
+from itertools import dropwhile, groupby
 
 ##### UTILITY FUNCTIONS #####
 def escape(html):
@@ -286,6 +287,34 @@ for t in _TAGS:
 _TAGNAMES = [t.name for t in _TAGS]
 
 ###### PARSING CLASSES AND FUNCTIONS ######
+
+def strippable(node):
+    return isinstance(getattr(node, 'bbtag', None), SoftBrTag) or \
+           getattr(node, 'text', None) == ''
+
+def strip_brs(nodes):
+    nodes = dropwhile(strippable, nodes)
+    buffer = []
+    for node in nodes:
+        if strippable(node):
+            buffer.append(node)
+        else:
+            for bnode in buffer:
+                yield bnode
+            buffer = []
+            yield node
+
+def is_block(node):
+    return isinstance(getattr(node, 'bbtag', None), (CodeTag, QuoteTag))
+
+def strip_outside_brs(nodes):
+    nodes = groupby(nodes, is_block)
+    for key, group in nodes:
+        if not key:
+            group = strip_brs(group)
+        for node in group:
+            yield node
+
 class BBNode:
     """Abstract base class for a node of BBcode."""
     def __init__(self, parent):
@@ -294,6 +323,7 @@ class BBNode:
         
     def render_children_xhtml(self):
         """Render the child nodes as XHTML"""
+        self.children = strip_outside_brs(self.children)
         return "".join([child.render_xhtml() for child in self.children])
 
     def render_children_bbcode(self):
