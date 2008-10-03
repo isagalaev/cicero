@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
+from django.utils.encoding import smart_str
 from django.conf import settings
 
 from cicero.utils import akismet
@@ -21,9 +22,9 @@ def _article_data(request, article, is_new_topic):
         'referrer': request.META.get('HTTP_REFERER', ''),
         'permalink': _forum_url('cicero.views.topic', args=[article.topic.forum.slug, article.topic.id]),
         'comment_type': 'post',
-        'comment_author': article.from_guest() and article.guest_name.encode('utf-8') or str(article.author.cicero_profile),
+        'comment_author': smart_str(article.from_guest() and article.guest_name or article.author.cicero_profile),
         'comment_author_url': article.author.cicero_profile.openid or '',
-        'comment_content': text.encode('utf-8'),
+        'comment_content': smart_str(text),
         'HTTP_ACCEPT': request.META.get('HTTP_ACCEPT', ''),
     }
 
