@@ -5,7 +5,7 @@ from openid.store.filestore import FileOpenIDStore
 
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
-from django.utils.encoding import smart_str
+from django.utils.encoding import smart_str, smart_unicode
 from django.conf import settings
 
 class OpenIdBackend(object):
@@ -25,10 +25,10 @@ class OpenIdBackend(object):
             unique = md5.new(info.identity_url + str(datetime.now())).hexdigest()[:23] # 30 - len('cicero_')
             user = User.objects.create_user('cicero_%s' % unique, 'user@cicero', User.objects.make_random_password())
             profile = user.cicero_profile
-            profile.openid = info.identity_url
-            profile.openid_server = info.endpoint.server_url
+            profile.openid = smart_unicode(info.identity_url)
+            profile.openid_server = smart_unicode(info.endpoint.server_url)
             sreg_response = SRegResponse.fromSuccessResponse(info)
-            profile.name = sreg_response.get('nickname', sreg_response.get('fullname', ''))
+            profile.name = smart_unicode(sreg_response.get('nickname', sreg_response.get('fullname', '')))
             profile.generate_mutant()
             profile.save()
         return user
