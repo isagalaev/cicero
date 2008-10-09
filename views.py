@@ -91,12 +91,12 @@ generic_info = {
 def forum(request, slug, **kwargs):
     forum = get_object_or_404(Forum, slug=slug)
     if request.method == 'POST':
-        form = TopicForm(forum, request.user, request.META['REMOTE_ADDR'], request.POST)
+        form = TopicForm(forum, request.user, request.META.get('REMOTE_ADDR'), request.POST)
         if form.is_valid():
             article = form.save()
             return _process_new_article(request, article, True, True)
     else:
-        form = TopicForm(forum, request.user, request.META['REMOTE_ADDR'])
+        form = TopicForm(forum, request.user, request.META.get('REMOTE_ADDR'))
     kwargs['queryset'] = forum.topic_set.filter(spam_status='clean')
     kwargs['extra_context'] = {'forum': forum, 'form': form, 'page_id': 'forum'}
     return object_list(request, **kwargs)
@@ -106,12 +106,12 @@ def forum(request, slug, **kwargs):
 def topic(request, slug, id, **kwargs):
     topic = get_object_or_404(Topic, forum__slug=slug, pk=id)
     if request.method == 'POST':
-        form = ArticleForm(topic, request.user, request.META['REMOTE_ADDR'], request.POST)
+        form = ArticleForm(topic, request.user, request.META.get('REMOTE_ADDR'), request.POST)
         if form.is_valid():
             article = form.save()
             return _process_new_article(request, article, False, True)
     else:
-        form = ArticleForm(topic, request.user, request.META['REMOTE_ADDR'])
+        form = ArticleForm(topic, request.user, request.META.get('REMOTE_ADDR'))
     if request.user.is_authenticated():
         profile = request.user.cicero_profile
         changed = profile.add_read_articles(topic.article_set.all())
