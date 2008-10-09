@@ -15,7 +15,7 @@ def _article_data(request, article, is_new_topic):
     if is_new_topic:
         text = article.topic.subject + '\n' + text
     return {
-        'key': settings.AKISMET_KEY, 
+        'key': settings.CICERO_AKISMET_KEY, 
         'blog': _forum_url('cicero_index'), 
         'user_ip': article.ip,
         'user_agent': request.META.get('HTTP_USER_AGENT', ''),
@@ -30,7 +30,7 @@ def _article_data(request, article, is_new_topic):
 
 def _create_operation(operation):
     def func(request, article, is_new_topic):
-        if not akismet.verify_key(settings.AKISMET_KEY, _forum_url('cicero_index')):
+        if not akismet.verify_key(settings.CICERO_AKISMET_KEY, _forum_url('cicero_index')):
             raise Exception('Invalid Akismet key')
         return getattr(akismet, operation)(**_article_data(request, article, is_new_topic))
     return func

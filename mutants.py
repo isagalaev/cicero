@@ -13,7 +13,7 @@ import os
 from django.conf import settings
 
 def partfile(part, index):
-    path = os.path.join(settings.OPENID_MUTANT_PARTS, part)
+    path = os.path.join(settings.CICERO_OPENID_MUTANT_PARTS, part)
     files = os.listdir(path)
     files.sort()
     return os.path.join(path, files[ord(index) % len(files)])
@@ -62,14 +62,14 @@ def mutant(openid, openid_server):
     from ImageOps import colorize
     result = Image.new('RGBA', (48, 48))
     for index, image in enumerate((extremities, body, head)):
-        color = settings.OPENID_MUTANT_COLORS[ord(hash[index]) % len(settings.OPENID_MUTANT_COLORS)]
+        color = settings.CICERO_OPENID_MUTANT_COLORS[ord(hash[index]) % len(settings.CICERO_OPENID_MUTANT_COLORS)]
         colorized = colorize(image.convert('L'), color, (255, 255, 255))
         result.paste(colorized, mask=image)
     
     result = shadow(result)
     
-    if settings.OPENID_MUTANT_BACKGROUND:
-        canvas = Image.new('RGB', result.size, settings.OPENID_MUTANT_BACKGROUND)
+    if settings.CICERO_OPENID_MUTANT_BACKGROUND:
+        canvas = Image.new('RGB', result.size, settings.CICERO_OPENID_MUTANT_BACKGROUND)
         canvas.paste(result, mask=result)
         result= canvas
     

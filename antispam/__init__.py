@@ -10,7 +10,7 @@ SPAM_STATUSES = [
 ]
 
 def spam_validators():
-    for module_name in settings.ANTISPAM_PLUGINS:
+    for module_name in settings.CICERO_ANTISPAM_PLUGINS:
         yield __import__(module_name, {}, {}, [''])
 
 def validate(request, article, is_new_topic):

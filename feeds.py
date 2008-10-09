@@ -42,4 +42,4 @@ class Article(Feed):
             articles = models.Article.objects.filter(topic__forum=obj)
         elif isinstance(obj, models.Topic):
             articles = obj.article_set.all()
-        return articles.filter(spam_status='clean').order_by('-created').select_related()[:settings.PAGINATE_BY]
+        return articles.filter(spam_status='clean').order_by('-created').select_related()[:settings.CICERO_PAGINATE_BY]

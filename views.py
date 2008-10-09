@@ -81,7 +81,7 @@ def _process_new_article(request, article, is_new_topic, check_login):
         })
 
 generic_info = {
-    'paginate_by': settings.PAGINATE_BY,
+    'paginate_by': settings.CICERO_PAGINATE_BY,
     'allow_empty': True,
     'context_processors': [default],
 }
@@ -163,7 +163,7 @@ def user_topics(request, user_id):
     return object_list(request,
         queryset=user.cicero_profile.topics(),
         allow_empty=True,
-        paginate_by=settings.PAGINATE_BY,
+        paginate_by=settings.CICERO_PAGINATE_BY,
         template_name='cicero/user_topics.html',
         extra_context={
             'author_profile': user.cicero_profile,
@@ -483,11 +483,11 @@ def search(request, slug):
         term = request.GET.get('term', '').encode('utf-8')
         if term:
             sphinx = SphinxClient()
-            sphinx.SetServer(settings.SPHINX_SERVER, settings.SPHINX_PORT)
+            sphinx.SetServer(settings.CICERO_SPHINX_SERVER, settings.CICERO_SPHINX_PORT)
             sphinx.SetMatchMode(SPH_MATCH_EXTENDED)
             sphinx.SetSortMode(SPH_SORT_RELEVANCE)
             sphinx.SetFilter('gid', [forum.id])
-            paginator = Paginator(SphinxObjectList(sphinx, term), settings.PAGINATE_BY)
+            paginator = Paginator(SphinxObjectList(sphinx, term), settings.CICERO_PAGINATE_BY)
             try:
                 page = paginator.page(request.GET.get('page', '1'))
             except InvalidPage:

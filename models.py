@@ -298,7 +298,7 @@ class Profile(models.Model):
         import os
         if self.mutant and os.path.exists(self.mutant.path):
             os.remove(self.mutant.path)
-        if not settings.OPENID_MUTANT_PARTS or not self.openid or not self.openid_server:
+        if not settings.CICERO_OPENID_MUTANT_PARTS or not self.openid or not self.openid_server:
             return
         from cicero.mutants import mutant
         from StringIO import StringIO
@@ -362,7 +362,7 @@ class Profile(models.Model):
             ranges = merge_range(range, ranges)
         try:
             from datetime import date, timedelta
-            article = Article.objects.filter(created__lt=date.today() - timedelta(settings.UNREAD_TRACKING_PERIOD)).order_by('-created')[0]
+            article = Article.objects.filter(created__lt=date.today() - timedelta(settings.CICERO_UNREAD_TRACKING_PERIOD)).order_by('-created')[0]
             ranges = merge_range((0, article.id), ranges)
         except IndexError:
             pass

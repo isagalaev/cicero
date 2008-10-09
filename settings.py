@@ -1,16 +1,16 @@
 # -*- coding:utf-8 -*-
 
 # Количество топиков и статей на одну страницу
-PAGINATE_BY = 20
+CICERO_PAGINATE_BY = 20
 
 # Директория, в которой лежат сессии OpenID.
 # Без нее авторизация по OpenID работать не будет.
-OPENID_STORE_ROOT = ''
+CICERO_OPENID_STORE_ROOT = ''
 
 # URL, который передается на OpenID-сервер для обозначения,
 # где будет действовать авторизация. Не должно заканчиваться на '/'.
 # Если не задано, передается URL всего сайта
-OPENID_TRUST_URL = ''
+CICERO_OPENID_TRUST_URL = ''
 
 # Директория с картинками -- частями мутантов. Внутри директории 
 # всевозможные части разделяются по поддиректориям:
@@ -23,11 +23,11 @@ OPENID_TRUST_URL = ''
 # - leg-right
 # 
 # Если не указана, мутанты составляться не будут.
-OPENID_MUTANT_PARTS = ''
+CICERO_OPENID_MUTANT_PARTS = ''
 
 # Оттенки, используемые в колоризации мутантов. 
 # Рекомендуется не менее четырех.
-OPENID_MUTANT_COLORS = [
+CICERO_OPENID_MUTANT_COLORS = [
     (0, 84, 102), 
     (102, 0, 0), 
     (43, 102, 0), 
@@ -36,25 +36,25 @@ OPENID_MUTANT_COLORS = [
 
 # Фон для картинки мутанта. Если не задан (None), используется 
 # прозрачный фон (не работает в IE6).
-OPENID_MUTANT_BACKGROUND = (255, 255, 255)
+CICERO_OPENID_MUTANT_BACKGROUND = (255, 255, 255)
 
 # Максимальный срок слежения за новыми непрочитанными статьями.
 # Все статьи старше этого срока помечаются прочитанными.
 # Задается в днях.
-UNREAD_TRACKING_PERIOD = 30
+CICERO_UNREAD_TRACKING_PERIOD = 30
 
 # Хост и порт поискового демона Sphinx
-SPHINX_SERVER = '127.0.0.1'
-SPHINX_PORT = 3312
+CICERO_SPHINX_SERVER = '127.0.0.1'
+CICERO_SPHINX_PORT = 3312
 
 # Список модулей антиспамных плагинов в порядке применения
 # Допускает любые модули, в которых есть функция validate
 # Параметры функции см. в существующих плагинах
-ANTISPAM_PLUGINS = [
+CICERO_ANTISPAM_PLUGINS = [
     'cicero.antispam.honeypots',
     'cicero.antispam.whitelist',
     'cicero.antispam.akismet',
 ]
 
 # API-ключ Akismet'а
-AKISMET_KEY = ''
+CICERO_AKISMET_KEY = ''

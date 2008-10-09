@@ -46,9 +46,9 @@ class OpenIdError(Exception):
     pass
 
 def get_consumer(session):
-    if not settings.OPENID_STORE_ROOT:
-        raise OpenIdSetupError('OPENID_STORE_ROOT is not set')
-    return Consumer(session, FileOpenIDStore(settings.OPENID_STORE_ROOT))
+    if not settings.CICERO_OPENID_STORE_ROOT:
+        raise OpenIdSetupError('CICERO_OPENID_STORE_ROOT is not set')
+    return Consumer(session, FileOpenIDStore(settings.CICERO_OPENID_STORE_ROOT))
 
 def create_request(openid_url, session):
     errors = []

@@ -103,7 +103,7 @@ class AuthForm(Form):
     def auth_redirect(self, target, view_name, acquire=None, args=[], kwargs={}):
         from django.core.urlresolvers import reverse
         site_url = self._site_url()
-        trust_url = settings.OPENID_TRUST_URL or (site_url + '/')
+        trust_url = settings.CICERO_OPENID_TRUST_URL or (site_url + '/')
         return_to = site_url + reverse(view_name, args=args, kwargs=kwargs)
         self.request.return_to_args['redirect'] = target
         if acquire:
