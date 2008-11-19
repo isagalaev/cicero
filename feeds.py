@@ -26,7 +26,7 @@ class Article(Feed):
         return obj.get_absolute_url()
     
     def item_link(self, article):
-        return reverse('cicero.views.topic', args=[article.topic.forum.slug, article.topic.id])
+        return '%s#%s' % (reverse('cicero.views.topic', args=[article.topic.forum.slug, article.topic.id]), article.id)
     
     def item_author_name(self, article):
         if article.from_guest():
