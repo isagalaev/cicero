@@ -4,13 +4,10 @@ from django.conf import settings
 
 from django.views.generic.list_detail import object_list, object_detail
 from django.contrib.syndication.views import feed
-from django.views.decorators.cache import never_cache
 from cicero import views
 from cicero import feeds
 from cicero.models import Forum, Topic, Article, Profile
 from cicero.context import default
-from cicero.caching import latest_change, user_etag
-from cicero.conditional_get import condition
 
 info = views.generic_info
 
@@ -30,7 +27,7 @@ urlpatterns = patterns('',
     (r'^users/self/openid_complete/$', views.change_openid_complete),
     (r'^users/self/(personal|settings)/$', views.post_profile),
     (r'^users/self/hcard/$', views.read_hcard),
-    url(r'^$', never_cache(condition(latest_change, user_etag)(object_list)), {
+    url(r'^$', views.index, {
         'queryset': Forum.objects.all(), 
         'context_processors': [default],
         'extra_context': {'page_id': 'index'},

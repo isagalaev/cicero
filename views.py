@@ -88,6 +88,13 @@ generic_info = {
 
 @never_cache
 @condition(caching.latest_change, caching.user_etag)
+def index(request, *args, **kwargs):
+    if 'application/xrds+xml' in request.META.get('HTTP_ACCEPT', ''):
+        return render_to_response(request, 'cicero/yadis.xml', {})
+    return object_list(request, *args, **kwargs)
+
+@never_cache
+@condition(caching.latest_change, caching.user_etag)
 def forum(request, slug, **kwargs):
     forum = get_object_or_404(Forum, slug=slug)
     if request.method == 'POST':
@@ -127,6 +134,7 @@ def login(request):
         form = AuthForm(request.session, request.POST)
         if form.is_valid():
             after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.auth')
+            print after_auth_redirect
             return HttpResponseRedirect(after_auth_redirect)
         redirect = post_redirect(request)
     else:

@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from django.forms import *
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.conf import settings
 
@@ -7,7 +8,14 @@ from cicero.models import Topic, Article, Profile
 from cicero.filters import filters
 
 def model_field(model, fieldname, **kwargs):
-        return model._meta.get_field(fieldname).formfield(**kwargs)
+    return model._meta.get_field(fieldname).formfield(**kwargs)
+
+def absolute_url(url):
+    if url.startswith('http://') or url.startswith('https://'):
+        return url
+    from django.contrib.sites.models import Site
+    site = Site.objects.get_current()
+    return 'http://%s%s' % (site.domain, url)
 
 class PostForm(Form):
     text = model_field(Article, 'text', widget=Textarea(attrs={'cols': '80', 'rows': '20'}))
@@ -87,11 +95,6 @@ class AuthForm(Form):
         Form.__init__(self, *args, **kwargs)
         self.session = session
         
-    def _site_url(self):
-        from django.contrib.sites.models import Site
-        site = Site.objects.get_current()
-        return 'http://' + site.domain
-    
     def clean_openid_url(self):
         from cicero.auth import create_request, OpenIdError
         try:
@@ -101,10 +104,8 @@ class AuthForm(Form):
         return self.cleaned_data['openid_url']
         
     def auth_redirect(self, target, view_name, acquire=None, args=[], kwargs={}):
-        from django.core.urlresolvers import reverse
-        site_url = self._site_url()
-        trust_url = settings.CICERO_OPENID_TRUST_URL or (site_url + '/')
-        return_to = site_url + reverse(view_name, args=args, kwargs=kwargs)
+        trust_url = settings.CICERO_OPENID_TRUST_URL or absolute_url(reverse('cicero_index'))
+        return_to = absolute_url(reverse(view_name, args=args, kwargs=kwargs))
         self.request.return_to_args['redirect'] = target
         if acquire:
             self.request.return_to_args['acquire_article'] = str(acquire.id)
