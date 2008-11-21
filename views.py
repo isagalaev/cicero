@@ -469,12 +469,17 @@ class SphinxObjectList(object):
         results = self.sphinx.Query(self.term)
         if results == {}:
             raise SearchUnavailable()
+        if results is None:
+            results = {'total_found': 0, 'matches': []}
         return results
     
     def count(self):
         if not hasattr(self, 'results'):
             return self._get_results()['total_found']
         return self.results['total_found']
+    
+    def __len__(self):
+        return self.count()
     
     def __getitem__(self, k):
         if hasattr(self, 'result'):
@@ -516,4 +521,5 @@ def search(request, slug):
             'query_dict': request.GET,
         })
     except SearchUnavailable:
+        raise 
         return render_to_response(request, 'cicero/search_unavailable.html', {})
