@@ -28,7 +28,8 @@ class OpenIdBackend(object):
             profile.openid = smart_unicode(info.identity_url)
             profile.openid_server = smart_unicode(info.endpoint.server_url)
             sreg_response = SRegResponse.fromSuccessResponse(info)
-            profile.name = smart_unicode(sreg_response.get('nickname', sreg_response.get('fullname', '')))
+            if sreg_response is not None:
+                profile.name = smart_unicode(sreg_response.get('nickname', sreg_response.get('fullname', '')))
             profile.generate_mutant()
             profile.save()
         return user
