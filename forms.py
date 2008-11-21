@@ -6,16 +6,10 @@ from django.conf import settings
 
 from cicero.models import Topic, Article, Profile
 from cicero.filters import filters
+from cicero.utils import absolute_url
 
 def model_field(model, fieldname, **kwargs):
     return model._meta.get_field(fieldname).formfield(**kwargs)
-
-def absolute_url(url):
-    if url.startswith('http://') or url.startswith('https://'):
-        return url
-    from django.contrib.sites.models import Site
-    site = Site.objects.get_current()
-    return 'http://%s%s' % (site.domain, url)
 
 class PostForm(Form):
     text = model_field(Article, 'text', widget=Textarea(attrs={'cols': '80', 'rows': '20'}))

@@ -3,7 +3,7 @@
   <XRD>
     <Service>
       <Type>http://specs.openid.net/auth/2.0/return_to</Type>
-      <URI>{% url cicero.views.auth %}</URI>
+      <URI>{{ return_to }}</URI>
     </Service>
   </XRD>
 </xrds:XRDS>

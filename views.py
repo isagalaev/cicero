@@ -18,15 +18,16 @@ from cicero.conditional_get import condition
 from cicero import caching
 from cicero import antispam
 from cicero.antispam.akismet import submit_spam, submit_ham
+from cicero.utils import absolute_url
 
 from datetime import datetime
 
-def render_to_response(request, template_name, context_dict):
+def render_to_response(request, template_name, context_dict, **kwargs):
     from cicero.context import default
     from django.template import RequestContext
     from django.shortcuts import render_to_response as _render_to_response
     context = RequestContext(request, context_dict, [default])
-    return _render_to_response(template_name, context_instance=context)
+    return _render_to_response(template_name, context_instance=context, **kwargs)
     
 def post_redirect(request):
     return request.POST.get('redirect', request.META.get('HTTP_REFERER', '/'))
@@ -90,7 +91,9 @@ generic_info = {
 @condition(caching.latest_change, caching.user_etag)
 def index(request, *args, **kwargs):
     if 'application/xrds+xml' in request.META.get('HTTP_ACCEPT', ''):
-        return render_to_response(request, 'cicero/yadis.xml', {})
+        return render_to_response(request, 'cicero/yadis.xml', {
+            'return_to': absolute_url(reverse(auth)),
+        }, mimetype='application/xrds+xml')
     return object_list(request, *args, **kwargs)
 
 @never_cache
