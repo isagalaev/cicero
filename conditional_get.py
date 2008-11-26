@@ -6,12 +6,12 @@ from email.Utils import formatdate
 
 def _none(*args, **kwargs):
     return None
-    
+
 def condition(last_modified=_none, etag=_none):
     def decorator(func):
-        
+
         def wrapper(request, *args, **kwargs):
-            
+
             def _call_last_modified():
                 result = []
                 def caller():
@@ -21,7 +21,7 @@ def condition(last_modified=_none, etag=_none):
                     return result[0]
                 return caller
             _last_modified = _call_last_modified()
-            
+
             def _call_etag():
                 result = []
                 def caller():
@@ -30,7 +30,7 @@ def condition(last_modified=_none, etag=_none):
                     return result[0]
                 return caller
             _etag = _call_etag()
-            
+
             if request.method not in ('GET', 'HEAD'):
                 return func(request, *args, **kwargs)
             if_modified_since = request.META.get('HTTP_IF_MODIFIED_SINCE', None)

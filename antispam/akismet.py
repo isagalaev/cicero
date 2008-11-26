@@ -15,8 +15,8 @@ def _article_data(request, article, is_new_topic):
     if is_new_topic:
         text = article.topic.subject + '\n' + text
     return {
-        'key': settings.CICERO_AKISMET_KEY, 
-        'blog': _forum_url('cicero_index'), 
+        'key': settings.CICERO_AKISMET_KEY,
+        'blog': _forum_url('cicero_index'),
         'user_ip': article.ip,
         'user_agent': request.META.get('HTTP_USER_AGENT', ''),
         'referrer': request.META.get('HTTP_REFERER', ''),

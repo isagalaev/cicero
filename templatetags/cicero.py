@@ -33,7 +33,7 @@ def paginator(parser, token):
     виде, как их туда передает generic view "object_list".
     '''
     return PaginatorNode()
-    
+
 class SetNewsNode(template.Node):
     def __init__(self, objects_expr):
         self.objects_expr = objects_expr
@@ -55,7 +55,7 @@ def setnews(parser, token):
 class IfCanChangeNode(template.Node):
     def __init__(self, profile_expr, object_expr, object_type, node_list):
         self.profile_expr, self.object_expr, self.object_type, self.node_list = profile_expr, object_expr, object_type, node_list
-        
+
     def render(self, context):
         profile = self.profile_expr.resolve(context)
         object = self.object_expr.resolve(context)

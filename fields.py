@@ -2,7 +2,7 @@
 import cPickle as pickle
 
 from django.db import models
-from django.db.models.fields.related import SingleRelatedObjectDescriptor 
+from django.db.models.fields.related import SingleRelatedObjectDescriptor
 
 class AutoSingleRelatedObjectDescriptor(SingleRelatedObjectDescriptor): # this line just can't be too long, right?
     def __get__(self, instance, instance_type=None):
@@ -28,13 +28,13 @@ class AutoOneToOneField(models.OneToOneField):
 
 class RangesField(models.TextField):
     __metaclass__ = models.SubfieldBase
-    
+
     def to_python(self, value):
         if isinstance(value, list):
             return value
         if not value:
             return [(0, 0)]
         return pickle.loads(str(value))
-    
+
     def get_db_prep_value(self, value):
         return unicode(pickle.dumps(value))

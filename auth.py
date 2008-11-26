@@ -33,7 +33,7 @@ class OpenIdBackend(object):
             profile.generate_mutant()
             profile.save()
         return user
-        
+
     def get_user(self, user_id):
         try:
             return User.objects.get(pk=user_id)

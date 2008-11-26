@@ -19,7 +19,7 @@ def merge_range(new_range, ranges):
     new_ranges.sort()
 
     return new_ranges
-    
+
 def compile_ranges(ids):
     '''
     Переводит набор чисел в набор непрерывных диапазонов

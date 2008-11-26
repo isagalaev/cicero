@@ -26,7 +26,7 @@ def topic_dict(topic):
 class Command(BaseCommand):
     help = u'Генерирует XML-поток из статей для индексатора Sphinx'
     args = 'all|unread'
-    
+
     def handle(self, *args, **opions):
         if len(args) != 1:
             raise CommandError('Требуется один параметр -- тип индекса: "all" или "unread"')

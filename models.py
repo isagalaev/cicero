@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.auth.models import User
 from cicero import fields
-from cicero import antispam 
+from cicero import antispam
 from cicero.filters import filters
 
 import re
@@ -19,17 +19,17 @@ class Forum(models.Model):
     name = models.CharField(max_length=255)
     group = models.CharField(max_length=255, blank=True)
     ordering = models.IntegerField(default=0)
-    
+
     class Meta:
         ordering = ['ordering', 'group']
-    
+
     def __unicode__(self):
         return self.name
-    
+
     @models.permalink
     def get_absolute_url(self):
         return 'cicero.views.forum', [self.slug]
-        
+
 class TopicManager(models.Manager):
     def get_query_set(self):
         return super(TopicManager, self).get_query_set().filter(deleted__isnull=True)
@@ -44,16 +44,16 @@ class Topic(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     deleted = models.DateTimeField(null=True, db_index=True)
     spam_status = models.CharField(max_length=20, choices=antispam.SPAM_STATUSES, default='clean')
-    
+
     objects = TopicManager()
     deleted_objects = DeletedTopicManager()
-    
+
     class Meta:
         ordering = ['-id']
-        
+
     def __unicode__(self):
         return self.subject
-    
+
     @models.permalink
     def get_absolute_url(self):
         return 'cicero.views.topic', [self.forum.slug, self.id]
@@ -70,7 +70,7 @@ class ArticleQuerySet(QuerySet):
             ],
             tables=[Profile._meta.db_table, User._meta.db_table],
         )
-    
+
     def iterator(self):
         iterator = super(ArticleQuerySet, self).iterator()
         for article in iterator:
@@ -78,11 +78,11 @@ class ArticleQuerySet(QuerySet):
                 data = dict((f.attname, getattr(article, Profile._meta.db_table + '_' + f.attname)) for f in Profile._meta.fields)
                 article.cicero_profile = Profile(**data)
             yield article
-    
+
 class ArticleManager(models.Manager):
     def get_query_set(self):
         return ArticleQuerySet(self.model).filter(deleted__isnull=True)
-        
+
 class DeletedArticleManager(models.Manager):
     def get_query_set(self):
         return super(DeletedArticleManager, self).get_query_set().filter(deleted__isnull=False).order_by('-deleted')
@@ -99,22 +99,22 @@ class Article(models.Model):
     spawned_to = models.ForeignKey(Topic, null=True, related_name='spawned_from')
     spam_status = models.CharField(max_length=20, choices=antispam.SPAM_STATUSES, default='clean')
     ip = models.IPAddressField(default='127.0.0.1')
-    
+
     objects = ArticleManager()
     deleted_objects = DeletedArticleManager()
-    
+
     class Meta:
         ordering = ['id']
-        
+
     def __unicode__(self):
         return u'(%s, %s, %s)' % (self.topic, self.author, self.created.replace(microsecond=0))
-    
+
     def delete(self):
         topic = self.topic
         super(Article, self).delete()
         if topic.article_set.count() == 0:
             topic.delete()
-    
+
     def html(self):
         '''
         Возвращает HTML-текст статьи, полученный фильтрацией содержимого
@@ -126,21 +126,21 @@ class Article(models.Model):
         else:
             from django.utils.html import linebreaks, escape
             result = linebreaks(escape(self.text))
-        
+
         from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(result)
-        
+
         def urlify(s):
             s = re.sub(WWW_PATTERN, r'\1http://www.', s)
             s = re.sub(FTP_PATTERN, r'\1ftp://ftp.', s)
             s = re.sub(PROTOCOL_PATTERN, r'<a href="\1\2">\1\2</a>\3\4', s)
             return BeautifulSoup(s)
-        
+
         def has_parents(node, tags):
             if node is None:
                 return False
             return node.name in tags or has_parents(node.parent, tags)
-        
+
         text_chunks = (c for c in soup.recursiveChildGenerator() if isinstance(c, unicode))
         for chunk in text_chunks:
             s = chunk
@@ -149,7 +149,7 @@ class Article(models.Model):
             if not has_parents(chunk.parent, ['a', 'code']):
                 s = urlify(s)
             chunk.replaceWith(s)
-        
+
         for link in soup.findAll('a'):
             if 'rel' in link:
                 link['rel'] += ' '
@@ -158,20 +158,20 @@ class Article(models.Model):
             link['rel'] += 'nofollow'
         result = unicode(soup)
         return mark_safe(result)
-    
+
     def from_guest(self):
         '''
         Была ли написана статья от имени гостя. Используется, в основном,
         в шаблонах.
         '''
         return self.author.username == 'cicero_guest'
-    
+
     def spawned(self):
         '''
         Перенесена ли статья в новый топик.
         '''
         return self.spawned_to_id is not None
-    
+
     def ping_external_links(self):
         '''
         Пингование внешних ссылок через Pingback
@@ -181,17 +181,17 @@ class Article(models.Model):
         domain = Site.objects.get_current().domain
         index_url = reverse('cicero_index')
         topic_url = 'http://%s%s' % (domain, reverse('cicero.views.topic', args=(self.topic.forum.slug, self.topic.id)))
-        
+
         def is_external(url):
             from urlparse import urlsplit
             scheme, server, path, query, fragment = urlsplit(url)
             return server != '' and \
                           (server != domain or not path.startswith(index_url))
-        
+
         def search_link(content):
             match = re.search(r'<link rel="pingback" href="([^"]+)" ?/?>', content)
             return match and match.group(1)
-        
+
         from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(self.html())
         links = [a['href'] for a in soup.findAll('a') if is_external(a['href'])]
@@ -212,7 +212,7 @@ class Article(models.Model):
                     f.close()
             except (IOError, Fault, ProtocolError, ResponseError, ExpatError):
                 pass
-    
+
     def set_spam_status(self, spam_status):
         '''
         Проставляет статус спамности, поправляя, если надо, аналогичный статус топика.
@@ -236,7 +236,7 @@ class Profile(models.Model):
     read_articles = fields.RangesField(editable=False)
     moderator = models.BooleanField(default=False)
     spamer = models.NullBooleanField()
-    
+
     def __unicode__(self):
         if self.name:
             return self.name
@@ -250,10 +250,10 @@ class Profile(models.Model):
             return result
         else:
             return unicode(self.user)
-    
+
     def get_absolute_url(self):
         return reverse('profile', args=[self.user_id])
-    
+
     def read_hcard(self):
         '''
         Ищет на странице, на которую указывает openid, микроформамт hCard,
@@ -270,7 +270,7 @@ class Profile(models.Model):
         vcard = soup.find(None, {'class': re.compile(r'\bvcard\b')})
         if vcard is None:
             return
-            
+
         def _parse_property(class_name):
             el = vcard.find(None, {'class': re.compile(r'\b%s\b' % class_name)})
             if el is None:
@@ -280,17 +280,17 @@ class Profile(models.Model):
             else:
                 result = ''.join([s for s in el.recursiveChildGenerator() if isinstance(s, unicode)])
             return result.replace('\n',' ').strip().encode(settings.DEFAULT_CHARSET)
-                
+
         info = dict((n, _parse_property(n)) for n in ['nickname', 'fn'])
         self.name = info['nickname'] or info['fn']
-        
+
     def save(self):
         if not self.filter:
             self.filter = 'bbcode'
         if self.openid and not self.name:
             self.read_hcard()
         super(Profile, self).save()
-        
+
     def generate_mutant(self):
         '''
         Создает, если возможно, картинку мутанта из OpenID.
@@ -306,7 +306,7 @@ class Profile(models.Model):
         content = StringIO()
         mutant(self.openid, self.openid_server).save(content, 'PNG')
         self.mutant.save('%s.png' % self._get_pk_val(), ContentFile(content.getvalue()))
-    
+
     def unread_topics(self):
         '''
         Непрочитанные топики пользователя во всех форумах
@@ -316,7 +316,7 @@ class Profile(models.Model):
         for range in self.read_articles:
             query = query | Q(article__id__range=range)
         return Topic.objects.exclude(query).distinct()
-    
+
     def set_news(self, objects):
         '''
         Проставляет признаки наличия новых статей переданным топикам или форумам
@@ -344,11 +344,11 @@ class Profile(models.Model):
         counts = dict(cursor.fetchall())
         for obj in objects:
             obj.new = counts.get(obj.id, 0)
-    
+
     def add_read_articles(self, articles):
         '''
         Добавляет новые статьи к списку прочитанных.
-        
+
         Статьи передаются в виде queryset.
         '''
         from django.db.models import Q
@@ -371,31 +371,31 @@ class Profile(models.Model):
             return True
         else:
             return False
-    
+
     def can_change_article(self, article):
         return self.moderator or (not article.from_guest() and article.author.id == self.user_id)
-    
+
     def can_change_topic(self, topic):
         return self.can_change_article(topic.article_set.all()[0])
-    
+
     def topics(self):
         return Topic.objects.filter(article__author=self).distinct().select_related('forum')
 
 class WhitelistSource(models.Model):
     url = models.URLField()
-    
+
     def __unicode__(self):
         return self.url
 
 class CleanOpenID(models.Model):
     openid = models.CharField(max_length=200, db_index=True)
     source = models.ForeignKey(WhitelistSource)
-    
+
     class Meta:
         unique_together = [('openid', 'source')]
         ordering = ['openid']
         verbose_name = 'Clean OpenID'
         verbose_name_plural = 'Clean OpenIDs'
-    
+
     def __unicode__(self):
         return self.openid

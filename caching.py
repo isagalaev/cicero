@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 '''
 Вспомогательные методы для расчета и кеширования времени
-последнего изменения страниц форума. Используются для 
+последнего изменения страниц форума. Используются для
 if_modified_since.
 '''
 from django.core.cache import cache
@@ -39,7 +39,7 @@ def latest_change(request, slug=None, topic_id=None, *args, **kwargs):
         if topic_id:
             qs = qs.filter(topic__id=topic_id)
         return qs.order_by('-updated')
-    
+
     updated_qs = prepare(Article.objects.all())
     deleted_qs = prepare(Article.deleted_objects.all())
     updated_time = len(updated_qs) and updated_qs[0].updated

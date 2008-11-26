@@ -28,17 +28,17 @@ def render_to_response(request, template_name, context_dict, **kwargs):
     from django.shortcuts import render_to_response as _render_to_response
     context = RequestContext(request, context_dict, [default])
     return _render_to_response(template_name, context_instance=context, **kwargs)
-    
+
 def post_redirect(request):
     return request.POST.get('redirect', request.META.get('HTTP_REFERER', '/'))
-    
+
 def login_required(func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated():
             return HttpResponseRedirect(reverse(login) + '?redirect=' + request.path)
         return func(request, *args, **kwargs)
     return wrapper
-    
+
 def _publish_article(slug, article):
     article.set_spam_status('clean')
     from django.db import transaction
@@ -49,7 +49,7 @@ def _publish_article(slug, article):
 
 def _process_new_article(request, article, is_new_topic, check_login):
     spam_status = antispam.validate(request, article, is_new_topic)
-    
+
     # Detected spam is deleted independant on check_login because
     # an OpenID server may not return from a check and the spam will hang forever
     if spam_status == 'spam':
@@ -60,7 +60,7 @@ def _process_new_article(request, article, is_new_topic, check_login):
             'text': article.text,
             'admins': [e for n, e in settings.ADMINS],
         })
-    
+
     if check_login and not request.user.is_authenticated():
         form = AuthForm(request.session, {'openid_url': request.POST['name']})
         if form.is_valid():
@@ -131,7 +131,7 @@ def topic(request, slug, id, **kwargs):
     kwargs['queryset'] = topic.article_set.filter(spam_status='clean').select_related()
     kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic', 'show_last_link': True}
     return object_list(request, **kwargs)
-    
+
 def login(request):
     if request.method == 'POST':
         form = AuthForm(request.session, request.POST)
@@ -144,7 +144,7 @@ def login(request):
         form = AuthForm(request.session)
         redirect = request.GET.get('redirect', '/')
     return render_to_response(request, 'cicero/login.html', {'form': form, 'redirect': redirect})
-        
+
 def auth(request):
     from django.contrib.auth import authenticate, login
     user = authenticate(session=request.session, query=request.GET, return_path=request.path)
@@ -161,7 +161,7 @@ def auth(request):
         except Article.DoesNotExist:
             pass
     return HttpResponseRedirect(request.GET.get('redirect', '/'))
-    
+
 @require_POST
 def logout(request):
     from django.contrib.auth import logout
@@ -224,7 +224,7 @@ def openid_whitelist(request):
         response = HttpResponse('Can accept only: %s' % ', '.join(MIMETYPES))
         response.status_code = 406
         return response
-    
+
 def _profile_forms(request):
     profile = request.user.cicero_profile
     return {
@@ -271,7 +271,7 @@ def change_openid_complete(request):
         user.delete()
         profile.generate_mutant()
     return HttpResponseRedirect(request.GET.get('redirect', '/'))
-    
+
 @login_required
 @require_POST
 def post_profile(request, form_name):
@@ -282,7 +282,7 @@ def post_profile(request, form_name):
         form.save()
         return HttpResponseRedirect('../')
     return _profile_page(request, forms)
-    
+
 @login_required
 @require_POST
 def read_hcard(request):
@@ -456,7 +456,7 @@ def topic_spawn(request, article_id):
         'form': form,
         'article': article,
     })
-    
+
 class SearchUnavailable(Exception):
         pass
 
@@ -464,7 +464,7 @@ class SphinxObjectList(object):
     def __init__(self, sphinx, term):
         self.sphinx = sphinx
         self.term = term
-    
+
     def _get_results(self):
         results = self.sphinx.Query(self.term)
         if results == {}:
@@ -472,15 +472,15 @@ class SphinxObjectList(object):
         if results is None:
             results = {'total_found': 0, 'matches': []}
         return results
-    
+
     def count(self):
         if not hasattr(self, 'results'):
             return self._get_results()['total_found']
         return self.results['total_found']
-    
+
     def __len__(self):
         return self.count()
-    
+
     def __getitem__(self, k):
         if hasattr(self, 'result'):
             raise Exception('Search result already available')
@@ -521,5 +521,5 @@ def search(request, slug):
             'query_dict': request.GET,
         })
     except SearchUnavailable:
-        raise 
+        raise
         return render_to_response(request, 'cicero/search_unavailable.html', {})

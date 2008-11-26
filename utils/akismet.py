@@ -32,7 +32,7 @@ def __post(request, host, path, port = 80):
         {"User-Agent":"%s | %s/%s" % (USERAGENT,"Akistmet.py", __version__),
         "Content-type":"application/x-www-form-urlencoded"})
     response = connection.getresponse()
-    
+
     return response.read(), response.status
 
 def verify_key(key, blog):
@@ -43,7 +43,7 @@ def verify_key(key, blog):
     Returns True if a valid key, False if invalid.
     """
     response, status = __post("key=%s&blog=%s" % (key,blog), AKISMET_URL, "/1.1/verify-key", AKISMET_PORT)
-    
+
     if response == "valid":
         return True
     elif response == "invalid":
@@ -63,15 +63,15 @@ def comment_check(key, blog, user_ip, user_agent, **other):
     headers sent from the client.
     More detail on what should be submitted is available at:
     http://akismet.com/development/api/
-    
+
     Returns True if spam, False if ham.  Throws an AkismetError if the server says
     anything unexpected.
     """
-    
+
     request = {'blog': blog, 'user_ip': user_ip, 'user_agent': user_agent}
     request.update(other)
     response, status = __post(urlencode(request), "%s.%s" % (key,AKISMET_URL), "/1.1/comment-check", AKISMET_PORT)
-    
+
     if response == "true":
         return True
     elif response == "false":

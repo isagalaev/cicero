@@ -19,7 +19,7 @@ def _fixup_element_prefixes(elem, uri_map, memo, default):
             del elem.attrib[key]
 
 def _set_prefixes(root, default):
-    uri_map = dict((uri, prefix) for prefix, uri in namespaces.items())  
+    uri_map = dict((uri, prefix) for prefix, uri in namespaces.items())
     for elem in root.getiterator():
         _fixup_element_prefixes(elem, uri_map, {}, default)
     for prefix, uri in namespaces.items():
@@ -45,7 +45,7 @@ class Collection(object):
     def __init__(self, title, workspace, href):
         self.title, self.workspace, self.href = title, workspace, href
         self.accept = []
-    
+
     def service_xml(self):
         result = _element('app', 'collection')
         result.attrib['href'] = self.href

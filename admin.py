@@ -3,7 +3,7 @@ from django.contrib.admin import site, ModelAdmin
 
 import models
 
-site.register(models.Forum, 
+site.register(models.Forum,
     list_display = ['name', 'ordering', 'group'],
 )
 
