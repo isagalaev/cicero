@@ -353,6 +353,7 @@ class Profile(models.Model):
         '''
         cursor = connection.cursor()
         sql = 'select 1 from %s where %s = %%s for update' % (self._meta.db_table, self._meta.pk.attname)
+        cursor.execute('begin')
         cursor.execute(sql, [self._get_pk_val()])
 
     def add_read_articles(self, articles):
