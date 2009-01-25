@@ -1,5 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.db import models
+from django.db.models import Q
+from django.db import connection
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -338,12 +340,20 @@ class Profile(models.Model):
         ranges = ' or '.join(['a.id between %s and %s' % range for range in self.read_articles])
         condition += ' and not (%s)' % ranges
         query = 'select %s, count(1) as c from %s where %s group by 1' % (field_name, tables, condition)
-        from django.db import connection
         cursor = connection.cursor()
         cursor.execute(query)
         counts = dict(cursor.fetchall())
         for obj in objects:
             obj.new = counts.get(obj.id, 0)
+
+    def _lock(self):
+        '''
+        Лочит одну запись профиля в таблице до конца транзакции и на запись, и
+        на чтение. Фактически работает как межпроцессный мьютекс.
+        '''
+        cursor = connection.cursor()
+        sql = 'select 1 from %s where %s = %%s for update' % (self._meta.db_table, self._meta.pk.attname)
+        cursor.execute(sql, [self._get_pk_val()])
 
     def add_read_articles(self, articles):
         '''
@@ -351,7 +361,7 @@ class Profile(models.Model):
 
         Статьи передаются в виде queryset.
         '''
-        from django.db.models import Q
+        self._lock()
         query = Q()
         for range in self.read_articles:
             query = query | Q(id__range=range)
