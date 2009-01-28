@@ -56,6 +56,10 @@ class Topic(models.Model):
     def __unicode__(self):
         return self.subject
 
+    def delete(self):
+        Article.deleted_objects.filter(topic=self).delete()
+        super(Topic, self).delete()
+
     @models.permalink
     def get_absolute_url(self):
         return 'cicero.views.topic', [self.forum.slug, self.id]
