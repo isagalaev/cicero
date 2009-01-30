@@ -350,23 +350,12 @@ class Profile(models.Model):
         for obj in objects:
             obj.new = counts.get(obj.id, 0)
 
-    def _lock(self):
-        '''
-        Лочит одну запись профиля в таблице до конца транзакции и на запись, и
-        на чтение. Фактически работает как межпроцессный мьютекс.
-        '''
-        cursor = connection.cursor()
-        sql = 'select 1 from %s where %s = %%s for update' % (self._meta.db_table, self._meta.pk.attname)
-        cursor.execute('begin')
-        cursor.execute(sql, [self._get_pk_val()])
-
     def add_read_articles(self, articles):
         '''
         Добавляет новые статьи к списку прочитанных.
 
         Статьи передаются в виде queryset.
         '''
-        self._lock()
         query = Q()
         for range in self.read_articles:
             query = query | Q(id__range=range)
