@@ -356,6 +356,15 @@ class Profile(models.Model):
 
         Статьи передаются в виде queryset.
         '''
+
+        # Нужно еще раз считать read_articles с "for update", чтобы параллельные транзакции
+        # не затирали друг друга
+        cursor = connection.cursor()
+        sql = 'select read_articles from %s where %s = %%s for update' % (self._meta.db_table, self._meta.pk.attname)
+        cursor.execute('begin')
+        cursor.execute(sql, [self._get_pk_val()])
+        self.read_articles = cursor.fetchone()[0]
+
         query = Q()
         for range in self.read_articles:
             query = query | Q(id__range=range)

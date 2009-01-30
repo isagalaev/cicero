@@ -111,16 +111,6 @@ def forum(request, slug, **kwargs):
     kwargs['extra_context'] = {'forum': forum, 'form': form, 'page_id': 'forum'}
     return object_list(request, **kwargs)
 
-def _lock_user(user):
-    '''
-    Лочит процессы одного юзера до конца транзакции. Фактически работает как
-    межпроцессный мьютекс.
-    '''
-    cursor = connection.cursor()
-    sql = 'select 1 from %s where %s = %%s for update' % (user._meta.db_table, user._meta.pk.attname)
-    cursor.execute('begin')
-    cursor.execute(sql, [user._get_pk_val()])
-
 @never_cache
 @condition(caching.user_etag, caching.latest_change)
 def topic(request, slug, id, **kwargs):
@@ -133,7 +123,6 @@ def topic(request, slug, id, **kwargs):
     else:
         form = ArticleForm(topic, request.user, request.META.get('REMOTE_ADDR'))
     if request.user.is_authenticated():
-        _lock_user(request.user)
         profile = request.user.cicero_profile
         changed = profile.add_read_articles(topic.article_set.all())
         if changed:
