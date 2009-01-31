@@ -32,7 +32,7 @@ class Article(Feed):
         if article.from_guest():
             return article.guest_name
         else:
-            return unicode(article.cicero_profile)
+            return unicode(article.author)
 
     def item_pubdate(self, article):
         return article.created

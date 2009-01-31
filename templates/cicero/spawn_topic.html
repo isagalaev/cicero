@@ -15,7 +15,7 @@
 </form>
 
 <div id="reference">
-  <p>Автор: {% if article.from_guest %}{{ article.guest_name }}{% else %}{{ article.author.cicero_profile }}{% endif %}
+  <p>Автор: {% if article.from_guest %}{{ article.guest_name }}{% else %}{{ article.author }}{% endif %}
   <div>
     <p>Текст:<p>
     <div class="usertext">{{ article.html }}</div>

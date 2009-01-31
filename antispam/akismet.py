@@ -22,8 +22,8 @@ def _article_data(request, article, is_new_topic):
         'referrer': request.META.get('HTTP_REFERER', ''),
         'permalink': _forum_url('cicero.views.topic', args=[article.topic.forum.slug, article.topic.id]),
         'comment_type': 'post',
-        'comment_author': smart_str(article.from_guest() and article.guest_name or article.author.cicero_profile),
-        'comment_author_url': article.author.cicero_profile.openid or '',
+        'comment_author': smart_str(article.from_guest() and article.guest_name or article.author),
+        'comment_author_url': article.author.openid or '',
         'comment_content': smart_str(text),
         'HTTP_ACCEPT': request.META.get('HTTP_ACCEPT', ''),
     }

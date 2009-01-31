@@ -37,7 +37,7 @@ class PostForm(Form):
         filter = self.cleaned_data['filter'] or profile.filter
         article = topic.article_set.create(
             text=self.cleaned_data['text'],
-            author=self.user,
+            author=self.user.cicero_profile,
             ip=self.ip or Article._meta.get_field('ip').default,
             guest_name=self.cleaned_data['name'],
             filter=filter,

@@ -26,10 +26,10 @@
       {{ article.html }}
     </div>
     <div class="meta">
-      <p class="mutant">{% if article.cicero_profile.mutant %}<a href="{{ article.cicero_profile.get_absolute_url }}"><img src="{{ article.cicero_profile.mutant.url }}" alt=""></a>{% endif %}
+      <p class="mutant">{% if article.author.mutant %}<a href="{{ article.author.get_absolute_url }}"><img src="{{ article.author.mutant.url }}" alt=""></a>{% endif %}
       <address>
       {% if not article.from_guest %}
-        <a href="{{ article.cicero_profile.get_absolute_url }}" title="{{ article.cicero_profile.openid }}">{{ article.cicero_profile }}</a>
+        <a href="{{ article.author.get_absolute_url }}" title="{{ article.author.openid }}">{{ article.author }}</a>
       {% else %}
         {{ article.guest_name }}
       {% endif %}
@@ -44,9 +44,9 @@
       {% if profile.moderator %}
       <form action="{% url cicero.views.article_spam article.id %}" method="post"><button>Спам</button></form>
       {% if not article.from_guest %}
-      {% with article.cicero_profile.spamer|yesno:"yes,no,unknown" as spamer %}
+      {% with article.author.spamer|yesno:"yes,no,unknown" as spamer %}
       {% ifequal spamer "unknown" %}
-      <form action="{% url cicero.views.openid_whitelist %}" method="post"><input type="hidden" name="id" value="{{ article.author.id }}"><button>Whitelist</button></form>
+      <form action="{% url cicero.views.openid_whitelist %}" method="post"><input type="hidden" name="id" value="{{ article.author_id }}"><button>Whitelist</button></form>
       {% endifequal %}
       {% endwith %}
       {% endif %}      <a href="{% url cicero.views.topic_spawn article.id %}">Отщепить топик</a>
