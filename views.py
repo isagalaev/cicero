@@ -107,7 +107,7 @@ def forum(request, slug, **kwargs):
             return _process_new_article(request, article, True, True)
     else:
         form = TopicForm(forum, request.user, request.META.get('REMOTE_ADDR'))
-    kwargs['queryset'] = forum.topic_set.filter(spam_status='clean')
+    kwargs['queryset'] = forum.topic_set.filter(spam_status='clean').select_related('forum')
     kwargs['extra_context'] = {'forum': forum, 'form': form, 'page_id': 'forum'}
     return object_list(request, **kwargs)
 
