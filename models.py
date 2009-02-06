@@ -227,6 +227,10 @@ class Topic(models.Model):
     def get_absolute_url(self):
         return 'cicero.views.topic', [self.forum.slug, self.id]
 
+class ArticleManager(models.Manager):
+    def get_query_set(self):
+        return super(ArticleManager, self).get_query_set().filter(deleted__isnull=True)
+
 class DeletedArticleManager(models.Manager):
     def get_query_set(self):
         return super(DeletedArticleManager, self).get_query_set().filter(deleted__isnull=False).order_by('-deleted')
@@ -244,7 +248,7 @@ class Article(models.Model):
     spam_status = models.CharField(max_length=20, choices=antispam.SPAM_STATUSES, default='clean')
     ip = models.IPAddressField(default='127.0.0.1')
 
-    objects = models.Manager()
+    objects = ArticleManager()
     deleted_objects = DeletedArticleManager()
 
     class Meta:
