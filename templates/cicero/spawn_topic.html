@@ -7,20 +7,31 @@
 <h2>Отщепление статьи в новый топик</h2>
 
 <form action="./" method="post" id="spawn">
+  <div id="reference">
+    <p>Автор: {% if article.from_guest %}{{ article.guest_name }}{% else %}{{ article.author }}{% endif %}
+    <div>
+      <p>Текст:<p>
+      <div class="usertext">{{ article.html }}</div>
+    </div>
+  </div>
   <p>
     <label for="id_subject">{{ form.subject.label }}</label>
     {{ form.subject }}
     {% if form.subject.errors %}<em class="error">{{ form.subject.errors|join:", " }}</em>{% endif %}
+
+  <table>
+    <caption>Включить еще статьи</caption>
+    {% for id, article in form.fields.articles.choices %}
+    <tr>
+      <td><input type="checkbox" name="articles" value="{{ id }}">
+      <td>{% if article.from_guest %}{{ article.guest_name }}{% else %}{{ article.author }}{% endif %}
+      <td>{{ article.html|truncatewords_html:30 }}
+    {% endfor %}
+  </table>
+  {% if form.articles.errors %}<em class="error">{{ form.articles.errors|join:", " }}</em>{% endif %}
+
   <div class="buttons"><button type="submit">Отщепить</button></div>
 </form>
-
-<div id="reference">
-  <p>Автор: {% if article.from_guest %}{{ article.guest_name }}{% else %}{{ article.author }}{% endif %}
-  <div>
-    <p>Текст:<p>
-    <div class="usertext">{{ article.html }}</div>
-  </div>
-</div>
 
 {% endblock %}
 

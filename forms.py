@@ -122,10 +122,13 @@ class TopicEditForm(ModelForm):
 
 class SpawnForm(Form):
     subject = model_field(Topic, 'subject')
+    articles = MultipleChoiceField(required=False)
 
     def __init__(self, article, *args, **kwargs):
         super(SpawnForm, self).__init__(*args, **kwargs)
         self.article = article
+        articles = article.topic.article_set.filter(pk__gt=article.id)
+        self.fields['articles'].choices = [(a.id, a) for a in articles]
 
     def save(self):
         topic = Topic(forum=self.article.topic.forum, subject=self.cleaned_data['subject'])
@@ -134,8 +137,10 @@ class SpawnForm(Form):
             text=self.article.text,
             filter=self.article.filter,
             author=self.article.author,
-            guest_name=self.article.guest_name
+            guest_name=self.article.guest_name,
+            created=self.article.created,
         )
         self.article.spawned_to = topic
         self.article.save()
+        Article.objects.filter(pk__in=self.cleaned_data['articles']).update(topic=topic)
         return topic

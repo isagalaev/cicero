@@ -14,6 +14,11 @@
     <a href="{% url cicero.views.topic_edit topic.id %}">Редактировать</a>
   </div>
   {% endifcanchangetopic %}
+  {% if topic.spawned_from %}
+    {% with topic.spawned_from.topic as source %}
+    <div>Отщеплен от топика <a href="{% url cicero.views.topic source.forum.slug,source.id %}">{{ source.subject }}</a></div>
+    {% endwith %}
+  {% endif %}
 </div>
 
 {% paginator %}

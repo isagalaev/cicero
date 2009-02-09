@@ -206,7 +206,7 @@ class DeletedTopicManager(models.Manager):
 class Topic(models.Model):
     forum = models.ForeignKey(Forum)
     subject = models.CharField(u'Тема', max_length=255)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=datetime.now)
     deleted = models.DateTimeField(null=True, db_index=True)
     spam_status = models.CharField(max_length=20, choices=antispam.SPAM_STATUSES, default='clean')
 
@@ -239,12 +239,12 @@ class Article(models.Model):
     topic = models.ForeignKey(Topic)
     text = models.TextField(u'Текст')
     filter = models.CharField(u'Фильтр', max_length=50, choices=[(k, k) for k in filters.keys()])
-    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    created = models.DateTimeField(default=datetime.now, db_index=True)
     updated = models.DateTimeField(auto_now=True, db_index=True)
     author = models.ForeignKey(Profile)
     guest_name = models.CharField(max_length=255, blank=True)
     deleted = models.DateTimeField(null=True, db_index=True)
-    spawned_to = models.ForeignKey(Topic, null=True, related_name='spawned_from')
+    spawned_to = models.OneToOneField(Topic, null=True, related_name='spawned_from')
     spam_status = models.CharField(max_length=20, choices=antispam.SPAM_STATUSES, default='clean')
     ip = models.IPAddressField(default='127.0.0.1')
 
@@ -252,7 +252,7 @@ class Article(models.Model):
     deleted_objects = DeletedArticleManager()
 
     class Meta:
-        ordering = ['id']
+        ordering = ['created']
 
     def __unicode__(self):
         return u'(%s, %s, %s)' % (self.topic, self.author, self.created.replace(microsecond=0))
