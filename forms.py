@@ -127,7 +127,7 @@ class SpawnForm(Form):
     def __init__(self, article, *args, **kwargs):
         super(SpawnForm, self).__init__(*args, **kwargs)
         self.article = article
-        articles = article.topic.article_set.filter(pk__gt=article.id)
+        articles = article.topic.article_set.filter(pk__gt=article.id).select_related('author', 'author__user')
         self.fields['articles'].choices = [(a.id, a) for a in articles]
 
     def save(self):
