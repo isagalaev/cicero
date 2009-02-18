@@ -9,6 +9,8 @@
 
 import Image
 import os
+import md5
+from urlparse import urlsplit
 
 from django.conf import settings
 
@@ -33,10 +35,7 @@ def shadow(image):
     shadow.paste(image, (0, 0, image.size[0], image.size[1]), image)
     return shadow
 
-def mutant(openid, openid_server):
-    from urlparse import urlsplit
-    openid = '%s://%s%s' % urlsplit(openid)[0:3]
-    import md5
+def mutant(openid):
     hash = md5.new(openid).digest()
     extremities = Image.new('RGBA', (48, 48))
     arms = Image.new('RGBA', (48, 48))

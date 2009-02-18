@@ -94,7 +94,7 @@ class Profile(models.Model):
         from StringIO import StringIO
         from django.core.files.base import ContentFile
         content = StringIO()
-        mutant(self.openid, self.openid_server).save(content, 'PNG')
+        mutant(self.openid).save(content, 'PNG')
         self.mutant.save('%s.png' % self._get_pk_val(), ContentFile(content.getvalue()))
 
     def unread_topics(self):
