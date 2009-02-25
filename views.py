@@ -256,19 +256,17 @@ def change_openid(request):
 @login_required
 def change_openid_complete(request):
     from django.contrib.auth import authenticate
-    user = authenticate(session=request.session, query=request.GET, return_path=request.path)
-    if not user:
+    new_user = authenticate(session=request.session, query=request.GET, return_path=request.path)
+    if not new_user:
         return HttpResponseForbidden('Ошибка авторизации')
-    new_profile = user.cicero_profile
+    new_profile = new_user.cicero_profile
     profile = request.user.cicero_profile
     if profile != new_profile:
+        new_profile.article_set.all().update(author=profile)
         profile.openid, profile.openid_server = new_profile.openid, new_profile.openid_server
         new_profile.delete()
+        new_user.delete()
         profile.save()
-        for article in user.article_set.all():
-            article.author = profile
-            article.save()
-        user.delete()
         profile.generate_mutant()
     return HttpResponseRedirect(request.GET.get('redirect', '/'))
 
