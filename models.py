@@ -1,20 +1,31 @@
 # -*- coding:utf-8 -*-
+import re
+import os
+from datetime import datetime, date, timedelta
+from urllib2 import urlopen, URLError
+from urlparse import urlsplit
+from StringIO import StringIO
+from xmlrpclib import ServerProxy, Fault, ProtocolError, ResponseError
+from xml.parsers.expat import ExpatError
+
+from BeautifulSoup import BeautifulSoup
 from django.db import models
-from django.db.models import Q
 from django.db import connection
+from django.db.models import Q
 from django.core.urlresolvers import reverse
-from django.conf import settings
+from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
+from django.utils.safestring import mark_safe
+from django.utils.html import linebreaks, escape
+from django.conf import settings
+
 from cicero import fields
 from cicero import antispam
 from cicero.filters import filters
-
-import re
-from datetime import datetime
-
-WWW_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)www\.', re.UNICODE)
-FTP_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)ftp\.', re.UNICODE)
-PROTOCOL_PATTERN = re.compile(r'(http://|ftp://|mailto:|https://)(.*?)([\.\,\?\!\)\>]?)(\s|$)')
+from cicero.mutants import mutant
+from cicero import utils
+from cicero.utils import ranges
 
 class Profile(models.Model):
     user = fields.AutoOneToOneField(User, related_name='cicero_profile', primary_key=True)
@@ -49,13 +60,11 @@ class Profile(models.Model):
         Ищет на странице, на которую указывает openid, микроформамт hCard,
         и берет оттуда имя, если есть.
         '''
-        from urllib2 import urlopen, URLError
         try:
             file = urlopen(self.openid)
             content = file.read(512 * 1024)
         except (URLError, IOError):
             return
-        from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(content)
         vcard = soup.find(None, {'class': re.compile(r'\bvcard\b')})
         if vcard is None:
@@ -85,14 +94,10 @@ class Profile(models.Model):
         '''
         Создает, если возможно, картинку мутанта из OpenID.
         '''
-        import os
         if self.mutant and os.path.exists(self.mutant.path):
             os.remove(self.mutant.path)
         if not settings.CICERO_OPENID_MUTANT_PARTS or not self.openid or not self.openid_server:
             return
-        from cicero.mutants import mutant
-        from StringIO import StringIO
-        from django.core.files.base import ContentFile
         content = StringIO()
         mutant(self.openid).save(content, 'PNG')
         self.mutant.save('%s.png' % self._get_pk_val(), ContentFile(content.getvalue()))
@@ -101,7 +106,6 @@ class Profile(models.Model):
         '''
         Непрочитанные топики пользователя во всех форумах
         '''
-        from django.db.models import Q
         query = Q()
         for range in self.read_articles:
             query = query | Q(article__id__range=range)
@@ -153,18 +157,16 @@ class Profile(models.Model):
         for range in self.read_articles:
             query = query | Q(id__range=range)
         ids = [a['id'] for a in articles.exclude(query).values('id')]
-        from cicero.utils.ranges import compile_ranges, merge_range
-        ranges = self.read_articles
-        for range in compile_ranges(ids):
-            ranges = merge_range(range, ranges)
+        merged = self.read_articles
+        for range in ranges.compile_ranges(ids):
+            merged = ranges.merge_range(range, merged)
         try:
-            from datetime import date, timedelta
             article = Article.objects.filter(created__lt=date.today() - timedelta(settings.CICERO_UNREAD_TRACKING_PERIOD)).order_by('-created')[0]
-            ranges = merge_range((0, article.id), ranges)
+            merged = ranges.merge_range((0, article.id), merged)
         except IndexError:
             pass
-        if self.read_articles != ranges:
-            self.read_articles = ranges
+        if self.read_articles != merged:
+            self.read_articles = merged
             return True
         else:
             return False
@@ -227,6 +229,10 @@ class Topic(models.Model):
     def get_absolute_url(self):
         return 'cicero.views.topic', [self.forum.slug, self.id]
 
+WWW_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)www\.', re.UNICODE)
+FTP_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)ftp\.', re.UNICODE)
+PROTOCOL_PATTERN = re.compile(r'(http://|ftp://|mailto:|https://)(.*?)([\.\,\?\!\)\>]?)(\s|$)')
+
 class ArticleManager(models.Manager):
     def get_query_set(self):
         return super(ArticleManager, self).get_query_set().filter(deleted__isnull=True)
@@ -268,14 +274,11 @@ class Article(models.Model):
         Возвращает HTML-текст статьи, полученный фильтрацией содержимого
         через указанный фильтр.
         '''
-        from django.utils.safestring import mark_safe
         if self.filter in filters:
             result = filters[self.filter](self.text)
         else:
-            from django.utils.html import linebreaks, escape
             result = linebreaks(escape(self.text))
 
-        from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(result)
 
         def urlify(s):
@@ -325,27 +328,21 @@ class Article(models.Model):
         Пингование внешних ссылок через Pingback
         (http://www.hixie.ch/specs/pingback/pingback)
         '''
-        from django.contrib.sites.models import Site
         domain = Site.objects.get_current().domain
         index_url = reverse('cicero_index')
-        topic_url = 'http://%s%s' % (domain, reverse('cicero.views.topic', args=(self.topic.forum.slug, self.topic.id)))
+        topic_url = utils.absolute_url(reverse('cicero.views.topic', args=(self.topic.forum.slug, self.topic.id)))
 
         def is_external(url):
-            from urlparse import urlsplit
             scheme, server, path, query, fragment = urlsplit(url)
             return server != '' and \
-                          (server != domain or not path.startswith(index_url))
+                   (server != domain or not path.startswith(index_url))
 
         def search_link(content):
             match = re.search(r'<link rel="pingback" href="([^"]+)" ?/?>', content)
             return match and match.group(1)
 
-        from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(self.html())
         links = [a['href'] for a in soup.findAll('a') if is_external(a['href'])]
-        from xmlrpclib import ServerProxy, Fault, ProtocolError, ResponseError
-        from xml.parsers.expat import ExpatError
-        from urllib2 import urlopen
         for link in links:
             try:
                 f = urlopen(link)
