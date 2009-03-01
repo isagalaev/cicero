@@ -82,6 +82,19 @@ class ArticleEditForm(ModelForm):
         super(ArticleEditForm, self).__init__(*args, **kwargs)
         self.fields['text'].widget = Textarea(attrs={'cols': '80', 'rows': '20'})
 
+class PreviewForm(ModelForm):
+    class Meta:
+        model = Article
+        fields = ['text', 'filter']
+
+    def __init__(self, *args, **kwargs):
+        super(PreviewForm, self).__init__(*args, **kwargs)
+        self.fields['text'].required = False
+
+    def preview(self):
+        article = Article(text=self.cleaned_data['text'], filter=self.cleaned_data['filter'])
+        return article.html()
+
 class AuthForm(Form):
     openid_url = CharField(label='OpenID', max_length=200, required=True)
 

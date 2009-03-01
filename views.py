@@ -9,10 +9,11 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidde
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.contrib.auth.models import User
+from django.utils import simplejson
 from django.conf import settings
 
 from cicero.models import Forum, Topic, Article, Profile
-from cicero.forms import ArticleForm, TopicForm, TopicEditForm, AuthForm, SpawnForm, ArticleEditForm, PersonalForm, SettingsForm
+from cicero.forms import PreviewForm, ArticleForm, TopicForm, TopicEditForm, AuthForm, SpawnForm, ArticleEditForm, PersonalForm, SettingsForm
 from cicero.context import default
 from cicero.conditional_get import condition
 from cicero import caching
@@ -28,6 +29,14 @@ def render_to_response(request, template_name, context_dict, **kwargs):
     from django.shortcuts import render_to_response as _render_to_response
     context = RequestContext(request, context_dict, [default])
     return _render_to_response(template_name, context_instance=context, **kwargs)
+
+class JSONResponse(HttpResponse):
+    def __init__(self, data, **kwargs):
+        defaults = {
+          'content_type': 'application/json',
+        }
+        defaults.update(kwargs)
+        super(JSONResponse, self).__init__(simplejson.dumps(data), defaults)
 
 def post_redirect(request):
     return request.POST.get('redirect', request.META.get('HTTP_REFERER', '/'))
@@ -215,7 +224,6 @@ def openid_whitelist(request):
             xml.write(response, encoding='utf-8')
             return response
         if mimetype == 'application/json':
-            from django.utils import simplejson
             response = HttpResponse(mimetype=mimetype)
             simplejson.dump(list(openids), response)
             return response
@@ -300,6 +308,13 @@ def mark_read(request, slug=None):
         profile.save()
         caching.invalidate_by_user(request)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER') or '../')
+
+@require_POST
+def article_preview(request):
+    form = PreviewForm(request.POST)
+    if not form.is_valid():
+        return JSONResponse({'status': 'invalid'})
+    return JSONResponse({'status': 'valid', 'html': form.preview()})
 
 @login_required
 def article_edit(request, id):
