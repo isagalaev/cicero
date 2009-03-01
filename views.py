@@ -13,7 +13,7 @@ from django.utils import simplejson
 from django.conf import settings
 
 from cicero.models import Forum, Topic, Article, Profile
-from cicero.forms import PreviewForm, ArticleForm, TopicForm, TopicEditForm, AuthForm, SpawnForm, ArticleEditForm, PersonalForm, SettingsForm
+from cicero import forms
 from cicero.context import default
 from cicero.conditional_get import condition
 from cicero import caching
@@ -71,7 +71,7 @@ def _process_new_article(request, article, is_new_topic, check_login):
         })
 
     if check_login and not request.user.is_authenticated():
-        form = AuthForm(request.session, {'openid_url': request.POST['name']})
+        form = forms.AuthForm(request.session, {'openid_url': request.POST['name']})
         if form.is_valid():
             article.set_spam_status(spam_status)
             url = form.auth_redirect(post_redirect(request), 'cicero.views.auth', acquire=article)
@@ -110,12 +110,12 @@ def index(request, *args, **kwargs):
 def forum(request, slug, **kwargs):
     forum = get_object_or_404(Forum, slug=slug)
     if request.method == 'POST':
-        form = TopicForm(forum, request.user, request.META.get('REMOTE_ADDR'), request.POST)
+        form = forms.TopicForm(forum, request.user, request.META.get('REMOTE_ADDR'), request.POST)
         if form.is_valid():
             article = form.save()
             return _process_new_article(request, article, True, True)
     else:
-        form = TopicForm(forum, request.user, request.META.get('REMOTE_ADDR'))
+        form = forms.TopicForm(forum, request.user, request.META.get('REMOTE_ADDR'))
     kwargs['queryset'] = forum.topic_set.filter(spam_status='clean').select_related('forum')
     kwargs['extra_context'] = {'forum': forum, 'form': form, 'page_id': 'forum'}
     return object_list(request, **kwargs)
@@ -125,12 +125,12 @@ def forum(request, slug, **kwargs):
 def topic(request, slug, id, **kwargs):
     topic = get_object_or_404(Topic, forum__slug=slug, pk=id)
     if request.method == 'POST':
-        form = ArticleForm(topic, request.user, request.META.get('REMOTE_ADDR'), request.POST)
+        form = forms.ArticleForm(topic, request.user, request.META.get('REMOTE_ADDR'), request.POST)
         if form.is_valid():
             article = form.save()
             return _process_new_article(request, article, False, True)
     else:
-        form = ArticleForm(topic, request.user, request.META.get('REMOTE_ADDR'))
+        form = forms.ArticleForm(topic, request.user, request.META.get('REMOTE_ADDR'))
     if request.user.is_authenticated():
         profile = request.user.cicero_profile
         changed = profile.add_read_articles(topic.article_set.all())
@@ -143,14 +143,14 @@ def topic(request, slug, id, **kwargs):
 
 def login(request):
     if request.method == 'POST':
-        form = AuthForm(request.session, request.POST)
+        form = forms.AuthForm(request.session, request.POST)
         if form.is_valid():
             after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.auth')
             print after_auth_redirect
             return HttpResponseRedirect(after_auth_redirect)
         redirect = post_redirect(request)
     else:
-        form = AuthForm(request.session)
+        form = forms.AuthForm(request.session)
         redirect = request.GET.get('redirect', '/')
     return render_to_response(request, 'cicero/login.html', {'form': form, 'redirect': redirect})
 
@@ -236,9 +236,9 @@ def openid_whitelist(request):
 def _profile_forms(request):
     profile = request.user.cicero_profile
     return {
-        'openid': AuthForm(request.session, initial={'openid_url': profile.openid}),
-        'personal': PersonalForm(instance=profile),
-        'settings': SettingsForm(instance=profile),
+        'openid': forms.AuthForm(request.session, initial={'openid_url': profile.openid}),
+        'personal': forms.PersonalForm(instance=profile),
+        'settings': forms.SettingsForm(instance=profile),
     }
 
 def _profile_page(request, forms):
@@ -311,7 +311,7 @@ def mark_read(request, slug=None):
 
 @require_POST
 def article_preview(request):
-    form = PreviewForm(request.POST)
+    form = forms.PreviewForm(request.POST)
     if not form.is_valid():
         return JSONResponse({'status': 'invalid'})
     return JSONResponse({'status': 'valid', 'html': form.preview()})
@@ -322,14 +322,14 @@ def article_edit(request, id):
     if not request.user.cicero_profile.can_change_article(article):
         return HttpResponseForbidden('Нет прав для редактирования')
     if request.method == 'POST':
-        form = ArticleEditForm(request.POST, instance=article)
+        form = forms.ArticleEditForm(request.POST, instance=article)
         if form.is_valid():
             form.save()
             caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
             url = '%s#%s' % (reverse(topic, args=(article.topic.forum.slug, article.topic.id)), article.id)
             return HttpResponseRedirect(url)
     else:
-        form = ArticleEditForm(instance=article)
+        form = forms.ArticleEditForm(instance=article)
     return render_to_response(request, 'cicero/article_edit.html', {
         'form': form,
         'article': article,
@@ -441,13 +441,13 @@ def topic_edit(request, topic_id):
     if not request.user.cicero_profile.can_change_topic(t):
         return HttpResponseForbidden('Нет прав редактировать топик')
     if request.method == 'POST':
-        form = TopicEditForm(request.POST, instance=t)
+        form = forms.TopicEditForm(request.POST, instance=t)
         if form.is_valid():
             form.save()
             caching.invalidate_by_article(t.forum.slug, t.id)
             return HttpResponseRedirect(reverse(topic, args=[t.forum.slug, t.id]))
     else:
-        form = TopicEditForm(instance=t)
+        form = forms.TopicEditForm(instance=t)
     return render_to_response(request, 'cicero/topic_edit.html', {
         'form': form,
         'topic': t,
@@ -459,12 +459,12 @@ def topic_spawn(request, article_id):
         return HttpResponseForbidden('Нет прав отщеплять топики')
     article = get_object_or_404(Article, pk=article_id)
     if request.method == 'POST':
-        form = SpawnForm(article, request.POST)
+        form = forms.SpawnForm(article, request.POST)
         if form.is_valid():
             new_topic = form.save()
             return HttpResponseRedirect(reverse(topic, args=(new_topic.forum.slug, new_topic.id)))
     else:
-        form = SpawnForm(article)
+        form = forms.SpawnForm(article)
     return render_to_response(request, 'cicero/spawn_topic.html', {
         'form': form,
         'article': article,
