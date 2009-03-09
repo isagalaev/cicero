@@ -118,22 +118,23 @@ class Profile(models.Model):
         if len(objects) == 0:
             return
         ids = [str(o.id) for o in objects]
-        tables = 'cicero_article a'
+        tables = 'cicero_article a, cicero_topic t'
+        condition = 'topic_id = t.id' \
+                    ' and a.deleted is null and a.spam_status = \'clean\'' \
+                    ' and t.deleted is null and t.spam_status = \'clean\'' \
+                    ' and t.created >= %s'
         if isinstance(objects[0], Forum):
-            tables += ', cicero_topic t'
-            condition = 'topic_id = t.id and forum_id in (%s)' % ','.join(ids)
             field_name = 'forum_id'
-            condition += ' and t.deleted is null and a.deleted is null' \
-                                      ' and t.spam_status = \'clean\' and a.spam_status = \'clean\''
+            condition += ' and forum_id in (%s)' % ','.join(ids)
         else:
-            condition = 'topic_id in (%s)' % ','.join(ids)
             field_name = 'topic_id'
-            condition += ' and a.deleted is null and a.spam_status = \'clean\''
+            condition += ' and topic_id in (%s)' % ','.join(ids)
         ranges = ' or '.join(['a.id between %s and %s' % range for range in self.read_articles])
         condition += ' and not (%s)' % ranges
         query = 'select %s, count(1) as c from %s where %s group by 1' % (field_name, tables, condition)
+        old_topic_age = datetime.now().date() - timedelta(settings.CICERO_OLD_TOPIC_AGE)
         cursor = connection.cursor()
-        cursor.execute(query)
+        cursor.execute(query,  [old_topic_age])
         counts = dict(cursor.fetchall())
         for obj in objects:
             obj.new = counts.get(obj.id, 0)
@@ -208,7 +209,7 @@ class DeletedTopicManager(models.Manager):
 class Topic(models.Model):
     forum = models.ForeignKey(Forum)
     subject = models.CharField(u'Тема', max_length=255)
-    created = models.DateTimeField(default=datetime.now)
+    created = models.DateTimeField(default=datetime.now, db_index=True)
     deleted = models.DateTimeField(null=True, db_index=True)
     spam_status = models.CharField(max_length=20, choices=antispam.SPAM_STATUSES, default='clean')
 

@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+from datetime import datetime, timedelta
+
 from django.contrib.syndication.feeds import Feed, FeedDoesNotExist
 from django.utils.feedgenerator import Atom1Feed
 from django.core.urlresolvers import reverse
@@ -42,4 +44,6 @@ class Article(Feed):
             articles = models.Article.objects.filter(topic__forum=obj)
         elif isinstance(obj, models.Topic):
             articles = obj.article_set.all()
-        return articles.filter(spam_status='clean').order_by('-created').select_related()[:settings.CICERO_PAGINATE_BY]
+        old_topic_age = datetime.now().date() - timedelta(settings.CICERO_OLD_TOPIC_AGE)
+        articles = articles.filter(spam_status='clean', topic__created__gte=old_topic_age)
+        return articles.order_by('-created').select_related()[:settings.CICERO_PAGINATE_BY]

@@ -58,3 +58,7 @@ CICERO_ANTISPAM_PLUGINS = [
 
 # API-ключ Akismet'а
 CICERO_AKISMET_KEY = ''
+
+# Число дней, после которых топики считаются "старыми" и статьи в них
+# перестают попадать в новые.
+CICERO_OLD_TOPIC_AGE = 60
