@@ -211,7 +211,7 @@ class Topic(models.Model):
     subject = models.CharField(u'Тема', max_length=255)
     created = models.DateTimeField(default=datetime.now, db_index=True)
     deleted = models.DateTimeField(null=True, db_index=True)
-    spam_status = models.CharField(max_length=20, choices=antispam.SPAM_STATUSES, default='clean')
+    spam_status = models.CharField(max_length=20, default='clean')
 
     objects = TopicManager()
     deleted_objects = DeletedTopicManager()
@@ -255,7 +255,7 @@ class Article(models.Model):
     guest_name = models.CharField(max_length=255, blank=True)
     deleted = models.DateTimeField(null=True, db_index=True)
     spawned_to = models.OneToOneField(Topic, null=True, related_name='spawned_from')
-    spam_status = models.CharField(max_length=20, choices=antispam.SPAM_STATUSES, default='clean')
+    spam_status = models.CharField(max_length=20, default='clean')
     ip = models.IPAddressField(default='127.0.0.1')
 
     objects = ArticleManager()

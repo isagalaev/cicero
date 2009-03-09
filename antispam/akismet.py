@@ -43,6 +43,6 @@ def validate(request, article, is_new_topic):
     try:
         result = comment_check(request, article, is_new_topic)
         if result:
-            return 'suspect'
+            return 'akismet'
     except akismet.AkismetError, IOError:
         return

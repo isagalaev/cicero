@@ -3,12 +3,6 @@ import os
 
 from django.conf import settings
 
-SPAM_STATUSES = [
-    ('clean', 'Clean'),
-    ('spam', 'Spam'),
-    ('suspect', 'Suspect'),
-]
-
 def spam_validators():
     for module_name in settings.CICERO_ANTISPAM_PLUGINS:
         yield __import__(module_name, {}, {}, [''])

@@ -84,11 +84,11 @@ def _process_new_article(request, article, is_new_topic, check_login):
             url += '?page=last'
         url += '#%s' % article.id
         return HttpResponseRedirect(url)
-    if spam_status == 'suspect':
-        article.set_spam_status(spam_status)
-        return render_to_response(request, 'cicero/spam_suspect.html', {
-            'article': article,
-        })
+    # Любой не-clean и не-spam статус -- разного рода подозрения
+    article.set_spam_status(spam_status)
+    return render_to_response(request, 'cicero/spam_suspect.html', {
+        'article': article,
+    })
 
 generic_info = {
     'paginate_by': settings.CICERO_PAGINATE_BY,
