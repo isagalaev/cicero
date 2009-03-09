@@ -182,7 +182,7 @@ class Profile(models.Model):
 
 
 class Forum(models.Model):
-    slug = models.SlugField()
+    slug = models.SlugField(unique=True)
     name = models.CharField(max_length=255)
     group = models.CharField(max_length=255, blank=True)
     ordering = models.IntegerField(default=0)
