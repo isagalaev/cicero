@@ -35,9 +35,16 @@ def _create_operation(operation):
         return getattr(akismet, operation)(**_article_data(request, article, is_new_topic))
     return func
 
+def _check_status(func):
+    def wrapper(request, article, is_new_topic):
+        if article.spam_status != 'akismet':
+            return
+        return func(request, article, is_new_topic)
+    return wrapper
+
 comment_check = _create_operation('comment_check')
 submit_spam = _create_operation('submit_spam')
-submit_ham = _create_operation('submit_ham')
+submit_ham = _check_status(_create_operation('submit_ham'))
 
 def validate(request, article, is_new_topic):
     try:

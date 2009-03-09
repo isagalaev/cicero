@@ -54,7 +54,7 @@ CICERO_ANTISPAM_PLUGINS = [
     'cicero.antispam.honeypots',
     'cicero.antispam.whitelist',
     'cicero.antispam.akismet',
-    'cicero.antispam.old_topics',
+    'cicero.antispam.old_topic',
 ]
 
 # API-ключ Akismet'а

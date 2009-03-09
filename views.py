@@ -18,7 +18,6 @@ from cicero.context import default
 from cicero.conditional_get import condition
 from cicero import caching
 from cicero import antispam
-from cicero.antispam.akismet import submit_spam, submit_ham
 from cicero.utils import absolute_url
 
 from datetime import datetime
@@ -390,11 +389,11 @@ def article_publish(request, id):
     if not request.user.cicero_profile.moderator:
         return HttpResponseForbidden('Нет прав публиковать спам')
     article = get_object_or_404(Article, pk=id)
+    antispam.submit('ham', request, article, article.topic.article_set.count() == 1)
     article.set_spam_status('clean')
     if not article.from_guest() and article.author.spamer is None:
         article.author.spamer = False
         article.author.save()
-    submit_ham(request, article, article.topic.article_set.count() == 1)
     caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
     return HttpResponseRedirect(reverse(spam_queue))
 
@@ -406,7 +405,7 @@ def article_spam(request, id):
     if not article.from_guest() and article.author.spamer is None:
         article.author.spamer = True
         article.author.save()
-    submit_spam(request, article, article.topic.article_set.count() == 1)
+    antispam.submit('spam', request, article, article.topic.article_set.count() == 1)
     slug, topic_id = article.topic.forum.slug, article.topic.id
     article.delete()
     caching.invalidate_by_article(slug, topic_id)

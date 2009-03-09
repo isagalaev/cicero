@@ -16,3 +16,9 @@ def validate(request, article, is_new_topic):
         if result is not None:
             status = result
     return status or 'clean'
+
+def submit(kind, request, article, is_new_topic):
+    for module in spam_validators():
+        func = getattr(module, 'submit_%s' % kind, None)
+        if func:
+            func(request, article, is_new_topic)
