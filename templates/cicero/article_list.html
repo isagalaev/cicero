@@ -67,6 +67,11 @@
 
 {% paginator %}
 
+{% if topic.old %}
+<p>Внимание! Это довольно старый топик, посты в него не попадут в новые, и их
+никто не увидит. Пишите пост, если хотите просто дополнить топик, а чтобы задать
+новый вопрос -- <a href="{% url cicero.views.forum topic.forum.slug %}">начните новый</a>.
+{% endif %}
 {% post_form form topic.forum topic %}
 
 {% endblock %}

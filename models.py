@@ -230,6 +230,9 @@ class Topic(models.Model):
     def get_absolute_url(self):
         return 'cicero.views.topic', [self.forum.slug, self.id]
 
+    def old(self):
+        return self.created.date() < datetime.now().date() - timedelta(settings.CICERO_OLD_TOPIC_AGE)
+
 WWW_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)www\.', re.UNICODE)
 FTP_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)ftp\.', re.UNICODE)
 PROTOCOL_PATTERN = re.compile(r'(http://|ftp://|mailto:|https://)(.*?)([\.\,\?\!\)\>]?)(\s|$)')
