@@ -1,27 +1,29 @@
 # -*- coding:utf-8 -*-
+import md5
+from datetime import datetime
+
 from openid.consumer.consumer import Consumer, SUCCESS, DiscoveryFailure
 from openid.extensions.sreg import SRegRequest, SRegResponse
 from openid.store.filestore import FileOpenIDStore
 
 from django.contrib.auth.models import User
-from django.contrib.sites.models import Site
 from django.utils.encoding import smart_str, smart_unicode
 from django.conf import settings
+
+from cicero.models import Profile
+from cicero import utils
 
 class OpenIdBackend(object):
     def authenticate(self, session=None, query=None, return_path=None):
         query = dict([(k, smart_str(v)) for k, v in query.items()])
         consumer = get_consumer(session)
-        info = consumer.complete(query, 'http://%s%s' % (Site.objects.get_current().domain, return_path))
+        info = consumer.complete(query, utils.absolute_url(return_path))
         if info.status != SUCCESS:
             return None
-        from cicero.models import Profile
         try:
             profile = Profile.objects.get(openid=info.identity_url)
             user = profile.user
         except Profile.DoesNotExist:
-            import md5
-            from datetime import datetime
             unique = md5.new(info.identity_url + str(datetime.now())).hexdigest()[:23] # 30 - len('cicero_')
             user = User.objects.create_user('cicero_%s' % unique, 'user@cicero', User.objects.make_random_password())
             profile = user.cicero_profile

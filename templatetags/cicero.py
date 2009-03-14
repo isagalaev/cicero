@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 from django import template
-from django.conf import settings
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
-from django.core.urlresolvers import RegexURLResolver, NoReverseMatch, reverse
+from django.core.urlresolvers import reverse
+from django.conf import settings
 
 register=template.Library()
 

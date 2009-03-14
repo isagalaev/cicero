@@ -4,12 +4,12 @@
 последнего изменения страниц форума. Используются для
 if_modified_since.
 '''
+import md5
+
 from django.core.cache import cache
 from django.conf import settings
 
 from cicero.models import Forum, Article
-
-import md5
 
 def cached(key_func):
     '''

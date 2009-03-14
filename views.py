@@ -1,6 +1,4 @@
 # -*- coding:utf-8 -*-
-import sys
-
 from django.views.generic.list_detail import object_list
 from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
@@ -8,7 +6,6 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseBadRequest, Http404
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
-from django.contrib.auth.models import User
 from django.utils import simplejson
 from django.conf import settings
 
@@ -177,15 +174,15 @@ def logout(request):
     caching.invalidate_by_user(request)
     return HttpResponseRedirect(post_redirect(request))
 
-def user_topics(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
+def user_topics(request, id):
+    profile = get_object_or_404(Profile, pk=id)
     return object_list(request,
-        queryset=user.cicero_profile.topics(),
+        queryset=profile.topics(),
         allow_empty=True,
         paginate_by=settings.CICERO_PAGINATE_BY,
         template_name='cicero/user_topics.html',
         extra_context={
-            'author_profile': user.cicero_profile,
+            'author_profile': profile,
         }
     )
 
