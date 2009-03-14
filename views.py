@@ -142,7 +142,6 @@ def login(request):
         form = forms.AuthForm(request.session, request.POST)
         if form.is_valid():
             after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.auth')
-            print after_auth_redirect
             return HttpResponseRedirect(after_auth_redirect)
         redirect = post_redirect(request)
     else:
@@ -520,7 +519,6 @@ def search(request, slug):
         else:
             paginator = Paginator([], 1)
             page = paginator.page(1)
-        print page.object_list
         return render_to_response(request, 'cicero/search.html', {
             'page_id': 'search',
             'forum': forum,
