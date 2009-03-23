@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from django.views.generic.list_detail import object_list
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, condition
 from django.views.decorators.cache import never_cache
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseBadRequest, Http404
@@ -12,7 +12,6 @@ from django.conf import settings
 from cicero.models import Forum, Topic, Article, Profile
 from cicero import forms
 from cicero.context import default
-from cicero.conditional_get import condition
 from cicero import caching
 from cicero import antispam
 from cicero.utils import absolute_url
