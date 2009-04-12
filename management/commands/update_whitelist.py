@@ -1,7 +1,10 @@
 # -*- coding:utf-8 -*-
 from optparse import make_option
+import logging
 
 from django.core.management.base import NoArgsCommand
+
+log = logging.getLogger('cicero')
 
 class Command(NoArgsCommand):
     option_list = NoArgsCommand.option_list + (
@@ -19,6 +22,6 @@ class Command(NoArgsCommand):
                 source.cleanopenid_set.all().delete()
                 source.cleanopenid_set = [CleanOpenID(openid=l.strip()) for l in f]
                 if not quiet:
-                    print 'Updated %s OpenIDs from %s' % (source.cleanopenid_set.count(), source)
+                    log.info('Updated %s OpenIDs from %s' % (source.cleanopenid_set.count(), source))
             except IOError, e:
-                print 'Error reading %s: %s' % (source, e)
+                log.error('Reading %s: %s' % (source, e))
