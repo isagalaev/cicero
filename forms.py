@@ -103,12 +103,13 @@ class AuthForm(Form):
         self.session = session
 
     def clean_openid_url(self):
+        url = self.cleaned_data['openid_url'].strip()
         from cicero.auth import create_request, OpenIdError
         try:
-            self.request = create_request(self.cleaned_data['openid_url'], self.session)
+            self.request = create_request(url, self.session)
         except OpenIdError, e:
             raise ValidationError(e)
-        return self.cleaned_data['openid_url']
+        return url
 
     def auth_redirect(self, target, view_name, acquire=None, args=[], kwargs={}):
         trust_url = settings.CICERO_OPENID_TRUST_URL or absolute_url(reverse('cicero_index'))
