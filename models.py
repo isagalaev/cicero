@@ -346,7 +346,8 @@ class Article(models.Model):
             return match and match.group(1)
 
         soup = BeautifulSoup(self.html())
-        links = [a['href'] for a in soup.findAll('a') if is_external(a['href'])]
+        links = (a['href'] for a in soup.findAll('a') if is_external(a['href']))
+        links = (l.encode('utf-8') for l in links)
         for link in links:
             try:
                 f = urlopen(link)
