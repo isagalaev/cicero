@@ -12,16 +12,13 @@ from cicero.context import default
 info = views.generic_info
 
 urlpatterns = patterns('',
-    (r'^users/login/$', views.login),
-    (r'^users/auth/$', views.auth),
-    (r'^users/logout/$', views.logout),
+    (r'^users/', include('scipio.urls')),
     url(r'^users/(?P<object_id>\d+)/$', object_detail, {
         'queryset': Profile.objects.all(),
         'context_processors': [default],
         'extra_context': {'page_id': 'profile'},
     }, name='profile'),
     (r'^users/(\d+)/topics/$', views.user_topics),
-    (r'^users/openid_whitelist/$', views.openid_whitelist),
     (r'^users/self/$', views.edit_profile),
     (r'^users/self/openid/$', views.change_openid),
     (r'^users/self/openid_complete/$', views.change_openid_complete),

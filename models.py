@@ -2,7 +2,7 @@
 import re
 import os
 from datetime import datetime, date, timedelta
-from urllib2 import urlopen, URLError
+from urllib2 import urlopen
 from urlparse import urlsplit
 from StringIO import StringIO
 from xmlrpclib import ServerProxy, Fault, ProtocolError, ResponseError
@@ -19,6 +19,8 @@ from django.contrib.sites.models import Site
 from django.utils.safestring import mark_safe
 from django.utils.html import linebreaks, escape
 from django.conf import settings
+import scipio.signals
+from scipio.models import Profile as ScipioProfile
 
 from cicero import fields
 from cicero import antispam
@@ -29,66 +31,20 @@ from cicero.utils import ranges
 
 class Profile(models.Model):
     user = fields.AutoOneToOneField(User, related_name='cicero_profile', primary_key=True)
-    filter = models.CharField(u'Фильтр', max_length=50, choices=[(k, k) for k in filters.keys()])
-    openid = models.CharField(max_length=200, null=True, unique=True)
-    openid_server = models.CharField(max_length=200, null=True)
+    filter = models.CharField(u'Фильтр', max_length=50, choices=[(k, k) for k in filters.keys()], default='bbcode')
     mutant = models.ImageField(upload_to='mutants', null=True)
-    name = models.CharField(u'Имя', max_length=200, null=True, blank=True)
     read_articles = fields.RangesField(editable=False)
     moderator = models.BooleanField(default=False)
-    spamer = models.NullBooleanField()
 
     def __unicode__(self):
-        if self.name:
-            return self.name
-        elif self.openid:
-            result = self.openid[self.openid.index('://') + 3:]
-            try:
-                if result.index('/') == len(result) - 1:
-                    result = result[:-1]
-            except ValueError:
-                pass
-            return result
-        else:
-            return unicode(self.user)
+        try:
+            return unicode(self.user.scipio_profile)
+        except ScipioProfile.DoesNotExist:
+            pass
+        return unicode(self.user)
 
     def get_absolute_url(self):
         return reverse('profile', args=[self.user_id])
-
-    def read_hcard(self):
-        '''
-        Ищет на странице, на которую указывает openid, микроформамт hCard,
-        и берет оттуда имя, если есть.
-        '''
-        try:
-            file = urlopen(self.openid)
-            content = file.read(512 * 1024)
-        except (URLError, IOError):
-            return
-        soup = BeautifulSoup(content)
-        vcard = soup.find(None, {'class': re.compile(r'\bvcard\b')})
-        if vcard is None:
-            return
-
-        def _parse_property(class_name):
-            el = vcard.find(None, {'class': re.compile(r'\b%s\b' % class_name)})
-            if el is None:
-                return
-            if el.name == u'abbr' and el['title']:
-                result = el['title']
-            else:
-                result = ''.join([s for s in el.recursiveChildGenerator() if isinstance(s, unicode)])
-            return result.replace('\n',' ').strip().encode(settings.DEFAULT_CHARSET)
-
-        info = dict((n, _parse_property(n)) for n in ['nickname', 'fn'])
-        self.name = info['nickname'] or info['fn']
-
-    def save(self):
-        if not self.filter:
-            self.filter = 'bbcode'
-        if self.openid and not self.name:
-            self.read_hcard()
-        super(Profile, self).save()
 
     def generate_mutant(self):
         '''
@@ -101,6 +57,8 @@ class Profile(models.Model):
         content = StringIO()
         mutant(self.openid).save(content, 'PNG')
         self.mutant.save('%s.png' % self._get_pk_val(), ContentFile(content.getvalue()))
+
+    scipio.signals.created.connect(lambda sender, profile, **kwargs: profile.user.cicero_profile.generate_mutant())
 
     def unread_topics(self):
         '''
@@ -375,22 +333,3 @@ class Article(models.Model):
         if self.topic.spam_status != spam_status and self.topic.article_set.count() == 1:
             self.topic.spam_status = spam_status
             self.topic.save()
-
-class WhitelistSource(models.Model):
-    url = models.URLField()
-
-    def __unicode__(self):
-        return self.url
-
-class CleanOpenID(models.Model):
-    openid = models.CharField(max_length=200, db_index=True)
-    source = models.ForeignKey(WhitelistSource)
-
-    class Meta:
-        unique_together = [('openid', 'source')]
-        ordering = ['openid']
-        verbose_name = 'Clean OpenID'
-        verbose_name_plural = 'Clean OpenIDs'
-
-    def __unicode__(self):
-        return self.openid

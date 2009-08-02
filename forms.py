@@ -1,12 +1,9 @@
 # -*- coding:utf-8 -*-
 from django.forms import *
-from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.conf import settings
 
 from cicero.models import Topic, Article, Profile
-from cicero.filters import filters
-from cicero.utils import absolute_url
 
 def model_field(model, fieldname, **kwargs):
     return model._meta.get_field(fieldname).formfield(**kwargs)
@@ -94,30 +91,6 @@ class PreviewForm(ModelForm):
     def preview(self):
         article = Article(text=self.cleaned_data['text'], filter=self.cleaned_data['filter'])
         return article.html()
-
-class AuthForm(Form):
-    openid_url = CharField(label='OpenID', max_length=200, required=True)
-
-    def __init__(self, session, *args, **kwargs):
-        Form.__init__(self, *args, **kwargs)
-        self.session = session
-
-    def clean_openid_url(self):
-        url = self.cleaned_data['openid_url'].strip()
-        from cicero.auth import create_request, OpenIdError
-        try:
-            self.request = create_request(url, self.session)
-        except OpenIdError, e:
-            raise ValidationError(e)
-        return url
-
-    def auth_redirect(self, target, view_name, acquire=None, args=[], kwargs={}):
-        trust_url = settings.CICERO_OPENID_TRUST_URL or absolute_url(reverse('cicero_index'))
-        return_to = absolute_url(reverse(view_name, args=args, kwargs=kwargs))
-        self.request.return_to_args['redirect'] = target
-        if acquire:
-            self.request.return_to_args['acquire_article'] = str(acquire.id)
-        return self.request.redirectURL(trust_url, return_to)
 
 class PersonalForm(ModelForm):
     class Meta:

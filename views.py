@@ -8,6 +8,9 @@ from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.utils import simplejson
 from django.conf import settings
+from scipio.forms import AuthForm
+from scipio.models import Profile as ScipioProfile
+import scipio.signals
 
 from cicero.models import Forum, Topic, Article, Profile
 from cicero import forms
@@ -66,10 +69,10 @@ def _process_new_article(request, article, is_new_topic, check_login):
         })
 
     if check_login and not request.user.is_authenticated():
-        form = forms.AuthForm(request.session, {'openid_url': request.POST['name']})
+        form = AuthForm(request.session, {'openid_url': request.POST['name']})
         if form.is_valid():
             article.set_spam_status(spam_status)
-            url = form.auth_redirect(post_redirect(request), 'cicero.views.auth', acquire=article)
+            url = form.auth_redirect(post_redirect(request), data={'acquire': article})
             return HttpResponseRedirect(url)
     if spam_status == 'clean':
         slug = article.topic.forum.slug
@@ -136,41 +139,22 @@ def topic(request, slug, id, **kwargs):
     kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic', 'show_last_link': True}
     return object_list(request, **kwargs)
 
-def login(request):
-    if request.method == 'POST':
-        form = forms.AuthForm(request.session, request.POST)
-        if form.is_valid():
-            after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.auth')
-            return HttpResponseRedirect(after_auth_redirect)
-        redirect = post_redirect(request)
-    else:
-        form = forms.AuthForm(request.session)
-        redirect = request.GET.get('redirect', '/')
-    return render_to_response(request, 'cicero/login.html', {'form': form, 'redirect': redirect})
-
-def auth(request):
-    from django.contrib.auth import authenticate, login
-    user = authenticate(session=request.session, query=request.GET, return_path=request.path)
-    if not user:
-        return HttpResponseForbidden('Ошибка авторизации')
-    login(request, user)
-    caching.invalidate_by_user(request)
-    if 'acquire_article' in request.GET:
+def user_authenticated(sender, profile, acquire_article=None, **kwargs):
+    caching.invalidate_by_user(sender)
+    if acquire_article is not None:
         try:
-            article = Article.objects.get(pk=request.GET['acquire_article'])
-            article.author = user.cicero_profile
+            article = Article.objects.get(pk=acquire_article)
+            article.author = profile.user.cicero_profile
             article.save()
-            return _process_new_article(request, article, article.topic.article_set.count() == 1, False)
+            return _process_new_article(
+                request,
+                article,
+                article.topic.article_set.count() == 1,
+                False
+            )
         except Article.DoesNotExist:
             pass
-    return HttpResponseRedirect(request.GET.get('redirect', '/'))
-
-@require_POST
-def logout(request):
-    from django.contrib.auth import logout
-    logout(request)
-    caching.invalidate_by_user(request)
-    return HttpResponseRedirect(post_redirect(request))
+scipio.signals.authenticated.connect(user_authenticated)
 
 def user_topics(request, id):
     profile = get_object_or_404(Profile, pk=id)
@@ -184,53 +168,14 @@ def user_topics(request, id):
         }
     )
 
-def openid_whitelist(request):
-    if request.method == 'POST':
-        try:
-            profile = Profile.objects.get(pk=int(request.POST['id']))
-            profile.spamer = False
-            profile.save()
-            try:
-                return HttpResponseRedirect(request.META['HTTP_REFERER'])
-            except KeyError:
-                return HttpResponse()
-        except (Profile.DoesNotExist, ValueError, KeyError):
-            return HttpResponseBadRequest()
-    else:
-        openids = (p.openid for p in Profile.objects.filter(spamer=False) if p.openid)
-        from cicero.utils.mimeparse import best_match
-        MIMETYPES = ['application/xml', 'text/xml', 'application/json', 'text/plain']
-        accept = request.META.get('HTTP_ACCEPT', '')
-        try:
-            mimetype = best_match(MIMETYPES, accept)
-        except ValueError:
-            mimetype = 'text/plain'
-        if mimetype.endswith('/xml'):
-            try:
-                import xml.etree.ElementTree as ET
-            except ImportError:
-                import elementtree.ElementTree as ET
-            root = ET.Element('whitelist')
-            for openid in openids:
-                ET.SubElement(root, 'openid').text = openid
-            xml = ET.ElementTree(root)
-            response = HttpResponse(mimetype=mimetype)
-            xml.write(response, encoding='utf-8')
-            return response
-        if mimetype == 'application/json':
-            response = HttpResponse(mimetype=mimetype)
-            simplejson.dump(list(openids), response)
-            return response
-        if mimetype == 'text/plain':
-            return HttpResponse((o + '\n' for o in openids), mimetype=mimetype)
-        response = HttpResponse('Can accept only: %s' % ', '.join(MIMETYPES))
-        response.status_code = 406
-        return response
-
 def _profile_forms(request):
     profile = request.user.cicero_profile
+    try:
+        openid = request.user.scipio_profile.openid
+    except ScipioProfile.DoesNotExist:
+        openid = ''
     return {
-        'openid': forms.AuthForm(request.session, initial={'openid_url': profile.openid}),
+        'openid': AuthForm(request.session, initial={'openid_url': openid}),
         'personal': forms.PersonalForm(instance=profile),
         'settings': forms.SettingsForm(instance=profile),
     }

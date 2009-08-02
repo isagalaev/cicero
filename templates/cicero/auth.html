@@ -18,19 +18,19 @@
 {% endif %}
 
 <ul id="misc" class="block">
-  <li><a href="{% url cicero.views.openid_whitelist %}">OpenID whitelist</a>
+  <li><a href="{% url scipio_whitelist %}">OpenID whitelist</a>
 </ul>
 
 </div>
 
 {% if user.is_authenticated %}
-<form action="{% url cicero.views.logout %}" method="post" id="auth">
+<form action="{% url scipio_logout %}" method="post" id="auth">
   <p>
     <a href="{{ profile.get_absolute_url }}">{{ profile }}</a>
   <div class="buttons"><button type="submit">Выход</button></div>
 </form>
 {% else %}
-<form action="{% url cicero.views.login %}" method="post" id="auth">
+<form action="{% url scipio_login %}" method="post" id="auth">
   <p><label>OpenID: <input type="text" name="openid_url"></label>
   <div class="buttons"><button type="submit">Вход</button></div>
 </form>

@@ -51,7 +51,7 @@
       {% if not article.from_guest %}
       {% with article.author.spamer|yesno:"yes,no,unknown" as spamer %}
       {% ifequal spamer "unknown" %}
-      <form action="{% url cicero.views.openid_whitelist %}" method="post"><input type="hidden" name="id" value="{{ article.author_id }}"><button>Whitelist</button></form>
+      <form action="{% url scipio_whitelist %}" method="post"><input type="hidden" name="id" value="{{ article.author_id }}"><button>Whitelist</button></form>
       {% endifequal %}
       {% endwith %}
       {% endif %}      <a href="{% url cicero.views.topic_spawn article.id %}">Отщепить топик</a>

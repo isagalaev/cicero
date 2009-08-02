@@ -15,14 +15,7 @@ site.register(models.Topic,
 site.register(models.Article)
 
 site.register(models.Profile,
-    list_display = ['user', 'openid', 'name', 'moderator', 'spamer'],
-    list_filter = ['moderator', 'spamer'],
-    search_fields = ['openid', 'name', 'user__username'],
-)
-
-site.register(models.WhitelistSource)
-
-site.register(models.CleanOpenID,
-    list_display = ['openid', 'source'],
-    list_filter = ['source'],
+    list_display = ['user', 'moderator'],
+    list_filter = ['moderator'],
+    search_fields = ['user__username'],
 )
