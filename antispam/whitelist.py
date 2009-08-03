@@ -1,19 +1,23 @@
 # -*- coding:utf-8 -*-
-from cicero.models import CleanOpenID
+from scipio.models import CleanOpenID, Profile
 
-def author_in_whitelist(author):
-    if author.user.username == 'cicero_guest':
+def profile_in_whitelist(profile):
+    if profile.user.username == 'cicero_guest':
         return False
     try:
-        CleanOpenID.objects.get(openid=author.openid)
+        CleanOpenID.objects.get(openid=profile.openid)
         return True
     except CleanOpenID.DoesNotExist:
         return False
 
 def validate(request, article, is_new_topic):
-    if article.author.spamer == False:
+    try:
+        profile = article.author.user.scipio_profile
+    except Profile.DoesNotExist:
+        return
+    if profile.spamer == False:
         return 'clean'
-    elif article.author.spamer == True:
+    elif profile.spamer == True:
         return 'spam'
-    elif author_in_whitelist(article.author):
+    elif profile_in_whitelist(profile):
         return 'clean'
