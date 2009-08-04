@@ -21,7 +21,6 @@ urlpatterns = patterns('',
     (r'^users/(\d+)/topics/$', views.user_topics),
     (r'^users/self/$', views.edit_profile),
     (r'^users/self/openid/$', views.change_openid),
-    (r'^users/self/openid_complete/$', views.change_openid_complete),
     (r'^users/self/(personal|settings)/$', views.post_profile),
     (r'^users/self/hcard/$', views.read_hcard),
     url(r'^$', views.index, {

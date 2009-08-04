@@ -139,12 +139,12 @@ def topic(request, slug, id, **kwargs):
     kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic', 'show_last_link': True}
     return object_list(request, **kwargs)
 
-def user_authenticated(sender, profile, acquire_article=None, **kwargs):
+def user_authenticated(sender, user, acquire_article=None, **kwargs):
     caching.invalidate_by_user(sender)
     if acquire_article is not None:
         try:
             article = Article.objects.get(pk=acquire_article)
-            article.author = profile.user.cicero_profile
+            article.author = user.cicero_profile
             article.save()
             return _process_new_article(
                 request,
@@ -196,26 +196,23 @@ def change_openid(request):
     form = forms['openid'].__class__(request.session, request.POST)
     forms['openid'] = form
     if form.is_valid():
-        after_auth_redirect = form.auth_redirect(post_redirect(request), 'cicero.views.change_openid_complete')
+        after_auth_redirect = form.auth_redirect(post_redirect(request), {'op': 'change_openid'})
         return HttpResponseRedirect(after_auth_redirect)
     return _profile_page(request, forms)
 
-@login_required
-def change_openid_complete(request):
-    from django.contrib.auth import authenticate
-    new_user = authenticate(session=request.session, query=request.GET, return_path=request.path)
-    if not new_user:
-        return HttpResponseForbidden('Ошибка авторизации')
-    new_profile = new_user.cicero_profile
-    profile = request.user.cicero_profile
-    if profile != new_profile:
-        new_profile.article_set.all().update(author=profile)
-        profile.openid, profile.openid_server = new_profile.openid, new_profile.openid_server
-        new_profile.delete()
-        new_user.delete()
+def change_openid_complete(sender, user, op=None, **kwargs):
+    if op == 'change_openid':
+        if sender.user == user:
+            return
+        # move articles to current user in case user has already existed
+        user.cicero_profile.article_set.all().update(author=sender.user.cicero_profile)
+        profile, created = ScipioProfile.objects.get_or_create(user=sender.user)
+        profile.openid = user.scipio_profile.openid
+        profile.openid_server = user.scipio_profile.openid_server
+        user.delete() # must delete new user before profile.save() to not violate openid uniqueness
         profile.save()
-        profile.generate_mutant()
-    return HttpResponseRedirect(request.GET.get('redirect', '/'))
+        sender.user.cicero_profile.generate_mutant()
+scipio.signals.authenticated.connect(change_openid_complete)
 
 @login_required
 @require_POST
