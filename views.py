@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.utils import simplejson
 from django.conf import settings
-from scipio.forms import AuthForm
+from scipio.forms import AuthForm, ProfileForm
 from scipio.models import Profile as ScipioProfile
 import scipio.signals
 
@@ -169,15 +169,15 @@ def user_topics(request, id):
     )
 
 def _profile_forms(request):
-    profile = request.user.cicero_profile
+    cicero_profile = request.user.cicero_profile
     try:
-        openid = request.user.scipio_profile.openid
+        scipio_profile = request.user.scipio_profile
     except ScipioProfile.DoesNotExist:
-        openid = ''
+        scipio_profile = None
     return {
-        'openid': AuthForm(request.session, initial={'openid_url': openid}),
-        'personal': forms.PersonalForm(instance=profile),
-        'settings': forms.SettingsForm(instance=profile),
+        'openid': AuthForm(request.session, initial={'openid_url': scipio_profile and scipio_profile.openid}),
+        'personal': scipio_profile and ProfileForm(instance=scipio_profile),
+        'settings': forms.SettingsForm(instance=cicero_profile),
     }
 
 def _profile_page(request, forms):
@@ -218,20 +218,16 @@ scipio.signals.authenticated.connect(change_openid_complete)
 @require_POST
 def post_profile(request, form_name):
     forms = _profile_forms(request)
-    form = forms[form_name].__class__(request.POST, instance=request.user.cicero_profile)
+    profile = {
+        'settings': request.user.cicero_profile,
+        'personal': request.user.scipio_profile,
+    }[form_name]
+    form = forms[form_name].__class__(request.POST, instance=profile)
     forms[form_name] = form
     if form.is_valid():
         form.save()
         return HttpResponseRedirect('../')
     return _profile_page(request, forms)
-
-@login_required
-@require_POST
-def read_hcard(request):
-    profile = request.user.cicero_profile
-    profile.read_hcard()
-    profile.save()
-    return HttpResponseRedirect('../')
 
 @require_POST
 def mark_read(request, slug=None):

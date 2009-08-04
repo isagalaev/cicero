@@ -22,7 +22,6 @@ urlpatterns = patterns('',
     (r'^users/self/$', views.edit_profile),
     (r'^users/self/openid/$', views.change_openid),
     (r'^users/self/(personal|settings)/$', views.post_profile),
-    (r'^users/self/hcard/$', views.read_hcard),
     url(r'^$', views.index, {
         'queryset': Forum.objects.all(),
         'context_processors': [default],

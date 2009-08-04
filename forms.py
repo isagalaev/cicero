@@ -92,11 +92,6 @@ class PreviewForm(ModelForm):
         article = Article(text=self.cleaned_data['text'], filter=self.cleaned_data['filter'])
         return article.html()
 
-class PersonalForm(ModelForm):
-    class Meta:
-        model = Profile
-        fields = ['name']
-
 class SettingsForm(ModelForm):
     class Meta:
         model = Profile
