@@ -16,7 +16,7 @@
     <label for="id_openid_url">{{ openid.openid_url.label }}</label>
     {{ openid.openid_url }}
     {% if openid.openid_url.errors %}<em class="error">{{ openid.openid_url.errors|join:", " }}</em>{% endif %}
-  
+
   <div class="buttons"><button type="submit">Изменить</button></div>
 </form>
 
@@ -24,13 +24,17 @@
   <form action="{% url cicero.views.post_profile "personal" %}" method="post">
     <h3>Личные данные</h3>
     <p>
-      <label for="id_name">{{ personal.name.label }}</label>
-      {{ personal.name }}
-      {% if personal.name.errors %}<em class="error">{{ personal.name.errors|join:", " }}</em>{% endif %}
-    
+      <label for="id_nickname">{{ personal.nickname.label }}</label>
+      {{ personal.nickname }}
+      {% if personal.nickname.errors %}<em class="error">{{ personal.nickname.errors|join:", " }}</em>{% endif %}
+    <p>
+      {{ personal.autoupdate }}
+      <label for="id_autoupdate">{{ personal.autoupdate.label }}</label>
+      {% if personal.autoupdate.errors %}<em class="error">{{ personal.autoupdate.errors|join:", " }}</em>{% endif %}
+
     <div class="buttons"><button type="submit">Изменить</button></div>
   </form>
-  
+
   {% if profile.openid %}
   <form action="{% url cicero.views.read_hcard %}" method="post" id="hcard">
     <div class="buttons"><button type="submit">Считать из hCard</button></div>
@@ -44,7 +48,7 @@
     <label for="id_filter">{{ settings.filter.label }}</label>
     {{ settings.filter }}
     {% if settings.filter.errors %}<em class="error">{{ settings.filter.errors|join:", " }}</em>{% endif %}
-  
+
   <div class="buttons"><button type="submit">Изменить</button></div>
 </form>
 
