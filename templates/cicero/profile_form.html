@@ -20,27 +20,21 @@
   <div class="buttons"><button type="submit">Изменить</button></div>
 </form>
 
-<div id="personal" class="block">
-  <form action="{% url cicero.views.post_profile "personal" %}" method="post">
-    <h3>Личные данные</h3>
-    <p>
-      <label for="id_nickname">{{ personal.nickname.label }}</label>
-      {{ personal.nickname }}
-      {% if personal.nickname.errors %}<em class="error">{{ personal.nickname.errors|join:", " }}</em>{% endif %}
-    <p>
-      {{ personal.autoupdate }}
-      <label for="id_autoupdate">{{ personal.autoupdate.label }}</label>
-      {% if personal.autoupdate.errors %}<em class="error">{{ personal.autoupdate.errors|join:", " }}</em>{% endif %}
+{% if profile.user.scipio_profile %}
+<form action="{% url cicero.views.post_profile "personal" %}" method="post" id="personal" class="block">
+  <h3>Личные данные</h3>
+  <p>
+    <label for="id_nickname">{{ personal.nickname.label }}</label>
+    {{ personal.nickname }}
+    {% if personal.nickname.errors %}<em class="error">{{ personal.nickname.errors|join:", " }}</em>{% endif %}
+  <p>
+    {{ personal.autoupdate }}
+    <label for="id_autoupdate">{{ personal.autoupdate.label }}</label>
+    {% if personal.autoupdate.errors %}<em class="error">{{ personal.autoupdate.errors|join:", " }}</em>{% endif %}
 
-    <div class="buttons"><button type="submit">Изменить</button></div>
-  </form>
-
-  {% if profile.openid %}
-  <form action="{% url cicero.views.read_hcard %}" method="post" id="hcard">
-    <div class="buttons"><button type="submit">Считать из hCard</button></div>
-  </form>
-  {% endif %}
-</div>
+  <div class="buttons"><button type="submit">Изменить</button></div>
+</form>
+{% endif %}
 
 <form action="{% url cicero.views.post_profile "settings" %}" id="settings" method="post" class="block">
   <h3>Настройки</h3>
