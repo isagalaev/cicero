@@ -139,13 +139,13 @@ def topic(request, slug, id, **kwargs):
     kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic', 'show_last_link': True}
     return object_list(request, **kwargs)
 
-def user_authenticated(sender, user, acquire_article=None, **kwargs):
+def user_authenticated(sender, user, acquire=None, **kwargs):
     from django.contrib import auth
     auth.login(sender, user)
     caching.invalidate_by_user(sender)
-    if acquire_article is not None:
+    if acquire is not None:
         try:
-            article = Article.objects.get(pk=acquire_article)
+            article = Article.objects.get(pk=acquire)
             article.author = user.cicero_profile
             article.save()
             return _process_new_article(
