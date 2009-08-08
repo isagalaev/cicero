@@ -5,6 +5,7 @@ from django.utils.encoding import smart_str
 from django.conf import settings
 
 from cicero.utils import akismet
+from scipio.models import Profile
 
 def _forum_url(view_name, *args, **kwargs):
     domain = Site.objects.get_current().domain
@@ -14,6 +15,10 @@ def _article_data(request, article, is_new_topic):
     text = article.text
     if is_new_topic:
         text = article.topic.subject + '\n' + text
+    try:
+        openid = article.author.user.scipio_profile.openid
+    except Profile.DoesNotExist:
+        openid = ''
     return {
         'key': settings.CICERO_AKISMET_KEY,
         'blog': _forum_url('cicero_index'),
@@ -23,7 +28,7 @@ def _article_data(request, article, is_new_topic):
         'permalink': _forum_url('cicero.views.topic', args=[article.topic.forum.slug, article.topic.id]),
         'comment_type': 'post',
         'comment_author': smart_str(article.from_guest() and article.guest_name or article.author),
-        'comment_author_url': article.author.openid or '',
+        'comment_author_url': openid,
         'comment_content': smart_str(text),
         'HTTP_ACCEPT': request.META.get('HTTP_ACCEPT', ''),
     }
