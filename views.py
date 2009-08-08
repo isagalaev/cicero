@@ -142,7 +142,7 @@ def topic(request, slug, id, **kwargs):
 def user_authenticated(sender, user, acquire_article=None, **kwargs):
     from django.contrib import auth
     auth.login(sender, user)
-    caching.invalidate_by_user(user)
+    caching.invalidate_by_user(sender)
     if acquire_article is not None:
         try:
             article = Article.objects.get(pk=acquire_article)
