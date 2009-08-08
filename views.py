@@ -72,7 +72,7 @@ def _process_new_article(request, article, is_new_topic, check_login):
         form = AuthForm(request.session, {'openid_url': request.POST['name']})
         if form.is_valid():
             article.set_spam_status(spam_status)
-            url = form.auth_redirect(post_redirect(request), data={'acquire': article})
+            url = form.auth_redirect(post_redirect(request), data={'acquire': str(article.pk)})
             return HttpResponseRedirect(url)
     if spam_status == 'clean':
         slug = article.topic.forum.slug
