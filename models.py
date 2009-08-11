@@ -23,7 +23,6 @@ import scipio.signals
 from scipio.models import Profile as ScipioProfile
 
 from cicero import fields
-from cicero import antispam
 from cicero.filters import filters
 from cicero.mutants import mutant
 from cicero import utils
