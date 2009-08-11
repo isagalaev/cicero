@@ -38,19 +38,6 @@ CICERO_UNREAD_TRACKING_PERIOD = 30
 CICERO_SPHINX_SERVER = '127.0.0.1'
 CICERO_SPHINX_PORT = 3312
 
-# Список модулей антиспамных плагинов в порядке применения
-# Допускает любые модули, в которых есть функция validate
-# Параметры функции см. в существующих плагинах
-CICERO_ANTISPAM_PLUGINS = [
-    'cicero.antispam.honeypots',
-    'cicero.antispam.whitelist',
-    'cicero.antispam.akismet',
-    'cicero.antispam.old_topic',
-]
-
-# API-ключ Akismet'а
-CICERO_AKISMET_KEY = ''
-
 # Число дней, после которых топики считаются "старыми" и статьи в них
 # перестают попадать в новые.
 CICERO_OLD_TOPIC_AGE = 60

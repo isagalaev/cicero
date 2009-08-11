@@ -55,7 +55,7 @@ def _publish_article(slug, article):
     caching.invalidate_by_article(slug, article.topic_id)
 
 def _process_new_article(request, article, is_new_topic, check_login):
-    spam_status = antispam.validate(request, article, is_new_topic)
+    spam_status = antispam.conveyor.validate(request, article=article)
 
     # Detected spam is deleted independant on check_login because
     # an OpenID server may not return from a check and the spam will hang forever
@@ -324,7 +324,7 @@ def article_publish(request, id):
     if not request.user.cicero_profile.moderator:
         return HttpResponseForbidden('Нет прав публиковать спам')
     article = get_object_or_404(Article, pk=id)
-    antispam.submit('ham', request, article, article.topic.article_set.count() == 1)
+    antispam.conveyor.submit('ham', request, article=article)
     article.set_spam_status('clean')
     if not article.from_guest() and article.author.spamer is None:
         article.author.spamer = False
@@ -340,7 +340,7 @@ def article_spam(request, id):
     if not article.from_guest() and article.author.spamer is None:
         article.author.spamer = True
         article.author.save()
-    antispam.submit('spam', request, article, article.topic.article_set.count() == 1)
+    antispam.conveyor.submit('spam', request, article=article)
     slug, topic_id = article.topic.forum.slug, article.topic.id
     article.delete()
     caching.invalidate_by_article(slug, topic_id)
