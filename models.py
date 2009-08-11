@@ -43,6 +43,11 @@ class Profile(models.Model):
             pass
         return unicode(self.user)
 
+    def save(self, **kwargs):
+        if not self.mutant:
+            self.generate_mutant()
+        super(Profile, self).save(**kwargs)
+
     def get_absolute_url(self):
         return reverse('profile', args=[self.user_id])
 
@@ -52,11 +57,14 @@ class Profile(models.Model):
         '''
         if self.mutant and os.path.exists(self.mutant.path):
             os.remove(self.mutant.path)
-        if not settings.CICERO_OPENID_MUTANT_PARTS or not self.openid or not self.openid_server:
+        if not settings.CICERO_OPENID_MUTANT_PARTS:
             return
-        content = StringIO()
-        mutant(self.openid).save(content, 'PNG')
-        self.mutant.save('%s.png' % self._get_pk_val(), ContentFile(content.getvalue()))
+        try:
+            content = StringIO()
+            mutant(self.user.scipio_profile.openid).save(content, 'PNG')
+            self.mutant.save('%s.png' % self._get_pk_val(), ContentFile(content.getvalue()))
+        except ScipioProfile.DoesNotExist:
+            pass
 
     scipio.signals.created.connect(lambda sender, profile, **kwargs: profile.user.cicero_profile.generate_mutant())
 
