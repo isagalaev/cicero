@@ -324,7 +324,7 @@ def article_publish(request, id):
     if not request.user.cicero_profile.moderator:
         return HttpResponseForbidden('Нет прав публиковать спам')
     article = get_object_or_404(Article, pk=id)
-    antispam.conveyor.submit('ham', request, article=article)
+    antispam.conveyor.submit_ham(article.spam_status, article=article)
     article.set_spam_status('clean')
     if not article.from_guest() and article.author.spamer is None:
         article.author.spamer = False
@@ -340,7 +340,7 @@ def article_spam(request, id):
     if not article.from_guest() and article.author.spamer is None:
         article.author.spamer = True
         article.author.save()
-    antispam.conveyor.submit('spam', request, article=article)
+    antispam.conveyor.submit_spam(article=article)
     slug, topic_id = article.topic.forum.slug, article.topic.id
     article.delete()
     caching.invalidate_by_article(slug, topic_id)
