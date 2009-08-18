@@ -69,7 +69,7 @@ def _process_new_article(request, article, is_new_topic, check_login):
         })
 
     if check_login and not request.user.is_authenticated():
-        form = AuthForm(request.session, {'openid_url': request.POST['name']})
+        form = AuthForm(request.session, {'openid_identity': request.POST['name']})
         if form.is_valid():
             article.set_spam_status(spam_status)
             url = form.auth_redirect(post_redirect(request), data={'acquire': str(article.pk)})
@@ -177,7 +177,7 @@ def _profile_forms(request):
     except ScipioProfile.DoesNotExist:
         scipio_profile = None
     return {
-        'openid': AuthForm(request.session, initial={'openid_url': scipio_profile and scipio_profile.openid}),
+        'openid': AuthForm(request.session, initial={'openid_identity': scipio_profile and scipio_profile.openid}),
         'personal': scipio_profile and ProfileForm(instance=scipio_profile),
         'settings': forms.SettingsForm(instance=cicero_profile),
     }
