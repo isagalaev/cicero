@@ -326,9 +326,11 @@ def article_publish(request, id):
     article = get_object_or_404(Article, pk=id)
     antispam.conveyor.submit_ham(article.spam_status, article=article)
     article.set_spam_status('clean')
-    if not article.from_guest() and article.author.spamer is None:
-        article.author.spamer = False
-        article.author.save()
+    if not article.from_guest():
+        scipio_profile = article.author.user.scipio_profile
+        if scipio_profile.spamer is None:
+            scipio_profile.spamer = False
+            scipio_profile.save()
     caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
     return HttpResponseRedirect(reverse(spam_queue))
 
@@ -337,9 +339,11 @@ def article_spam(request, id):
     if not request.user.cicero_profile.moderator:
         return HttpResponseForbidden('Нет прав определять спам')
     article = get_object_or_404(Article, pk=id)
-    if not article.from_guest() and article.author.spamer is None:
-        article.author.spamer = True
-        article.author.save()
+    if not article.from_guest():
+        scipio_profile = article.author.user.scipio_profile
+        if scipio_profile.spamer is None:
+            scipio_profile.spamer = True
+            scipio_profile.save()
     antispam.conveyor.submit_spam(article=article)
     slug, topic_id = article.topic.forum.slug, article.topic.id
     article.delete()
