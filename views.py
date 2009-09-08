@@ -72,7 +72,7 @@ def _process_new_article(request, article, is_new_topic, check_login):
         form = AuthForm(request.session, {'openid_identity': request.POST['name']})
         if form.is_valid():
             article.set_spam_status(spam_status)
-            url = form.auth_redirect(post_redirect(request), data={'acquire': str(article.pk)})
+            url = form.auth_redirect(post_redirect(request), data={'op': 'login', 'acquire': str(article.pk)})
             return HttpResponseRedirect(url)
     if spam_status == 'clean':
         slug = article.topic.forum.slug
@@ -139,10 +139,9 @@ def topic(request, slug, id, **kwargs):
     kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic', 'show_last_link': True}
     return object_list(request, **kwargs)
 
-def user_authenticated(sender, user, acquire=None, **kwargs):
-    from django.contrib import auth
-    auth.login(sender, user)
-    caching.invalidate_by_user(sender)
+def user_authenticated(sender, user, op=None, acquire=None, **kwargs):
+    if op == 'login':
+        caching.invalidate_by_user(sender)
     if acquire is not None:
         try:
             article = Article.objects.get(pk=acquire)
