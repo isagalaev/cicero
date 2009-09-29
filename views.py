@@ -42,7 +42,7 @@ def post_redirect(request):
 def login_required(func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated():
-            return HttpResponseRedirect(reverse(login) + '?redirect=' + request.path)
+            return HttpResponseRedirect(reverse('scipio_login') + '?redirect=' + request.path)
         return func(request, *args, **kwargs)
     return wrapper
 
