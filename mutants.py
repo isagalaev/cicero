@@ -9,7 +9,10 @@
 
 import Image
 import os
-import md5
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import new as md5
 from urlparse import urlsplit
 
 from django.conf import settings
@@ -36,7 +39,7 @@ def shadow(image):
     return shadow
 
 def mutant(openid):
-    hash = md5.new(openid).digest()
+    hash = md5(openid).digest()
     extremities = Image.new('RGBA', (48, 48))
     arms = Image.new('RGBA', (48, 48))
     for filename in (partfile('arm-left', hash[0]), partfile('arm-right', hash[1])):
@@ -57,7 +60,7 @@ def mutant(openid):
 
     host = urlsplit(openid)[1]
     host = '.'.join(host.split('.')[-2:])
-    hash = md5.new(host).digest()
+    hash = md5(host).digest()
     from ImageOps import colorize
     result = Image.new('RGBA', (48, 48))
     for index, image in enumerate((extremities, body, head)):
