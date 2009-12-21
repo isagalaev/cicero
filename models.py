@@ -200,7 +200,7 @@ class Topic(models.Model):
 
 WWW_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)www\.', re.UNICODE)
 FTP_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)ftp\.', re.UNICODE)
-PROTOCOL_PATTERN = re.compile(r'(http://|ftp://|mailto:|https://)(.*?)([\.\,\?\!\)\>]?)(\s|$)')
+PROTOCOL_PATTERN = re.compile(r'(http://|ftp://|mailto:|https://)(.*?)([\.\,\?\!\)\>\"]?)(\s|$)')
 
 class ArticleManager(models.Manager):
     def get_query_set(self):
