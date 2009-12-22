@@ -261,7 +261,7 @@ class Article(models.Model):
                 return False
             return node.name in tags or has_parents(node.parent, tags)
 
-        text_chunks = (c for c in soup.recursiveChildGenerator() if isinstance(c, unicode))
+        text_chunks = [c for c in soup.recursiveChildGenerator() if isinstance(c, unicode)]
         for chunk in text_chunks:
             s = chunk
             if not has_parents(chunk.parent, ['code']):
