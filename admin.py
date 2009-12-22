@@ -5,7 +5,7 @@ import models
 
 site.register(models.Forum,
     list_display = ['name', 'ordering', 'group'],
-    list_editable = ['name', 'ordering', 'group'],
+    list_editable = ['ordering', 'group'],
 )
 
 site.register(models.Topic,
