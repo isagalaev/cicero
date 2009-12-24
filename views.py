@@ -12,7 +12,7 @@ from scipio.forms import AuthForm, ProfileForm
 from scipio.models import Profile as ScipioProfile
 import scipio.signals
 
-from cicero.models import Forum, Topic, Article, Profile
+from cicero.models import Forum, Topic, Article, Profile, Vote
 from cicero import forms
 from cicero.context import default
 from cicero import caching
@@ -267,6 +267,30 @@ def article_edit(request, id):
         'form': form,
         'article': article,
     })
+
+@require_POST
+@login_required
+def article_vote(request, id):
+    article = get_object_or_404(Article, pk=id)
+    value = request.POST.get('vote', '')
+    vote, created = article.vote_set.get_or_create(
+        profile = request.user.cicero_profile,
+        defaults = {'value': value},
+    )
+    if not created:
+        vote.value = value
+        vote.save()
+    caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
+    if request.is_ajax():
+        article = Article.objects.get(pk=article.id)
+        return JSONResponse({
+            'value': vote.value,
+            'votes_up': article.votes_up,
+            'votes_down': article.votes_down,
+        })
+    else:
+        url = '%s#%s' % (reverse(topic, args=(article.topic.forum.slug, article.topic.id)), article.id)
+        return HttpResponseRedirect(url)
 
 @login_required
 def article_delete(request, id):

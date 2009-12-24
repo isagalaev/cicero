@@ -222,6 +222,9 @@ class Article(models.Model):
     spawned_to = models.OneToOneField(Topic, null=True, related_name='spawned_from')
     spam_status = models.CharField(max_length=20, default='clean')
     ip = models.IPAddressField(default='127.0.0.1')
+    votes_up = models.PositiveIntegerField(default=0, editable=False)
+    votes_down = models.PositiveIntegerField(default=0, editable=False)
+    voters = models.ManyToManyField(Profile, through='Vote', related_name='voted_articles')
 
     objects = ArticleManager()
     deleted_objects = DeletedArticleManager()
@@ -237,6 +240,10 @@ class Article(models.Model):
         super(Article, self).delete()
         if topic.article_set.count() == 0:
             topic.delete()
+
+    def update_vote_counts(self):
+        self.votes_up = self.vote_set.filter(value='up').count()
+        self.votes_down = self.vote_set.filter(value='down').count()
 
     def html(self):
         '''
@@ -340,3 +347,23 @@ class Article(models.Model):
         if self.topic.spam_status != spam_status and self.topic.article_set.count() == 1:
             self.topic.spam_status = spam_status
             self.topic.save()
+
+VOTE_CHOICES = [
+    ('up', 'up'),
+    ('down', 'down'),
+]
+
+class Vote(models.Model):
+    profile = models.ForeignKey(Profile)
+    article = models.ForeignKey(Article)
+    value = models.CharField(max_length=10, choices=VOTE_CHOICES)
+
+    class Meta:
+        unique_together = [
+            ('profile', 'article'),
+        ]
+
+    def save(self, **kwargs):
+        super(Vote, self).save(**kwargs)
+        self.article.update_vote_counts()
+        self.article.save()
