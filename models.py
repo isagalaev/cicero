@@ -137,6 +137,18 @@ class Profile(models.Model):
         else:
             return False
 
+    def set_votes(self, articles):
+        '''
+        Проставляет статьям признаки голосования за них от лица профиля.
+        '''
+        votes = self.vote_set.filter(article__in=[a.pk for a in articles])
+        article_votes = dict((v.article_id, v) for v in votes)
+        for article in articles:
+            vote = article_votes.get(article.pk)
+            article.vote_value = vote and vote.value
+            article.voted_up = article.vote_value == 'up'
+            article.voted_down = article.vote_value == 'down'
+
     def can_change_article(self, article):
         return self.moderator or (not article.from_guest() and article.author_id == self.user_id)
 

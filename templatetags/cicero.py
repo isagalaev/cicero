@@ -52,6 +52,12 @@ def setnews(parser, token):
         raise template.TemplateSyntaxError, '"%s" takes object list as parameter ' % bits[0]
     return SetNewsNode(parser.compile_filter(bits[1]))
 
+@register.simple_tag
+def setvotes(articles, profile):
+    if profile:
+        profile.set_votes(articles)
+    return ''
+
 class IfCanChangeNode(template.Node):
     def __init__(self, profile_expr, object_expr, object_type, node_list):
         self.profile_expr, self.object_expr, self.object_type, self.node_list = profile_expr, object_expr, object_type, node_list
