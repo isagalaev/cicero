@@ -42,7 +42,10 @@ def post_redirect(request):
 def login_required(func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated():
-            return HttpResponseRedirect(reverse('scipio_login') + '?redirect=' + request.path)
+            if request.is_ajax():
+                return HttpResponse('Authorization required', status=401, mimetype='text/plain')
+            else:
+                return HttpResponseRedirect(reverse('scipio_login') + '?redirect=' + request.path)
         return func(request, *args, **kwargs)
     return wrapper
 
@@ -283,10 +286,9 @@ def article_vote(request, id):
     caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
     if request.is_ajax():
         article = Article.objects.get(pk=article.id)
-        return JSONResponse({
-            'value': vote.value,
-            'votes_up': article.votes_up,
-            'votes_down': article.votes_down,
+        request.user.cicero_profile.set_votes([article])
+        return render_to_response(request, 'cicero/article_votes.html', {
+            'article': article,
         })
     else:
         url = '%s#%s' % (reverse(topic, args=(article.topic.forum.slug, article.topic.id)), article.id)
