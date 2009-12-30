@@ -8,8 +8,11 @@
 
 Для работы форума необходимы библиотеки:
 
-- BeautifulSoup (<http://www.crummy.com/software/BeautifulSoup/>). Она
- отвечает за парсинга HTML.
+- html5lib (<http://code.google.com/p/html5lib/>) - отвечает за парсинг
+  HTML вместе со следующей библиотекой...
+
+- BeautifulSoup (<http://www.crummy.com/software/BeautifulSoup/>). 
+  Используется при парсинге HTML.
 
 - py-openid (<http://www.openidenabled.com/openid/libraries/python/>) --
   это библиотека реализующая собственно протокол OpenID

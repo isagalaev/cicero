@@ -8,7 +8,7 @@ from StringIO import StringIO
 from xmlrpclib import ServerProxy, Fault, ProtocolError, ResponseError
 from xml.parsers.expat import ExpatError
 
-from BeautifulSoup import BeautifulSoup
+from html5lib import HTMLParser, treebuilders
 from django.db import models
 from django.db import connection
 from django.db.models import Q
@@ -214,6 +214,9 @@ WWW_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)www\.', re.UNICODE)
 FTP_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)ftp\.', re.UNICODE)
 PROTOCOL_PATTERN = re.compile(r'(http://|ftp://|mailto:|https://)(.*?)([\.\,\?\!\)\>\"]*?)(\s|$)')
 
+_parser = HTMLParser(tree=treebuilders.getTreeBuilder('beautifulsoup'))
+_parse_soup = _parser.parse
+
 class ArticleManager(models.Manager):
     def get_query_set(self):
         return super(ArticleManager, self).get_query_set().filter(deleted__isnull=True)
@@ -267,13 +270,13 @@ class Article(models.Model):
         else:
             result = linebreaks(escape(self.text))
 
-        soup = BeautifulSoup(result)
+        soup = _parse_soup(result)
 
         def urlify(s):
             s = re.sub(WWW_PATTERN, r'\1http://www.', s)
             s = re.sub(FTP_PATTERN, r'\1ftp://ftp.', s)
             s = re.sub(PROTOCOL_PATTERN, r'<a href="\1\2">\1\2</a>\3\4', s)
-            return BeautifulSoup(s)
+            return _parse_soup(s)
 
         def has_parents(node, tags):
             if node is None:
@@ -329,7 +332,7 @@ class Article(models.Model):
             match = re.search(r'<link rel="pingback" href="([^"]+)" ?/?>', content)
             return match and match.group(1)
 
-        soup = BeautifulSoup(self.html())
+        soup = _parse_soup(self.html())
         links = (a['href'] for a in soup.findAll('a') if is_external(a['href']))
         links = (l.encode('utf-8') for l in links)
         for link in links:
