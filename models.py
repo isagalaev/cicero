@@ -8,7 +8,7 @@ from StringIO import StringIO
 from xmlrpclib import ServerProxy, Fault, ProtocolError, ResponseError
 from xml.parsers.expat import ExpatError
 
-from html5lib import HTMLParser, treebuilders
+from html5lib import HTMLParser, serializer, treewalkers
 from django.db import models
 from django.db import connection
 from django.db.models import Q
@@ -214,8 +214,11 @@ WWW_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)www\.', re.UNICODE)
 FTP_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)ftp\.', re.UNICODE)
 PROTOCOL_PATTERN = re.compile(r'(http://|ftp://|mailto:|https://)(.*?)([\.\,\?\!\)\>\"]*?)(\s|$)')
 
-_parser = HTMLParser(tree=treebuilders.getTreeBuilder('beautifulsoup'))
-_parse_soup = _parser.parse
+_parser = HTMLParser()
+_parse = _parser.parseFragment
+_serializer = serializer.HTMLSerializer()
+_tree_walker = treewalkers.getTreeWalker('simpletree')
+_serialize = lambda doc: u''.join(_serializer.serialize(_tree_walker(doc)))
 
 class ArticleManager(models.Manager):
     def get_query_set(self):
@@ -270,35 +273,32 @@ class Article(models.Model):
         else:
             result = linebreaks(escape(self.text))
 
-        soup = _parse_soup(result)
+        doc = _parse(result)
 
         def urlify(s):
             s = re.sub(WWW_PATTERN, r'\1http://www.', s)
             s = re.sub(FTP_PATTERN, r'\1ftp://ftp.', s)
             s = re.sub(PROTOCOL_PATTERN, r'<a href="\1\2">\1\2</a>\3\4', s)
-            return _parse_soup(s)
+            return s
 
         def has_parents(node, tags):
             if node is None:
                 return False
             return node.name in tags or has_parents(node.parent, tags)
 
-        text_chunks = [c for c in soup.recursiveChildGenerator() if isinstance(c, unicode)]
-        for chunk in text_chunks:
-            s = chunk
-            if not has_parents(chunk.parent, ['code']):
-                s = re.sub(ur'\B--\B', u'—', s)
-            if not has_parents(chunk.parent, ['a', 'code']):
-                s = urlify(s)
-            chunk.replaceWith(s)
+        text_nodes = [n for n in doc if n.type == 4]
+        for node in text_nodes:
+            if not has_parents(node, [u'code']):
+                node.value = re.sub(ur'\B--\B', u'—', node.value)
+            if not has_parents(node, [u'a', u'code']):
+                for child in _parse(urlify(escape(node.value))).childNodes:
+                   node.parent.insertBefore(child, node)
+                node.parent.removeChild(node)
 
-        for link in soup.findAll('a'):
-            if 'rel' in link:
-                link['rel'] += ' '
-            else:
-                link['rel'] = ''
-            link['rel'] += 'nofollow'
-        result = unicode(soup)
+        for link in (n for n in doc if n.name == u'a'):
+            link.attributes['rel'] = (link.attributes.get('rel', '') + ' nofollow').strip()
+
+        result = _serialize(doc)
         return mark_safe(result)
 
     def from_guest(self):
@@ -332,8 +332,9 @@ class Article(models.Model):
             match = re.search(r'<link rel="pingback" href="([^"]+)" ?/?>', content)
             return match and match.group(1)
 
-        soup = _parse_soup(self.html())
-        links = (a['href'] for a in soup.findAll('a') if is_external(a['href']))
+        doc = _parse(self.html())
+        links = (n.attributes.get('href', '') for n in doc if n.name == u'a')
+        links = (l for l in links if is_external(l))
         links = (l.encode('utf-8') for l in links)
         for link in links:
             try:
