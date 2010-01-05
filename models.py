@@ -218,7 +218,7 @@ _parser = HTMLParser()
 _parse = _parser.parseFragment
 _serializer = serializer.HTMLSerializer()
 _tree_walker = treewalkers.getTreeWalker('simpletree')
-_serialize = lambda doc: u''.join(_serializer.serialize(_tree_walker(doc)))
+_serialize = lambda doc: u''.join(_serializer.serialize(_tree_walker(doc))) if doc.childNodes else u''
 
 class ArticleManager(models.Manager):
     def get_query_set(self):
