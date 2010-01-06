@@ -4,7 +4,10 @@
 последнего изменения страниц форума. Используются для
 if_modified_since.
 '''
-import md5
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import new as md5
 
 from django.core.cache import cache
 from django.conf import settings
@@ -53,7 +56,7 @@ def user_etag(request, *args, **kwargs):
     '''
     if not request.user.is_authenticated():
         return '"None"'
-    return md5.new(str(request.user.cicero_profile.read_articles)).hexdigest()
+    return md5(str(request.user.cicero_profile.read_articles)).hexdigest()
 
 def invalidate_by_article(slug, topic_id):
     '''
