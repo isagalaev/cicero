@@ -13,9 +13,9 @@
     <img src="{{ profile.mutant.url }}" alt="">
   {% endif %}
   <p>
-    <label for="id_openid_identity">{{ openid.openid_identity.label }}</label>
-    {{ openid.openid_identity }}
-    {% if openid.openid_identity.errors %}<em class="error">{{ openid.openid_identity.errors|join:", " }}</em>{% endif %}
+    <label for="id_openid_identifier">{{ openid.openid_identifier.label }}</label>
+    {{ openid.openid_identifier }}
+    {% if openid.openid_identifier.errors %}<em class="error">{{ openid.openid_identifier.errors|join:", " }}</em>{% endif %}
 
   <div class="buttons"><button type="submit">Изменить</button></div>
 </form>

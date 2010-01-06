@@ -31,7 +31,7 @@
 </form>
 {% else %}
 <form action="{% url scipio_login %}" method="post" id="auth">
-  <p><label>OpenID: <input type="text" name="openid_identity"></label>
+  <p><label>OpenID: <input type="text" name="openid_identifier"></label>
   <div class="buttons"><button type="submit">Вход</button></div>
 </form>
 {% endif %}
