@@ -54,7 +54,7 @@ def _publish_article(slug, article):
     from django.db import transaction
     if transaction.is_managed():
         transaction.commit()
-    article.ping_external_links()
+    article.ping_external_urls()
     caching.invalidate_by_article(slug, article.topic_id)
 
 def _process_new_article(request, article, is_new_topic, check_login):

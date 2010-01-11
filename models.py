@@ -2,11 +2,7 @@
 import re
 import os
 from datetime import datetime, date, timedelta
-from urllib2 import urlopen
-from urlparse import urlsplit
 from StringIO import StringIO
-from xmlrpclib import ServerProxy, Fault, ProtocolError, ResponseError
-from xml.parsers.expat import ExpatError
 
 from html5lib import HTMLParser, serializer, treewalkers
 from django.db import models
@@ -21,6 +17,7 @@ from django.utils.html import linebreaks, escape
 from django.conf import settings
 import scipio.signals
 from scipio.models import Profile as ScipioProfile
+import pingback
 
 from cicero import fields
 from cicero.filters import filters
@@ -314,42 +311,14 @@ class Article(models.Model):
         '''
         return self.spawned_to_id is not None
 
-    def ping_external_links(self):
+    def ping_external_urls(self):
         '''
         Пингование внешних ссылок через Pingback
         (http://www.hixie.ch/specs/pingback/pingback)
         '''
-        domain = Site.objects.get_current().domain
-        index_url = reverse('cicero_index')
-        topic_url = utils.absolute_url(reverse('cicero.views.topic', args=(self.topic.forum.slug, self.topic.id)))
-
-        def is_external(url):
-            scheme, server, path, query, fragment = urlsplit(url)
-            return server != '' and \
-                   (server != domain or not path.startswith(index_url))
-
-        def search_link(content):
-            match = re.search(r'<link rel="pingback" href="([^"]+)" ?/?>', content)
-            return match and match.group(1)
-
-        doc = _parse(self.html())
-        links = (n.attributes.get('href', '') for n in doc if n.name == u'a')
-        links = (l for l in links if is_external(l))
-        links = (l.encode('utf-8') for l in links)
-        for link in links:
-            try:
-                f = urlopen(link)
-                try:
-                    info = f.info()
-                    server_url = info.get('X-Pingback', '') or \
-                                              search_link(f.read(512 * 1024))
-                    if server_url:
-                        server = ServerProxy(server_url)
-                        server.pingback.ping(topic_url, link)
-                finally:
-                    f.close()
-            except (IOError, Fault, ProtocolError, ResponseError, ExpatError):
-                pass
+        index_url = utils.absolute_url(reverse('cicero_index'))
+        source_url = utils.absolute_url(reverse('cicero.views.topic', args=(self.topic.forum.slug, self.topic.id)))
+        pingback.ping_external_urls(source_url, self.html(), index_url)
 
     def set_spam_status(self, spam_status):
         '''
