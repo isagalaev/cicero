@@ -17,7 +17,7 @@ from django.utils.html import linebreaks, escape
 from django.conf import settings
 import scipio.signals
 from scipio.models import Profile as ScipioProfile
-import pingback
+import pingdjack
 
 from cicero import fields
 from cicero.filters import filters
@@ -318,7 +318,7 @@ class Article(models.Model):
         '''
         index_url = utils.absolute_url(reverse('cicero_index'))
         source_url = utils.absolute_url(reverse('cicero.views.topic', args=(self.topic.forum.slug, self.topic.id)))
-        pingback.ping_external_urls(source_url, self.html(), index_url)
+        pingdjack.ping_external_urls(source_url, self.html(), index_url)
 
     def set_spam_status(self, spam_status):
         '''
