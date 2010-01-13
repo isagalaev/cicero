@@ -4,7 +4,6 @@ import os
 from datetime import datetime, date, timedelta
 from StringIO import StringIO
 
-from html5lib import HTMLParser, serializer, treewalkers
 from django.db import models
 from django.db import connection
 from django.db.models import Q
@@ -18,6 +17,7 @@ from django.conf import settings
 import scipio.signals
 from scipio.models import Profile as ScipioProfile
 import pingdjack
+from smorg_style.utils import usertext
 
 from cicero import fields
 from cicero.filters import filters
@@ -207,16 +207,6 @@ class Topic(models.Model):
     def old(self):
         return self.created.date() < datetime.now().date() - timedelta(settings.CICERO_OLD_TOPIC_AGE)
 
-WWW_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)www\.', re.UNICODE)
-FTP_PATTERN = re.compile(r'(^|\s|\(|\[|\<|\:)ftp\.', re.UNICODE)
-PROTOCOL_PATTERN = re.compile(r'(http://|ftp://|mailto:|https://)(.*?)([\.\,\?\!\)]*?)(\s|&gt;|&lt;|&quot;|$)')
-
-_parser = HTMLParser()
-_parse = _parser.parseFragment
-_serializer = serializer.HTMLSerializer()
-_tree_walker = treewalkers.getTreeWalker('simpletree')
-_serialize = lambda doc: u''.join(_serializer.serialize(_tree_walker(doc))) if doc.childNodes else u''
-
 class ArticleManager(models.Manager):
     def get_query_set(self):
         return super(ArticleManager, self).get_query_set().filter(deleted__isnull=True)
@@ -269,34 +259,7 @@ class Article(models.Model):
             result = filters[self.filter](self.text)
         else:
             result = linebreaks(escape(self.text))
-
-        doc = _parse(result)
-
-        def urlify(s):
-            s = re.sub(WWW_PATTERN, r'\1http://www.', s)
-            s = re.sub(FTP_PATTERN, r'\1ftp://ftp.', s)
-            s = re.sub(PROTOCOL_PATTERN, r'<a href="\1\2">\1\2</a>\3\4', s)
-            return s
-
-        def has_parents(node, tags):
-            if node is None:
-                return False
-            return node.name in tags or has_parents(node.parent, tags)
-
-        text_nodes = [n for n in doc if n.type == 4]
-        for node in text_nodes:
-            if not has_parents(node, [u'code']):
-                node.value = re.sub(ur'\B--\B', u'—', node.value)
-            if not has_parents(node, [u'a', u'code']):
-                for child in _parse(urlify(escape(node.value))).childNodes:
-                   node.parent.insertBefore(child, node)
-                node.parent.removeChild(node)
-
-        for link in (n for n in doc if n.name == u'a'):
-            link.attributes['rel'] = (link.attributes.get('rel', '') + ' nofollow').strip()
-
-        result = _serialize(doc)
-        return mark_safe(result)
+        return mark_safe(usertext(result))
 
     def from_guest(self):
         '''

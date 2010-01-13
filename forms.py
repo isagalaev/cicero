@@ -3,6 +3,8 @@ from django.forms import *
 from django.contrib.auth.models import User
 from django.conf import settings
 
+from smorg_style.utils import usertext
+
 from cicero.models import Topic, Article, Profile
 
 def model_field(model, fieldname, **kwargs):
@@ -90,7 +92,7 @@ class PreviewForm(ModelForm):
 
     def preview(self):
         article = Article(text=self.cleaned_data['text'], filter=self.cleaned_data['filter'])
-        return article.html()
+        return usertext(article.html())
 
 class SettingsForm(ModelForm):
     class Meta:
