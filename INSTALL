@@ -11,12 +11,16 @@
 - html5lib (<http://code.google.com/p/html5lib/>) - используется для 
   парсинга HTML.
 
-- py-openid (<http://www.openidenabled.com/openid/libraries/python/>) --
+- py-openid (<http://www.openidenabled.com/openid/libraries/python/>) -
   это библиотека реализующая собственно протокол OpenID
 
 - ElementTree (<http://effbot.org/zone/element-index.htm>),
   включена в стандартную библиотеку Python 2.5. Очень распространенная
   библиотека для парсинга XML.
+
+- django-bbmarkup (<http://bitbucket.org/offline/django-bbmarkup/>) - реализация bbcode
+
+- python-markdown2 (<http://code.google.com/p/python-markdown2/>) или python-markdown (<http://www.freewisdom.org/projects/python-markdown/>) - реализация markdown
 
 - Приложение Scipio (<http://softwaremaniacs.org/soft/scipio/>). Это
   дополнительное Django-приложение, реализующее систему [OpenID][1]-профилей
