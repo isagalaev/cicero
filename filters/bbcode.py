@@ -36,7 +36,7 @@
 ## Modified for Cicero forums by Ivan Sagalaev:
 ##
 ## - doesn't support emoticons
-## - doesn't support [member] and [email] tags
+## - doesn't support [member], [email] and [color] tags
 ## - uses <cite> for quote's source name
 ## - uses <pre><code> for code blocks
 
@@ -148,18 +148,6 @@ class ImgTag(BBTag):
         return node.children[0].text
 
 
-class ColorTag(BBTag):
-    def render_node_xhtml(self, node):
-        if len(node.children) > 0:
-            if node.parameter.lower() in _COLORS or \
-                _COLOR_REGEXP.match(node.parameter) is not None:
-                return '<span style="color: ' + node.parameter +  ';">' + \
-                    node.render_children_xhtml() + '</span>'
-            else:
-                return node.render_children_xhtml()
-        else:
-            return ''
-
 class UrlTag(BBTag):
     def render_node_xhtml(self, node):
         if len(node.children) == 0:
@@ -198,15 +186,12 @@ class CodeTag(BBTag):
 
 ###### DATA ######
 
-_COLORS = ('aqua', 'black', 'blue', 'fuchsia', 'gray', 'green', 'lime', 'maroon',
-    'navy', 'olive', 'purple', 'red', 'silver', 'teal', 'white', 'yellow')
-_COLOR_REGEXP = re.compile(r'#[0-9A-F]{6}')
 _MEMBER_REGEXP = re.compile(r'^[\'"]([0-9A-Za-z_]{1,30})[\'"]$')
 _BBTAG_REGEXP = re.compile(r'\[\[?\/?([A-Za-z\*]+)(:[a-f0-9]+)?(=[^\]]+)?\]?\]')
 
 # 'text' is a dummy entry for text nodes
 _INLINE_TAGS = (
-    'b', 'i', 'color', 'url',
+    'b', 'i', 'url',
     'br', 'text', 'img', 'softbr',
 )
 _BLOCK_LEVEL_TAGS = ('p', 'quote', 'list', 'pre', 'code', 'div')
@@ -241,9 +226,6 @@ _TAGS = (
     # <i>
     HtmlEquivTag('i',          _INLINE_TAGS,   'div',
         html_equiv='i'),
-
-    # <span>
-    ColorTag    ('color',      _INLINE_TAGS,   'div'),
 
     # <a>
     UrlTag      ('url',        ('text',),      'div'),
