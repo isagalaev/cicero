@@ -140,9 +140,9 @@ class ImgTag(BBTag):
             return ''
         imgurl = node.children[0].text   # child is always a BBTextNode
         if node.parent.allows('img'):
-            return '<img src="' + imgurl + '"/>'
+            return '<img src="' + escape(imgurl) + '"/>'
         else:
-            return imgurl
+            return escape(imgurl)
 
     def render_node_bbcode(self, node):
         return node.children[0].text
