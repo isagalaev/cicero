@@ -207,6 +207,14 @@ class Topic(models.Model):
     def old(self):
         return self.created.date() < datetime.now().date() - timedelta(settings.CICERO_OLD_TOPIC_AGE)
 
+    def spawned_from(self):
+        if not hasattr(self, '_spawned_from'):
+            try:
+                self._spawned_from = self.spawned_from_article
+            except Article.DoesNotExist:
+                self._spawned_from = None
+        return self._spawned_from
+
 class ArticleManager(models.Manager):
     def get_query_set(self):
         return super(ArticleManager, self).get_query_set().filter(deleted__isnull=True)
@@ -224,7 +232,7 @@ class Article(models.Model):
     author = models.ForeignKey(Profile)
     guest_name = models.CharField(max_length=255, blank=True)
     deleted = models.DateTimeField(null=True, db_index=True)
-    spawned_to = models.OneToOneField(Topic, null=True, related_name='spawned_from')
+    spawned_to = models.OneToOneField(Topic, null=True, related_name='spawned_from_article')
     spam_status = models.CharField(max_length=20, default='clean')
     ip = models.IPAddressField(default='127.0.0.1')
     votes_up = models.PositiveIntegerField(default=0, editable=False)
