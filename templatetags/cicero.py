@@ -98,11 +98,11 @@ def ifcanchangetopic(parser, token):
     '''
     return ifcanchangenode(parser, token, 'topic')
 
-@register.inclusion_tag('cicero/topic_table_block.html')
-def topic_table_block(topics):
+@register.inclusion_tag('cicero/topic_list_block.html')
+def topic_list_block(topics):
     '''
     Блок со списком топиков.
-    Используется в списке топиков юзера, результатах поиска.
+    Используется в основном шаблоне форума, списке топиков юзера, результатах поиска.
     '''
     return {
         'topics': topics,
