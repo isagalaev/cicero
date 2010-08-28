@@ -215,6 +215,9 @@ class Topic(models.Model):
                 self._spawned_from = None
         return self._spawned_from
 
+    def created_date(self):
+        return self.created.date()
+
 class ArticleManager(models.Manager):
     def get_query_set(self):
         return super(ArticleManager, self).get_query_set().filter(deleted__isnull=True)
