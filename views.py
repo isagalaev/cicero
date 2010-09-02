@@ -2,7 +2,7 @@
 from django.views.generic.list_detail import object_list
 from django.views.decorators.http import require_POST, condition
 from django.views.decorators.cache import never_cache
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseBadRequest, Http404
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
@@ -124,22 +124,24 @@ def forum(request, slug, **kwargs):
 @never_cache
 @condition(caching.user_etag, caching.latest_change)
 def topic(request, slug, id, **kwargs):
-    topic = get_object_or_404(Topic, forum__slug=slug, pk=id)
+    t = get_object_or_404(Topic, pk=id)
+    if t.forum.slug != slug: # topic was moved
+        return redirect(topic, t.forum.slug, t.pk)
     if request.method == 'POST':
-        form = forms.ArticleForm(topic, request.user, request.META.get('REMOTE_ADDR'), request.POST)
+        form = forms.ArticleForm(t, request.user, request.META.get('REMOTE_ADDR'), request.POST)
         if form.is_valid():
             article = form.save()
             return _process_new_article(request, article, False, True)
     else:
-        form = forms.ArticleForm(topic, request.user, request.META.get('REMOTE_ADDR'))
+        form = forms.ArticleForm(t, request.user, request.META.get('REMOTE_ADDR'))
     if request.user.is_authenticated():
         profile = request.user.cicero_profile
-        changed = profile.add_read_articles(topic.article_set.all())
+        changed = profile.add_read_articles(t.article_set.all())
         if changed:
             profile.save()
             caching.invalidate_by_user(request)
-    kwargs['queryset'] = topic.article_set.filter(spam_status='clean').select_related()
-    kwargs['extra_context'] = {'topic': topic, 'form': form, 'page_id': 'topic', 'show_last_link': True}
+    kwargs['queryset'] = t.article_set.filter(spam_status='clean').select_related()
+    kwargs['extra_context'] = {'topic': t, 'form': form, 'page_id': 'topic', 'show_last_link': True}
     return object_list(request, **kwargs)
 
 def user_authenticated(sender, user, op=None, acquire=None, **kwargs):
