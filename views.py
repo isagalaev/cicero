@@ -405,14 +405,12 @@ def topic_edit(request, topic_id):
     t = get_object_or_404(Topic, pk=topic_id)
     if not request.user.cicero_profile.can_change_topic(t):
         return HttpResponseForbidden('Нет прав редактировать топик')
-    if request.method == 'POST':
-        form = forms.TopicEditForm(request.POST, instance=t)
-        if form.is_valid():
-            form.save()
-            caching.invalidate_by_article(t.forum.slug, t.id)
-            return HttpResponseRedirect(reverse(topic, args=[t.forum.slug, t.id]))
-    else:
-        form = forms.TopicEditForm(instance=t)
+    form_class = forms.TopicEditModeratorForm if request.user.cicero_profile.moderator else forms.TopicEditForm
+    form = form_class(request.POST or None, instance=t)
+    if form.is_valid():
+        form.save()
+        caching.invalidate_by_article(t.forum.slug, t.id)
+        return redirect(topic, t.forum.slug, t.id)
     return render_to_response(request, 'cicero/topic_edit.html', {
         'form': form,
         'topic': t,

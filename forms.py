@@ -104,6 +104,11 @@ class TopicEditForm(ModelForm):
         model = Topic
         fields = ['subject']
 
+class TopicEditModeratorForm(TopicEditForm):
+    class Meta:
+        model = Topic
+        fields = ['subject', 'forum']
+
 class SpawnForm(Form):
     subject = model_field(Topic, 'subject')
     articles = MultipleChoiceField(required=False)
