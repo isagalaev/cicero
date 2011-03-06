@@ -34,5 +34,5 @@ class RangesField(models.TextField):
             return [(0, 0)]
         return pickle.loads(str(value))
 
-    def get_db_prep_value(self, value):
+    def get_prep_value(self, value):
         return unicode(pickle.dumps(value))
