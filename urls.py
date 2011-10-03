@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 from django.conf.urls.defaults import *
 from django.conf import settings
-
 from django.views.generic.list_detail import object_list, object_detail
-from django.contrib.syndication.views import feed
+
+
 from cicero import views
 from cicero import feeds
 from cicero.models import Forum, Topic, Article, Profile
@@ -42,9 +42,8 @@ urlpatterns = patterns('',
     (r'^delete_spam/$', views.delete_spam),
     (r'^topic_edit/(\d+)/$', views.topic_edit),
     (r'^topic_spawn/(\d+)/$', views.topic_spawn),
-    url(r'^feeds/(?P<url>.*)/$', feed, {'feed_dict': {
-        'articles': feeds.Article,
-    }}, name='cicero_feeds'),
+    url(r'^feeds/articles/([a-z0-9-]+)/$', feeds.Article(), name='cicero_forum_feed'),
+    url(r'^feeds/articles/([a-z0-9-]+)/(\d+)/$', feeds.Article(), name='cicero_topic_feed'),
     (r'^([a-z0-9-]+)/$', views.forum, info),
     (r'^([a-z0-9-]+)/(\d+)/$', views.topic, info),
     (r'^([a-z0-9-]+)/search/$', views.search),

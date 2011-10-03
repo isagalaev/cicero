@@ -1,7 +1,8 @@
 # -*- coding:utf-8 -*-
 from datetime import datetime, timedelta
 
-from django.contrib.syndication.feeds import Feed, FeedDoesNotExist
+from django.contrib.syndication.views import Feed
+from django.shortcuts import get_object_or_404
 from django.utils.feedgenerator import Atom1Feed
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -11,15 +12,11 @@ from cicero import models
 class Article(Feed):
     feed_type = Atom1Feed
 
-    def get_object(self, bits):
-        if len(bits) == 1:
-            return models.Forum.objects.get(slug=bits[0])
-        if len(bits) == 2:
-            try:
-                return models.Topic.objects.get(forum__slug=bits[0], id=int(bits[1]))
-            except ValueError:
-                pass
-        raise FeedDoesNotExist
+    def get_object(self, request, forum, topic=None):
+        if topic is None:
+            return get_object_or_404(models.Forum, slug=forum)
+        else:
+            return get_object_or_404(models.Topic, forum__slug=forum, id=topic)
 
     def title(self, obj):
         return unicode(obj)
@@ -29,6 +26,12 @@ class Article(Feed):
 
     def item_link(self, article):
         return '%s#%s' % (reverse('cicero.views.topic', args=[article.topic.forum.slug, article.topic.id]), article.id)
+
+    def item_title(self, article):
+        return unicode(article.topic)
+
+    def item_description(self, article):
+        return article.html()
 
     def item_author_name(self, article):
         if article.from_guest():
