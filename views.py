@@ -99,12 +99,15 @@ generic_info = {
 
 @never_cache
 @condition(caching.user_etag, caching.latest_change)
-def index(request, *args, **kwargs):
+def index(request):
     if 'application/xrds+xml' in request.META.get('HTTP_ACCEPT', ''):
         return render_to_response(request, 'cicero/yadis.xml', {
             'return_to': absolute_url(reverse(auth)),
         }, mimetype='application/xrds+xml')
-    return object_list(request, *args, **kwargs)
+    return render_to_response(request, 'cicero/forum_list.html', {
+        'object_list': Forum.objects.all(),
+        'page_id': 'index',
+    })
 
 @never_cache
 @condition(caching.user_etag, caching.latest_change)
