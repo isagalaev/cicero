@@ -2,7 +2,7 @@
 from django.views.decorators.http import require_POST, condition
 from django.views.decorators.cache import never_cache
 from django.shortcuts import get_object_or_404, redirect
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseBadRequest, Http404
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest, Http404
 from django.template.response import TemplateResponse
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
@@ -62,7 +62,7 @@ def login_required(func):
             if request.is_ajax():
                 return HttpResponse('Authorization required', status=401, mimetype='text/plain')
             else:
-                return HttpResponseRedirect(reverse('scipio_login') + '?redirect=' + request.path)
+                return redirect(reverse('scipio_login') + '?redirect=' + request.path)
         return func(request, *args, **kwargs)
     return wrapper
 
@@ -93,7 +93,7 @@ def _process_new_article(request, article, is_new_topic, check_login):
         if form.is_valid():
             article.set_spam_status(spam_status)
             url = form.auth_redirect(post_redirect(request), data={'op': 'login', 'acquire': str(article.pk)})
-            return HttpResponseRedirect(url)
+            return redirect(url)
     if spam_status == 'clean':
         slug = article.topic.forum.slug
         _publish_article(slug, article)
@@ -101,7 +101,7 @@ def _process_new_article(request, article, is_new_topic, check_login):
         if not is_new_topic:
             url += '?page=last'
         url += '#%s' % article.id
-        return HttpResponseRedirect(url)
+        return redirect(url)
     # Любой не-clean и не-spam статус -- разного рода подозрения
     article.set_spam_status(spam_status)
     return response(request, 'cicero/spam_suspect.html', {
@@ -225,7 +225,7 @@ def change_openid(request):
     forms['openid'] = form
     if form.is_valid():
         after_auth_redirect = form.auth_redirect(post_redirect(request), {'op': 'change_openid'})
-        return HttpResponseRedirect(after_auth_redirect)
+        return redirect(after_auth_redirect)
     return _profile_page(request, forms)
 
 def change_openid_complete(sender, user, op=None, **kwargs):
@@ -254,7 +254,7 @@ def post_profile(request, form_name):
     forms[form_name] = form
     if form.is_valid():
         form.save()
-        return HttpResponseRedirect('../')
+        return redirect('../')
     return _profile_page(request, forms)
 
 @require_POST
@@ -267,7 +267,7 @@ def mark_read(request, slug=None):
         profile.add_read_articles(qs)
         profile.save()
         caching.invalidate_by_user(request)
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER') or '../')
+    return redirect(request.META.get('HTTP_REFERER') or '../')
 
 @require_POST
 def article_preview(request):
@@ -287,7 +287,7 @@ def article_edit(request, id):
             form.save()
             caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
             url = '%s#%s' % (reverse(topic, args=(article.topic.forum.slug, article.topic.id)), article.id)
-            return HttpResponseRedirect(url)
+            return redirect(url)
     else:
         form = forms.ArticleEditForm(instance=article)
     return response(request, 'cicero/article_edit.html', {
@@ -316,7 +316,7 @@ def article_vote(request, id):
         })
     else:
         url = '%s#%s' % (reverse(topic, args=(article.topic.forum.slug, article.topic.id)), article.id)
-        return HttpResponseRedirect(url)
+        return redirect(url)
 
 @login_required
 def article_delete(request, id):
@@ -327,11 +327,11 @@ def article_delete(request, id):
     article.save()
     caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
     if article.topic.article_set.count():
-        return HttpResponseRedirect(reverse(topic, args=(article.topic.forum.slug, article.topic.id)))
+        return redirect(topic, article.topic.forum.slug, article.topic.id)
     else:
         article.topic.deleted = datetime.now()
         article.topic.save()
-        return HttpResponseRedirect(reverse(forum, args=(article.topic.forum.slug,)))
+        return redirect(forum, article.topic.forum.slug)
 
 @login_required
 def article_undelete(request, id):
@@ -348,7 +348,7 @@ def article_undelete(request, id):
     except Topic.DoesNotExist:
         article_topic = article.topic
     caching.invalidate_by_article(article_topic.forum.slug, article_topic.id)
-    return HttpResponseRedirect(reverse(topic, args=(article_topic.forum.slug, article_topic.id)))
+    return redirect(topic, article_topic.forum.slug, article_topic.id)
 
 @login_required
 def deleted_articles(request, user_only):
@@ -378,7 +378,7 @@ def article_publish(request, id):
             scipio_profile.spamer = False
             scipio_profile.save()
     caching.invalidate_by_article(article.topic.forum.slug, article.topic.id)
-    return HttpResponseRedirect(reverse(spam_queue))
+    return redirect(spam_queue)
 
 @login_required
 def article_spam(request, id):
@@ -395,9 +395,9 @@ def article_spam(request, id):
     article.delete()
     caching.invalidate_by_article(slug, topic_id)
     if Topic.objects.filter(pk=topic_id).count():
-        return HttpResponseRedirect(reverse(topic, args=(slug, topic_id)))
+        return redirect(topic, slug, topic_id)
     else:
-        return HttpResponseRedirect(reverse(forum, args=(slug,)))
+        return redirect(forum, slug)
 
 @login_required
 def delete_spam(request):
@@ -405,7 +405,7 @@ def delete_spam(request):
         return HttpResponseForbidden('Нет прав удалять спам')
     Article.objects.exclude(spam_status='clean').delete()
     Topic.objects.exclude(spam_status='clean').delete()
-    return HttpResponseRedirect(reverse(spam_queue))
+    return redirect(spam_queue)
 
 @login_required
 def spam_queue(request):
@@ -442,7 +442,7 @@ def topic_spawn(request, article_id):
         form = forms.SpawnForm(article, request.POST)
         if form.is_valid():
             new_topic = form.save()
-            return HttpResponseRedirect(reverse(topic, args=(new_topic.forum.slug, new_topic.id)))
+            return redirect(topic, new_topic.forum.slug, new_topic.id)
     else:
         form = forms.SpawnForm(article)
     return response(request, 'cicero/spawn_topic.html', {
