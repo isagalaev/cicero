@@ -3,6 +3,7 @@ from django.views.decorators.http import require_POST, condition
 from django.views.decorators.cache import never_cache
 from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseBadRequest, Http404
+from django.template.response import TemplateResponse
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.utils import simplejson
@@ -13,19 +14,16 @@ import scipio.signals
 
 from cicero.models import Forum, Topic, Article, Profile, Vote
 from cicero import forms
-from cicero.context import default
 from cicero import caching
 from cicero import antispam
 from cicero.utils import absolute_url
 
 from datetime import datetime
 
-def render_to_response(request, template_name, context_dict, **kwargs):
-    from cicero.context import default
-    from django.template import RequestContext
-    from django.shortcuts import render_to_response as _render_to_response
-    context = RequestContext(request, context_dict, [default])
-    return _render_to_response(template_name, context_instance=context, **kwargs)
+def response(request, template_name, context, **kwargs):
+    profile = request.user.is_authenticated() and request.user.cicero_profile
+    context['profile'] = profile
+    return TemplateResponse(request, template_name, context, **kwargs)
 
 def object_list(request, queryset, context=None, template_name=None):
     if template_name is None:
@@ -45,7 +43,7 @@ def object_list(request, queryset, context=None, template_name=None):
         'paginator': paginator,
         'page_obj': page,
     })
-    return render_to_response(request, template_name, context)
+    return response(request, template_name, context)
 
 class JSONResponse(HttpResponse):
     def __init__(self, data, **kwargs):
@@ -84,7 +82,7 @@ def _process_new_article(request, article, is_new_topic, check_login):
     if spam_status == 'spam':
         forum = article.topic.forum
         article.delete()
-        return render_to_response(request, 'cicero/spam.html', {
+        return response(request, 'cicero/spam.html', {
             'forum': forum,
             'text': article.text,
             'admins': [e for n, e in settings.ADMINS],
@@ -106,7 +104,7 @@ def _process_new_article(request, article, is_new_topic, check_login):
         return HttpResponseRedirect(url)
     # Любой не-clean и не-spam статус -- разного рода подозрения
     article.set_spam_status(spam_status)
-    return render_to_response(request, 'cicero/spam_suspect.html', {
+    return response(request, 'cicero/spam_suspect.html', {
         'article': article,
     })
 
@@ -114,10 +112,10 @@ def _process_new_article(request, article, is_new_topic, check_login):
 @condition(caching.user_etag, caching.latest_change)
 def index(request):
     if 'application/xrds+xml' in request.META.get('HTTP_ACCEPT', ''):
-        return render_to_response(request, 'cicero/yadis.xml', {
+        return response(request, 'cicero/yadis.xml', {
             'return_to': absolute_url(reverse(auth)),
-        }, mimetype='application/xrds+xml')
-    return render_to_response(request, 'cicero/forum_list.html', {
+        }, content_type='application/xrds+xml')
+    return response(request, 'cicero/forum_list.html', {
         'object_list': Forum.objects.all(),
         'page_id': 'index',
     })
@@ -185,7 +183,7 @@ scipio.signals.authenticated.connect(user_authenticated)
 
 def user(request, id):
     profile = get_object_or_404(Profile, pk=id)
-    return render_to_response(request, 'cicero/profile_detail.html', {
+    return response(request, 'cicero/profile_detail.html', {
         'object': profile,
         'page_id': 'profile',
     })
@@ -213,7 +211,7 @@ def _profile_forms(request):
 def _profile_page(request, forms):
     data = {'page_id': 'edit_profile'}
     data.update(forms)
-    return render_to_response(request, 'cicero/profile_form.html', data)
+    return response(request, 'cicero/profile_form.html', data)
 
 @login_required
 def edit_profile(request):
@@ -292,7 +290,7 @@ def article_edit(request, id):
             return HttpResponseRedirect(url)
     else:
         form = forms.ArticleEditForm(instance=article)
-    return render_to_response(request, 'cicero/article_edit.html', {
+    return response(request, 'cicero/article_edit.html', {
         'form': form,
         'article': article,
     })
@@ -313,7 +311,7 @@ def article_vote(request, id):
     if request.is_ajax():
         article = Article.objects.get(pk=article.id)
         request.user.cicero_profile.set_votes([article])
-        return render_to_response(request, 'cicero/article_votes.html', {
+        return response(request, 'cicero/article_votes.html', {
             'article': article,
         })
     else:
@@ -430,7 +428,7 @@ def topic_edit(request, topic_id):
         form.save()
         caching.invalidate_by_article(t.forum.slug, t.id)
         return redirect(topic, t.forum.slug, t.id)
-    return render_to_response(request, 'cicero/topic_edit.html', {
+    return response(request, 'cicero/topic_edit.html', {
         'form': form,
         'topic': t,
     })
@@ -447,7 +445,7 @@ def topic_spawn(request, article_id):
             return HttpResponseRedirect(reverse(topic, args=(new_topic.forum.slug, new_topic.id)))
     else:
         form = forms.SpawnForm(article)
-    return render_to_response(request, 'cicero/spawn_topic.html', {
+    return response(request, 'cicero/spawn_topic.html', {
         'form': form,
         'article': article,
     })
@@ -506,7 +504,7 @@ def search(request, slug):
         else:
             paginator = Paginator([], 1)
             page = paginator.page(1)
-        return render_to_response(request, 'cicero/search.html', {
+        return response(request, 'cicero/search.html', {
             'page_id': 'search',
             'forum': forum,
             'term': term,
@@ -516,4 +514,4 @@ def search(request, slug):
         })
     except SearchUnavailable:
         raise
-        return render_to_response(request, 'cicero/search_unavailable.html', {})
+        return response(request, 'cicero/search_unavailable.html', {})
