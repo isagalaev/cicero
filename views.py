@@ -110,12 +110,6 @@ def _process_new_article(request, article, is_new_topic, check_login):
         'article': article,
     })
 
-generic_info = {
-    'paginate_by': settings.CICERO_PAGINATE_BY,
-    'allow_empty': True,
-    'context_processors': [default],
-}
-
 @never_cache
 @condition(caching.user_etag, caching.latest_change)
 def index(request):
