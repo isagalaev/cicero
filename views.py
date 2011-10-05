@@ -2,7 +2,7 @@
 from django.views.decorators.http import require_POST, condition
 from django.views.decorators.cache import never_cache
 from django.shortcuts import get_object_or_404, redirect
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest, Http404
+from django.http import HttpResponse, HttpResponseForbidden, Http404
 from django.template.response import TemplateResponse
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
