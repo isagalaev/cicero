@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-from django.views.generic.list_detail import object_list
 from django.views.decorators.http import require_POST, condition
 from django.views.decorators.cache import never_cache
 from django.shortcuts import get_object_or_404, redirect
@@ -28,8 +27,9 @@ def render_to_response(request, template_name, context_dict, **kwargs):
     context = RequestContext(request, context_dict, [default])
     return _render_to_response(template_name, context_instance=context, **kwargs)
 
-def _object_list(request, queryset, context):
-    template_name = 'cicero/%s_list.html' % queryset.model._meta.object_name.lower()
+def object_list(request, queryset, context=None, template_name=None):
+    if template_name is None:
+        template_name = 'cicero/%s_list.html' % queryset.model._meta.object_name.lower()
     paginator = Paginator(queryset, settings.CICERO_PAGINATE_BY)
     page_num = request.GET.get('page', '1')
     if page_num == 'last':
@@ -38,6 +38,8 @@ def _object_list(request, queryset, context):
         page = paginator.page(int(page_num))
     except (InvalidPage, ValueError):
         raise Http404()
+    if context is None:
+        context = {}
     context.update({
         'object_list': page.object_list,
         'paginator': paginator,
@@ -137,7 +139,7 @@ def forum(request, slug):
             return _process_new_article(request, article, True, True)
     else:
         form = forms.TopicForm(forum, request.user, request.META.get('REMOTE_ADDR'))
-    return _object_list(request, forum.topic_set.filter(spam_status='clean').select_related('forum'), {
+    return object_list(request, forum.topic_set.filter(spam_status='clean').select_related('forum'), {
         'forum': forum,
         'form': form,
         'page_id': 'forum',
@@ -162,7 +164,7 @@ def topic(request, slug, id):
         if changed:
             profile.save()
             caching.invalidate_by_user(request)
-    return _object_list(request, t.article_set.filter(spam_status='clean').select_related(), {
+    return object_list(request, t.article_set.filter(spam_status='clean').select_related(), {
         'topic': t,
         'form': form,
         'page_id': 'topic',
@@ -189,14 +191,10 @@ scipio.signals.authenticated.connect(user_authenticated)
 
 def user_topics(request, id):
     profile = get_object_or_404(Profile, pk=id)
-    return object_list(request,
-        queryset=profile.topics(),
-        allow_empty=True,
-        paginate_by=settings.CICERO_PAGINATE_BY,
+    return object_list(request, 
+        profile.topics(),
+        {'author_profile': profile},
         template_name='cicero/user_topics.html',
-        extra_context={
-            'author_profile': profile,
-        }
     )
 
 def _profile_forms(request):
@@ -361,15 +359,12 @@ def deleted_articles(request, user_only):
     queryset = Article.deleted_objects.select_related()
     if user_only:
         queryset = queryset.filter(author=profile)
-    kwargs = {
-        'queryset': queryset,
-        'template_name': 'cicero/article_deleted_list.html',
-        'extra_context': {
-            'user_only': user_only and profile,
-        },
-    }
-    kwargs.update(generic_info)
-    return object_list(request, **kwargs)
+    return object_list(
+        request, 
+        queryset,
+        {'user_only': user_only and profile},
+        template_name = 'cicero/article_deleted_list.html',
+    )
 
 @login_required
 def article_publish(request, id):
@@ -417,13 +412,11 @@ def delete_spam(request):
 def spam_queue(request):
     if not request.user.cicero_profile.moderator:
         return HttpResponseForbidden('Нет прав просматривать спам')
-    queryset = Article.objects.exclude(spam_status='clean').order_by('-created').select_related()
-    kwargs = {
-        'queryset': queryset,
-        'template_name': 'cicero/spam_queue.html',
-    }
-    kwargs.update(generic_info)
-    return object_list(request, **kwargs)
+    return object_list(
+        request, 
+        Article.objects.exclude(spam_status='clean').order_by('-created').select_related(),
+        template_name='cicero/spam_queue.html',
+    )
 
 @login_required
 def topic_edit(request, topic_id):
