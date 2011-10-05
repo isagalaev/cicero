@@ -5,7 +5,6 @@ from django.conf import settings
 from cicero import views
 from cicero import feeds
 from cicero.models import Forum, Topic, Article, Profile
-from cicero.context import default
 
 
 urlpatterns = patterns('',
