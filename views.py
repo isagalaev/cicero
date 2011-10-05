@@ -189,6 +189,13 @@ def user_authenticated(sender, user, op=None, acquire=None, **kwargs):
             pass
 scipio.signals.authenticated.connect(user_authenticated)
 
+def user(request, id):
+    profile = get_object_or_404(Profile, pk=id)
+    return render_to_response(request, 'cicero/profile_detail.html', {
+        'object': profile,
+        'page_id': 'profile',
+    })
+
 def user_topics(request, id):
     profile = get_object_or_404(Profile, pk=id)
     return object_list(request, 

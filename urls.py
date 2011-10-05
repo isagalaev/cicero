@@ -1,21 +1,16 @@
 # -*- coding:utf-8 -*-
 from django.conf.urls.defaults import *
 from django.conf import settings
-from django.views.generic.list_detail import object_list, object_detail
-
 
 from cicero import views
 from cicero import feeds
 from cicero.models import Forum, Topic, Article, Profile
 from cicero.context import default
 
+
 urlpatterns = patterns('',
     (r'^users/', include('scipio.urls')),
-    url(r'^users/(?P<object_id>\d+)/$', object_detail, {
-        'queryset': Profile.objects.all(),
-        'context_processors': [default],
-        'extra_context': {'page_id': 'profile'},
-    }, name='profile'),
+    url(r'^users/(\d+)/$', views.user, name='profile'),
     (r'^users/(\d+)/topics/$', views.user_topics),
     (r'^users/self/$', views.edit_profile),
     (r'^users/self/openid/$', views.change_openid),
