@@ -28,6 +28,23 @@ def render_to_response(request, template_name, context_dict, **kwargs):
     context = RequestContext(request, context_dict, [default])
     return _render_to_response(template_name, context_instance=context, **kwargs)
 
+def _object_list(request, queryset, context):
+    template_name = 'cicero/%s_list.html' % queryset.model._meta.object_name.lower()
+    paginator = Paginator(queryset, settings.CICERO_PAGINATE_BY)
+    page_num = request.GET.get('page', '1')
+    if page_num == 'last':
+        page_num = paginator.num_pages
+    try:
+        page = paginator.page(int(page_num))
+    except (InvalidPage, ValueError):
+        raise Http404()
+    context.update({
+        'object_list': page.object_list,
+        'paginator': paginator,
+        'page_obj': page,
+    })
+    return render_to_response(request, template_name, context)
+
 class JSONResponse(HttpResponse):
     def __init__(self, data, **kwargs):
         defaults = {
@@ -111,7 +128,7 @@ def index(request):
 
 @never_cache
 @condition(caching.user_etag, caching.latest_change)
-def forum(request, slug, **kwargs):
+def forum(request, slug):
     forum = get_object_or_404(Forum, slug=slug)
     if request.method == 'POST':
         form = forms.TopicForm(forum, request.user, request.META.get('REMOTE_ADDR'), request.POST)
@@ -120,13 +137,15 @@ def forum(request, slug, **kwargs):
             return _process_new_article(request, article, True, True)
     else:
         form = forms.TopicForm(forum, request.user, request.META.get('REMOTE_ADDR'))
-    kwargs['queryset'] = forum.topic_set.filter(spam_status='clean').select_related('forum')
-    kwargs['extra_context'] = {'forum': forum, 'form': form, 'page_id': 'forum'}
-    return object_list(request, **kwargs)
+    return _object_list(request, forum.topic_set.filter(spam_status='clean').select_related('forum'), {
+        'forum': forum,
+        'form': form,
+        'page_id': 'forum',
+    })
 
 @never_cache
 @condition(caching.user_etag, caching.latest_change)
-def topic(request, slug, id, **kwargs):
+def topic(request, slug, id):
     t = get_object_or_404(Topic, pk=id)
     if t.forum.slug != slug: # topic was moved
         return redirect(topic, t.forum.slug, t.pk)
@@ -143,9 +162,12 @@ def topic(request, slug, id, **kwargs):
         if changed:
             profile.save()
             caching.invalidate_by_user(request)
-    kwargs['queryset'] = t.article_set.filter(spam_status='clean').select_related()
-    kwargs['extra_context'] = {'topic': t, 'form': form, 'page_id': 'topic', 'show_last_link': True}
-    return object_list(request, **kwargs)
+    return _object_list(request, t.article_set.filter(spam_status='clean').select_related(), {
+        'topic': t,
+        'form': form,
+        'page_id': 'topic',
+        'show_last_link': True,
+    })
 
 def user_authenticated(sender, user, op=None, acquire=None, **kwargs):
     if op == 'login':

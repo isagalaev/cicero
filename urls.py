@@ -9,8 +9,6 @@ from cicero import feeds
 from cicero.models import Forum, Topic, Article, Profile
 from cicero.context import default
 
-info = views.generic_info
-
 urlpatterns = patterns('',
     (r'^users/', include('scipio.urls')),
     url(r'^users/(?P<object_id>\d+)/$', object_detail, {
@@ -40,7 +38,7 @@ urlpatterns = patterns('',
     (r'^topic_spawn/(\d+)/$', views.topic_spawn),
     url(r'^feeds/articles/([a-z0-9-]+)/$', feeds.Article(), name='cicero_forum_feed'),
     url(r'^feeds/articles/([a-z0-9-]+)/(\d+)/$', feeds.Article(), name='cicero_topic_feed'),
-    (r'^([a-z0-9-]+)/$', views.forum, info),
-    (r'^([a-z0-9-]+)/(\d+)/$', views.topic, info),
+    (r'^([a-z0-9-]+)/$', views.forum),
+    (r'^([a-z0-9-]+)/(\d+)/$', views.topic),
     (r'^([a-z0-9-]+)/search/$', views.search),
 )
