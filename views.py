@@ -254,7 +254,7 @@ def post_profile(request, form_name):
     forms[form_name] = form
     if form.is_valid():
         form.save()
-        return redirect('../')
+        return redirect('cicero-self')
     return _profile_page(request, forms)
 
 @require_POST
