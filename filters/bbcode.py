@@ -505,7 +505,7 @@ class BBCodeParser:
                             # in case of "[[tag]blah":
                             self.push_text_node('[')
                         # push it
-                        if wholematch.startswith('[/'):
+                        if wholematch.startswith('[/') or wholematch.startswith('[[/'):
                             # closing
                             self.close_tag_node(tagname)
                         else:
