@@ -17,13 +17,12 @@ from django.conf import settings
 import scipio.signals
 from scipio.models import Profile as ScipioProfile
 import pingdjack
-from smorg_style.utils import usertext
 
 from cicero import fields
 from cicero.filters import filters
 from cicero.mutants import mutant
 from cicero import utils
-from cicero.utils import ranges
+from cicero.utils import ranges, usertext
 
 class Profile(models.Model):
     user = fields.AutoOneToOneField(User, related_name='cicero_profile', primary_key=True)
@@ -267,7 +266,7 @@ class Article(models.Model):
             result = filters[self.filter](self.text)
         else:
             result = linebreaks(escape(self.text))
-        return mark_safe(usertext(result))
+        return mark_safe(usertext.usertext(result))
 
     def from_guest(self):
         '''
