@@ -3,6 +3,8 @@ import cPickle as pickle
 
 from django.db import models
 from django.db.models.fields.related import SingleRelatedObjectDescriptor
+from django.conf import settings
+
 
 class AutoSingleRelatedObjectDescriptor(SingleRelatedObjectDescriptor): # this line just can't be too long, right?
     def __get__(self, instance, instance_type=None):
@@ -36,3 +38,15 @@ class RangesField(models.TextField):
 
     def get_prep_value(self, value):
         return unicode(pickle.dumps(value))
+
+
+if 'south' in settings.INSTALLED_APPS:
+    rules = [
+        (
+            (AutoOneToOneField, RangesField),
+            [],
+            {},
+        )
+    ]
+    from south.modelsinspector import add_introspection_rules
+    add_introspection_rules(rules, ["^cicero\.fields"])
