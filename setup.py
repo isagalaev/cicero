@@ -10,12 +10,13 @@ setup(
         'cicero.filters',
         'cicero.management',
         'cicero.management.commands',
+        'cicero.migrations',
         'cicero.templatetags',
         'cicero.utils',
     ],
 
     package_data={
-        'cicero': ['templates/cicero/*.html']
+        'cicero': ['templates/cicero/*']
     },
 
     author='Ivan Sagalaev',
