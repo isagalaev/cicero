@@ -10,6 +10,7 @@ setup(
         'cicero.filters',
         'cicero.management',
         'cicero.management.commands',
+        'cicero.migrations',
         'cicero.templatetags',
         'cicero.utils',
     ],
