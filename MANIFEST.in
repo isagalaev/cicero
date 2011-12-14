@@ -1,1 +1,2 @@
 include INSTALL
+recursive-include cicero/templates *.html *.xml
