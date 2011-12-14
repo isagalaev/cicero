@@ -1,2 +1,6 @@
 South>=0.7
 html5lib
+PIL
+markdown2
+scipio
+pingdjack
