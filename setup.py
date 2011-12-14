@@ -15,7 +15,7 @@ setup(
     ],
 
     package_data={
-        'cicero': ['templates/cicero/*.html']
+        'cicero': ['templates/cicero/*']
     },
 
     author='Ivan Sagalaev',
