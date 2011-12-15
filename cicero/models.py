@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-import re
 import os
 from datetime import datetime, date, timedelta
 from StringIO import StringIO
@@ -10,7 +9,6 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
-from django.contrib.sites.models import Site
 from django.utils.safestring import mark_safe
 from django.utils.html import linebreaks, escape
 from django.conf import settings
