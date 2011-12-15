@@ -27,7 +27,7 @@ from cicero.utils import ranges, usertext
 class Profile(models.Model):
     user = fields.AutoOneToOneField(User, related_name='cicero_profile', primary_key=True)
     filter = models.CharField(u'Фильтр', max_length=50, choices=[(k, k) for k in filters.keys()], default='bbcode')
-    mutant = models.ImageField(upload_to='mutants', null=True)
+    mutant = models.ImageField(upload_to='mutants', null=True, blank=True)
     read_articles = fields.RangesField(editable=False)
     moderator = models.BooleanField(default=False)
 
@@ -183,7 +183,7 @@ class Topic(models.Model):
     forum = models.ForeignKey(Forum)
     subject = models.CharField(u'Тема', max_length=255)
     created = models.DateTimeField(default=datetime.now, db_index=True)
-    deleted = models.DateTimeField(null=True, db_index=True)
+    deleted = models.DateTimeField(null=True, db_index=True, blank=True)
     spam_status = models.CharField(max_length=20, default='clean')
 
     objects = TopicManager()
@@ -230,8 +230,9 @@ class Article(models.Model):
     updated = models.DateTimeField(auto_now=True, db_index=True)
     author = models.ForeignKey(Profile)
     guest_name = models.CharField(max_length=255, blank=True)
-    deleted = models.DateTimeField(null=True, db_index=True)
-    spawned_to = models.OneToOneField(Topic, null=True, related_name='spawned_from_article')
+    deleted = models.DateTimeField(null=True, db_index=True, blank=True)
+    spawned_to = models.OneToOneField(Topic, null=True, blank=True,
+                                      related_name='spawned_from_article')
     spam_status = models.CharField(max_length=20, default='clean')
     ip = models.IPAddressField(default='127.0.0.1')
     votes_up = models.PositiveIntegerField(default=0, editable=False)
