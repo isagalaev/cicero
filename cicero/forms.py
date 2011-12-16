@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 from django.forms import *
 from django.contrib.auth.models import User
-from django.conf import settings
 
 from cicero.models import Topic, Article, Profile
+
 
 def model_field(model, fieldname, **kwargs):
     return model._meta.get_field(fieldname).formfield(**kwargs)

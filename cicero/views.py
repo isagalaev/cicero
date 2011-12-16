@@ -12,7 +12,7 @@ from scipio.forms import AuthForm, ProfileForm
 from scipio.models import Profile as ScipioProfile
 import scipio.signals
 
-from cicero.models import Forum, Topic, Article, Profile, Vote
+from cicero.models import Forum, Topic, Article, Profile
 from cicero import forms
 from cicero import caching
 from cicero import antispam
@@ -191,7 +191,7 @@ def user(request, id):
 
 def user_topics(request, id):
     profile = get_object_or_404(Profile, pk=id)
-    return object_list(request, 
+    return object_list(request,
         profile.topics(),
         {'author_profile': profile},
         template_name='cicero/user_topics.html',
@@ -362,7 +362,7 @@ def deleted_articles(request, user_only):
     if user_only:
         queryset = queryset.filter(author=profile)
     return object_list(
-        request, 
+        request,
         queryset,
         {'user_only': user_only and profile},
         template_name = 'cicero/article_deleted_list.html',
@@ -415,7 +415,7 @@ def spam_queue(request):
     if not request.user.cicero_profile.moderator:
         return HttpResponseForbidden('Нет прав просматривать спам')
     return object_list(
-        request, 
+        request,
         Article.objects.exclude(spam_status='clean').order_by('-created').select_related(),
         template_name='cicero/spam_queue.html',
     )
