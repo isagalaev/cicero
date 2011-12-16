@@ -207,6 +207,7 @@ def _profile_forms(request):
         'openid': AuthForm(request.session, initial={'openid_identifier': scipio_profile and scipio_profile.openid}),
         'personal': scipio_profile and ProfileForm(instance=scipio_profile),
         'settings': forms.SettingsForm(instance=cicero_profile),
+        'object': cicero_profile,
     }
 
 def _profile_page(request, forms):
