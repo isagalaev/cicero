@@ -140,7 +140,7 @@ def forum(request, slug):
 @never_cache
 @condition(caching.user_etag, caching.latest_change)
 def topic(request, slug, id):
-    t = get_object_or_404(Topic, pk=id)
+    t = get_object_or_404(Topic.objects.select_related(), pk=id)
     if t.forum.slug != slug: # topic was moved
         return redirect(topic, t.forum.slug, t.pk)
     if request.method == 'POST':
@@ -158,6 +158,7 @@ def topic(request, slug, id):
             caching.invalidate_by_user(request)
     return object_list(request, t.article_set.filter(spam_status='clean').select_related(), {
         'topic': t,
+        'forum': t.forum,
         'form': form,
         'page_id': 'topic',
         'show_last_link': True,
@@ -278,7 +279,7 @@ def article_preview(request):
 
 @login_required
 def article_edit(request, id):
-    article = get_object_or_404(Article, pk=id)
+    article = get_object_or_404(Article.objects.select_related(depth=2), pk=id)
     if not request.user.cicero_profile.can_change_article(article):
         return HttpResponseForbidden('Нет прав для редактирования')
     if request.method == 'POST':
@@ -293,6 +294,8 @@ def article_edit(request, id):
     return response(request, 'cicero/article_edit.html', {
         'form': form,
         'article': article,
+        'topic': article.topic,
+        'forum': article.topic.forum,
     })
 
 @require_POST
@@ -419,7 +422,7 @@ def spam_queue(request):
 
 @login_required
 def topic_edit(request, topic_id):
-    t = get_object_or_404(Topic, pk=topic_id)
+    t = get_object_or_404(Topic.objects.select_related(), pk=topic_id)
     if not request.user.cicero_profile.can_change_topic(t):
         return HttpResponseForbidden('Нет прав редактировать топик')
     form_class = forms.TopicEditModeratorForm if request.user.cicero_profile.moderator else forms.TopicEditForm
@@ -431,6 +434,7 @@ def topic_edit(request, topic_id):
     return response(request, 'cicero/topic_edit.html', {
         'form': form,
         'topic': t,
+        'forum': t.forum,
     })
 
 @login_required
