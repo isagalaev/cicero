@@ -24,7 +24,8 @@ from cicero.utils import ranges, usertext
 
 class Profile(models.Model):
     user = fields.AutoOneToOneField(User, related_name='cicero_profile', primary_key=True)
-    filter = models.CharField(u'Фильтр', max_length=50, choices=[(k, k) for k in filters.keys()], default='bbcode')
+    filter = models.CharField(u'Фильтр', max_length=50, default='markdown',
+                              choices=[(k, k) for k in filters.keys()])
     mutant = models.ImageField(upload_to='mutants', null=True, blank=True)
     read_articles = fields.RangesField(editable=False)
     moderator = models.BooleanField(default=False)
