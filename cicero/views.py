@@ -442,7 +442,9 @@ def topic_edit(request, topic_id):
 def topic_spawn(request, article_id):
     if not request.user.cicero_profile.moderator:
         return HttpResponseForbidden('Нет прав отщеплять топики')
-    article = get_object_or_404(Article, pk=article_id)
+
+    article = get_object_or_404(Article.objects.select_related(depth=2), pk=article_id)
+
     if request.method == 'POST':
         form = forms.SpawnForm(article, request.POST)
         if form.is_valid():
@@ -450,9 +452,12 @@ def topic_spawn(request, article_id):
             return redirect(topic, new_topic.forum.slug, new_topic.id)
     else:
         form = forms.SpawnForm(article)
+
     return response(request, 'cicero/spawn_topic.html', {
         'form': form,
         'article': article,
+        'topic': article.topic,
+        'forum': article.topic.forum,
     })
 
 class SearchUnavailable(Exception):
