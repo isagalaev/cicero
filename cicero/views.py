@@ -51,7 +51,7 @@ class JSONResponse(HttpResponse):
           'content_type': 'application/json',
         }
         defaults.update(kwargs)
-        super(JSONResponse, self).__init__(simplejson.dumps(data), defaults)
+        super(JSONResponse, self).__init__(simplejson.dumps(data), **defaults)
 
 def post_redirect(request):
     return request.POST.get('redirect', request.META.get('HTTP_REFERER', '/'))
