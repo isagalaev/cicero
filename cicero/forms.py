@@ -1,15 +1,15 @@
 # -*- coding:utf-8 -*-
 from django.forms import *
 from django.contrib.auth.models import User
-from django.conf import settings
 
 from cicero.models import Topic, Article, Profile
+
 
 def model_field(model, fieldname, **kwargs):
     return model._meta.get_field(fieldname).formfield(**kwargs)
 
 class PostForm(Form):
-    text = model_field(Article, 'text', widget=Textarea(attrs={'cols': '80', 'rows': '20'}))
+    text = model_field(Article, 'text', widget=Textarea())
     name = CharField(label=u'Имя', required=False)
     filter = model_field(Article, 'filter', required=False)
 
@@ -77,7 +77,7 @@ class ArticleEditForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ArticleEditForm, self).__init__(*args, **kwargs)
-        self.fields['text'].widget = Textarea(attrs={'cols': '80', 'rows': '20'})
+        self.fields['text'].widget = Textarea()
 
 class PreviewForm(ModelForm):
     class Meta:
