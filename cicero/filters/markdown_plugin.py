@@ -1,15 +1,9 @@
 # -*- coding:utf-8 -*-
 
-try:
-    from markdown2 import markdown
+import markdown
 
-    def to_html(value):
-        return markdown(value, safe_mode='escape')
-except ImportError:
-    from markdown import markdown
-
-    def to_html(value):
-        return markdown(value, safe_mode=True)
+def to_html(value):
+    return markdown.markdown(value, safe_mode='escape', enable_attributes=False)
 
 def name():
     return 'markdown'
