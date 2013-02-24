@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-import re
 import os
 from datetime import datetime, date, timedelta
 from StringIO import StringIO
@@ -10,7 +9,6 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
-from django.contrib.sites.models import Site
 from django.utils.safestring import mark_safe
 from django.utils.html import linebreaks, escape
 from django.conf import settings
@@ -26,8 +24,9 @@ from cicero.utils import ranges, usertext
 
 class Profile(models.Model):
     user = fields.AutoOneToOneField(User, related_name='cicero_profile', primary_key=True)
-    filter = models.CharField(u'Фильтр', max_length=50, choices=[(k, k) for k in filters.keys()], default='bbcode')
-    mutant = models.ImageField(upload_to='mutants', null=True)
+    filter = models.CharField(u'Фильтр', max_length=50, default='markdown',
+                              choices=[(k, k) for k in filters.keys()])
+    mutant = models.ImageField(upload_to='mutants', null=True, blank=True)
     read_articles = fields.RangesField(editable=False)
     moderator = models.BooleanField(default=False)
 
@@ -109,24 +108,27 @@ class Profile(models.Model):
 
         # Нужно еще раз считать read_articles с "for update", чтобы параллельные транзакции
         # не затирали друг друга
-        cursor = connection.cursor()
-        sql = 'select read_articles from %s where %s = %%s for update' % (self._meta.db_table, self._meta.pk.attname)
-        cursor.execute('begin')
-        cursor.execute(sql, [self._get_pk_val()])
-        self.read_articles = cursor.fetchone()[0]
+        self.read_articles = (Profile.objects.select_for_update()
+                                             .filter(pk=self._get_pk_val())
+                                             .values_list('read_articles', flat=True)[0])
 
         query = Q()
+
         for range in self.read_articles:
             query = query | Q(id__range=range)
+
         ids = [a['id'] for a in articles.exclude(query).values('id')]
         merged = self.read_articles
+
         for range in ranges.compile_ranges(ids):
             merged = ranges.merge_range(range, merged)
+
         try:
             article = Article.objects.filter(created__lt=date.today() - timedelta(settings.CICERO_UNREAD_TRACKING_PERIOD)).order_by('-created')[0]
             merged = ranges.merge_range((0, article.id), merged)
         except IndexError:
             pass
+
         if self.read_articles != merged:
             self.read_articles = merged
             return True
@@ -183,7 +185,7 @@ class Topic(models.Model):
     forum = models.ForeignKey(Forum)
     subject = models.CharField(u'Тема', max_length=255)
     created = models.DateTimeField(default=datetime.now, db_index=True)
-    deleted = models.DateTimeField(null=True, db_index=True)
+    deleted = models.DateTimeField(null=True, db_index=True, blank=True)
     spam_status = models.CharField(max_length=20, default='clean')
 
     objects = TopicManager()
@@ -230,8 +232,9 @@ class Article(models.Model):
     updated = models.DateTimeField(auto_now=True, db_index=True)
     author = models.ForeignKey(Profile)
     guest_name = models.CharField(max_length=255, blank=True)
-    deleted = models.DateTimeField(null=True, db_index=True)
-    spawned_to = models.OneToOneField(Topic, null=True, related_name='spawned_from_article')
+    deleted = models.DateTimeField(null=True, db_index=True, blank=True)
+    spawned_to = models.OneToOneField(Topic, null=True, blank=True,
+                                      related_name='spawned_from_article')
     spam_status = models.CharField(max_length=20, default='clean')
     ip = models.IPAddressField(default='127.0.0.1')
     votes_up = models.PositiveIntegerField(default=0, editable=False)

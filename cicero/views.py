@@ -12,7 +12,7 @@ from scipio.forms import AuthForm, ProfileForm
 from scipio.models import Profile as ScipioProfile
 import scipio.signals
 
-from cicero.models import Forum, Topic, Article, Profile, Vote
+from cicero.models import Forum, Topic, Article, Profile
 from cicero import forms
 from cicero import caching
 from cicero import antispam
@@ -51,7 +51,7 @@ class JSONResponse(HttpResponse):
           'content_type': 'application/json',
         }
         defaults.update(kwargs)
-        super(JSONResponse, self).__init__(simplejson.dumps(data), defaults)
+        super(JSONResponse, self).__init__(simplejson.dumps(data), **defaults)
 
 def post_redirect(request):
     return request.POST.get('redirect', request.META.get('HTTP_REFERER', '/'))
@@ -140,7 +140,7 @@ def forum(request, slug):
 @never_cache
 @condition(caching.user_etag, caching.latest_change)
 def topic(request, slug, id):
-    t = get_object_or_404(Topic, pk=id)
+    t = get_object_or_404(Topic.objects.select_related(), pk=id)
     if t.forum.slug != slug: # topic was moved
         return redirect(topic, t.forum.slug, t.pk)
     if request.method == 'POST':
@@ -158,6 +158,7 @@ def topic(request, slug, id):
             caching.invalidate_by_user(request)
     return object_list(request, t.article_set.filter(spam_status='clean').select_related(), {
         'topic': t,
+        'forum': t.forum,
         'form': form,
         'page_id': 'topic',
         'show_last_link': True,
@@ -190,7 +191,7 @@ def user(request, id):
 
 def user_topics(request, id):
     profile = get_object_or_404(Profile, pk=id)
-    return object_list(request, 
+    return object_list(request,
         profile.topics(),
         {'author_profile': profile},
         template_name='cicero/user_topics.html',
@@ -206,6 +207,7 @@ def _profile_forms(request):
         'openid': AuthForm(request.session, initial={'openid_identifier': scipio_profile and scipio_profile.openid}),
         'personal': scipio_profile and ProfileForm(instance=scipio_profile),
         'settings': forms.SettingsForm(instance=cicero_profile),
+        'object': cicero_profile,
     }
 
 def _profile_page(request, forms):
@@ -278,7 +280,7 @@ def article_preview(request):
 
 @login_required
 def article_edit(request, id):
-    article = get_object_or_404(Article, pk=id)
+    article = get_object_or_404(Article.objects.select_related(depth=2), pk=id)
     if not request.user.cicero_profile.can_change_article(article):
         return HttpResponseForbidden('Нет прав для редактирования')
     if request.method == 'POST':
@@ -293,6 +295,8 @@ def article_edit(request, id):
     return response(request, 'cicero/article_edit.html', {
         'form': form,
         'article': article,
+        'topic': article.topic,
+        'forum': article.topic.forum,
     })
 
 @require_POST
@@ -359,7 +363,7 @@ def deleted_articles(request, user_only):
     if user_only:
         queryset = queryset.filter(author=profile)
     return object_list(
-        request, 
+        request,
         queryset,
         {'user_only': user_only and profile},
         template_name = 'cicero/article_deleted_list.html',
@@ -412,14 +416,14 @@ def spam_queue(request):
     if not request.user.cicero_profile.moderator:
         return HttpResponseForbidden('Нет прав просматривать спам')
     return object_list(
-        request, 
+        request,
         Article.objects.exclude(spam_status='clean').order_by('-created').select_related(),
         template_name='cicero/spam_queue.html',
     )
 
 @login_required
 def topic_edit(request, topic_id):
-    t = get_object_or_404(Topic, pk=topic_id)
+    t = get_object_or_404(Topic.objects.select_related(), pk=topic_id)
     if not request.user.cicero_profile.can_change_topic(t):
         return HttpResponseForbidden('Нет прав редактировать топик')
     form_class = forms.TopicEditModeratorForm if request.user.cicero_profile.moderator else forms.TopicEditForm
@@ -431,13 +435,16 @@ def topic_edit(request, topic_id):
     return response(request, 'cicero/topic_edit.html', {
         'form': form,
         'topic': t,
+        'forum': t.forum,
     })
 
 @login_required
 def topic_spawn(request, article_id):
     if not request.user.cicero_profile.moderator:
         return HttpResponseForbidden('Нет прав отщеплять топики')
-    article = get_object_or_404(Article, pk=article_id)
+
+    article = get_object_or_404(Article.objects.select_related(depth=2), pk=article_id)
+
     if request.method == 'POST':
         form = forms.SpawnForm(article, request.POST)
         if form.is_valid():
@@ -445,9 +452,12 @@ def topic_spawn(request, article_id):
             return redirect(topic, new_topic.forum.slug, new_topic.id)
     else:
         form = forms.SpawnForm(article)
+
     return response(request, 'cicero/spawn_topic.html', {
         'form': form,
         'article': article,
+        'topic': article.topic,
+        'forum': article.topic.forum,
     })
 
 class SearchUnavailable(Exception):
